@@ -1,0 +1,27 @@
+{
+	"name": "fuga-del-real-felipe",
+	"version": "0.1.0",
+	"description": "Juego 2D top-down de escape ambientado en el sitio del Callao (1824-1826). Proyecto de Videojuegos I.",
+	"private": true,
+	"type": "module",
+	"engines": {
+		"node": "^20.19.0 || >=22.12.0"
+	},
+	"scripts": {
+		"dev": "vite",
+		"build": "vite build",
+		"preview": "vite preview",
+		"lint": "eslint .",
+		"format": "prettier --write ."
+	},
+	"dependencies": {
+		"phaser": "^4.2.1"
+	},
+	"devDependencies": {
+		"@eslint/js": "^10.0.1",
+		"eslint": "^10.15.0",
+		"globals": "^17.14.0",
+		"prettier": "^3.10.1",
+		"vite": "^8.3.8"
+	}
+}
