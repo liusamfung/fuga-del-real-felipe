@@ -8,6 +8,17 @@ export class Entrada {
 		const teclado = escena.input.keyboard;
 		this.flechas = teclado.createCursorKeys();
 		this.wasd = teclado.addKeys({ arriba: 'W', abajo: 'S', izquierda: 'A', derecha: 'D' });
+		this.puntero = escena.input.activePointer;
+	}
+
+	/** Punto de la sala al que apunta el ratón, en píxeles. */
+	puntoDeApuntado() {
+		return { x: this.puntero.worldX, y: this.puntero.worldY };
+	}
+
+	/** Verdadero mientras el botón izquierdo del ratón está pulsado (un clic o mantenerlo). */
+	estaDisparando() {
+		return this.puntero.leftButtonDown();
 	}
 
 	/** Dirección de movimiento con largo 1 (o (0, 0) si no hay teclas pulsadas). */

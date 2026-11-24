@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { CONFIG, ESCENAS } from '../config.js';
 import { SALA_DE_PRUEBA } from '../datos/salaDePrueba.js';
 import { Jugador } from '../entidades/Jugador.js';
+import { Disparo } from '../sistemas/Disparo.js';
 import { Entrada } from '../sistemas/Entrada.js';
 
 // Una sala con el jugador dentro. Por ahora es siempre la sala de prueba.
@@ -21,10 +22,18 @@ export class EscenaJuego extends Phaser.Scene {
 		const { x, y } = SALA_DE_PRUEBA.jugadorInicial;
 		this.jugador = new Jugador(this, x, y);
 		this.physics.add.collider(this.jugador, this.bloques);
+
+		this.disparo = new Disparo(this, this.bloques);
+		this.input.setDefaultCursor('crosshair');
 	}
 
 	update() {
 		this.jugador.mover(this.entrada.direccionDeMovimiento());
+
+		if (this.entrada.estaDisparando()) {
+			this.disparo.intentarDisparar(this.jugador, this.entrada.puntoDeApuntado());
+		}
+		this.disparo.actualizar();
 	}
 
 	#crearSuelo() {
