@@ -10,13 +10,16 @@ export class Bala extends Phaser.Physics.Arcade.Image {
 		this.dano = 0;
 	}
 
-	/** Activa la bala en (x, y) y la lanza en la dirección dada (un vector de largo 1). */
-	disparar(x, y, direccion) {
-		const { VELOCIDAD_BALA, DANO, PROFUNDIDAD_BALAS } = CONFIG.DISPARO;
+	/**
+	 * Activa la bala en (x, y) y la lanza en la dirección dada (un vector de largo 1).
+	 * `dano` es lo que le quita a lo que golpee (el ataque del jugador).
+	 */
+	disparar(x, y, direccion, dano) {
+		const { VELOCIDAD_BALA, PROFUNDIDAD_BALAS } = CONFIG.DISPARO;
 
 		this.enableBody(true, x, y, true, true);
 		this.setDepth(PROFUNDIDAD_BALAS);
-		this.dano = DANO;
+		this.dano = dano;
 		this.setVelocity(direccion.x * VELOCIDAD_BALA, direccion.y * VELOCIDAD_BALA);
 	}
 

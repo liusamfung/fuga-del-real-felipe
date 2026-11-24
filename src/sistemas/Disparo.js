@@ -22,9 +22,10 @@ export class Disparo {
 
 	/**
 	 * Dispara desde `origen` hacia `objetivo`, si ya pasó el tiempo de la cadencia.
-	 * Ambos son objetos con `x` e `y`. Devuelve verdadero si salió una bala.
+	 * Ambos son objetos con `x` e `y`. `dano` es el daño de la bala (el ataque del jugador).
+	 * Devuelve verdadero si salió una bala.
 	 */
-	intentarDisparar(origen, objetivo) {
+	intentarDisparar(origen, objetivo, dano) {
 		const ahora = this.escena.time.now;
 		if (ahora < this.proximoDisparo) {
 			return false;
@@ -40,7 +41,7 @@ export class Disparo {
 			return false; // todas las balas están en el aire
 		}
 
-		bala.disparar(origen.x, origen.y, direccion);
+		bala.disparar(origen.x, origen.y, direccion, dano);
 		this.proximoDisparo = ahora + CONFIG.DISPARO.CADENCIA;
 		return true;
 	}

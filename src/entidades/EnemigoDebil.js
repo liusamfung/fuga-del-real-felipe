@@ -11,9 +11,10 @@ export class EnemigoDebil extends Phaser.Physics.Arcade.Sprite {
 		escena.add.existing(this);
 		escena.physics.add.existing(this);
 
-		const { ANCHO, ALTO, CUERPO_ANCHO, CUERPO_ALTO, VIDA, VELOCIDAD } = CONFIG.ENEMIGO_DEBIL;
+		const { ANCHO, ALTO, CUERPO_ANCHO, CUERPO_ALTO, VIDA, VELOCIDAD, DANO } = CONFIG.ENEMIGO_DEBIL;
 		this.vida = VIDA;
 		this.velocidad = VELOCIDAD;
+		this.dano = DANO; // lo que le quita al jugador al tocarlo
 
 		// Igual que el jugador: el cuerpo de choque son solo los pies.
 		this.body.setSize(CUERPO_ANCHO, CUERPO_ALTO);
