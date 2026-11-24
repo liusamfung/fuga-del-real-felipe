@@ -1,8 +1,13 @@
 import Phaser from 'phaser';
 import { CONFIG } from './config.js';
 import { EscenaArranque } from './escenas/EscenaArranque.js';
+import { EscenaJuego } from './escenas/EscenaJuego.js';
 
-new Phaser.Game({
+// Agregar ?debug a la dirección (http://localhost:5173/?debug) activa el modo de depuración:
+// muestra los cuerpos de choque y deja el juego accesible desde la consola como `window.juego`.
+const modoDebug = new URLSearchParams(window.location.search).has('debug');
+
+const juego = new Phaser.Game({
 	type: Phaser.AUTO,
 	width: CONFIG.ANCHO,
 	height: CONFIG.ALTO,
@@ -17,7 +22,11 @@ new Phaser.Game({
 	},
 	physics: {
 		default: 'arcade',
-		arcade: { debug: false },
+		arcade: { debug: modoDebug },
 	},
-	scene: [EscenaArranque],
+	scene: [EscenaArranque, EscenaJuego],
 });
+
+if (modoDebug) {
+	window.juego = juego;
+}
