@@ -18,5 +18,9 @@ export const SALA_DE_PRUEBA = Object.freeze({
 		{ x: 544, y: 384, ancho: 64, alto: 64 },
 		{ x: 352, y: 448, ancho: 64, alto: 64 },
 	],
+	enemigos: [
+		{ x: 620, y: 140 },
+		{ x: 180, y: 470 },
+	],
 	jugadorInicial: { x: ANCHO / 2, y: ALTO / 2 },
 });

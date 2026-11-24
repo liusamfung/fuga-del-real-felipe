@@ -28,6 +28,21 @@ export const CONFIG = Object.freeze({
 		VELOCIDAD: 220,
 	}),
 
+	// Los mensajes en pantalla se dibujan por encima de todo, incluso de las balas.
+	PROFUNDIDAD_MENSAJES: 2000,
+
+	// Enemigo débil de las salas de alrededor. Su comportamiento (por ahora solo camina hacia
+	// el jugador) está por definir; ver docs/decisiones-pendientes.md.
+	ENEMIGO_DEBIL: Object.freeze({
+		ANCHO: 32,
+		ALTO: 32,
+		CUERPO_ANCHO: 24,
+		CUERPO_ALTO: 20,
+		VIDA: 3,
+		VELOCIDAD: 70,
+		DESTELLO: 80, // ms que se ve blanco al recibir un golpe
+	}),
+
 	DISPARO: Object.freeze({
 		CADENCIA: 250, // ms mínimos entre un disparo y el siguiente
 		VELOCIDAD_BALA: 520,
