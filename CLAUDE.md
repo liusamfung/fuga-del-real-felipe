@@ -28,5 +28,5 @@ en el resto de la asignatura. Los nombres propios de la API de Phaser se quedan 
   poder probarla con tests.
 - Phaser 4: el tiempo de la palabra a deletrear debe medirse en tiempo real, no con
   `time.timeScale` (el mundo va en cámara lenta, la barra no).
-- Estructura el código para que pueda haber más de un jugador (lista de jugadores y acciones de
-  entrada), porque la tarea pide modo multijugador.
+- El modo multijugador que pide la tarea está **aplazado**: no se programa nada de red ni de varios
+  jugadores a menos que el profesor lo exija (se haría al final).

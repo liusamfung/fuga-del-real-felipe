@@ -74,16 +74,11 @@ balance sin tocar la lógica.
 - `niveles.js`: fondo, música y parámetros de cada piso.
 - `recursos.js`: catálogo de claves de imágenes y audio (ver [`guia-de-recursos.md`](guia-de-recursos.md)).
 
-## 7. Preparado para multijugador
+## 7. Multijugador (aplazado)
 
-Aunque todavía no se haya decidido el tipo de multijugador, conviene construir desde el principio
-de modo que **no haya que reescribir todo**:
-
-- El jugador se controla con **acciones** (`Entrada`), no leyendo el teclado dentro de `Jugador`.
-- Puede haber **más de un `Jugador`** en la escena (una lista, no una variable).
-- El estado importante (posición, vida, sala, mejoras) se puede **describir con datos simples**.
-
-Detalles de las opciones: [`decisiones-pendientes.md`](decisiones-pendientes.md), punto 1.
+Por ahora el juego es de **un solo jugador**. El equipo decidió dejar el multijugador para el final
+y hacerlo **solo si el profesor lo exige**. No se programa nada de red ni de varios jugadores
+todavía. Detalles y opciones: [`decisiones-pendientes.md`](decisiones-pendientes.md), punto 9.
 
 ## 8. Hoja de ruta: de poco en poco
 
@@ -107,7 +102,7 @@ principio porque es lo más riesgoso.
 | 11   | Cofres especiales: Revivir, PasaPalabra, DobleDash                       | Cada uno hace lo que dice el diseño                                     |
 | 12   | Portada, transiciones, Nivel 2 y pantalla final                          | Se juega de la portada al final con los dos niveles                     |
 | 13   | Efectos y sonido                                                         | Temblor, destellos, partículas, música y sonidos en todo el juego       |
-| 14   | Multijugador (según lo decidido)                                         | Dos personas pueden jugar la misma partida                              |
+| 14   | Multijugador (solo si el profesor lo exige)                              | Dos personas pueden jugar la misma partida                              |
 | 15   | Pulido, pruebas finales, registro de calidad y entrega                   | Lista de requisitos completa                                            |
 
 ### Spike de voz (en paralelo, desde ya)

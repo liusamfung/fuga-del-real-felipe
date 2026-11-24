@@ -155,8 +155,9 @@ Si el jugador muere (y no tiene **Revivir**), vuelve a la portada o reinicia el 
 
 ## 9. Alcance
 
-**Imprescindible (lo que pide la tarea):** portada, 2 niveles, control de voz, sonidos, efectos,
-multijugador y aplicar los principios de calidad total.
+**Imprescindible (lo que pide la tarea):** portada, 2 niveles, control de voz, sonidos, efectos y
+aplicar los principios de calidad total. El **multijugador** que también pide la tarea queda
+**aplazado**: solo se hace si el profesor lo exige, y al final.
 
 **Si alcanza el tiempo:** tercer piso, más tipos de enemigos, más poderes de voz, más cofres
 especiales, ranking de puntajes.
