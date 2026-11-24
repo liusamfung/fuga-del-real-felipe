@@ -42,6 +42,13 @@ El juego se abre en http://localhost:5173.
 | `npm run lint`    | Revisa el código con ESLint                   |
 | `npm run format`  | Da formato a los archivos con Prettier        |
 
+### Modo de depuración
+
+Abre el juego con `?debug` al final de la dirección: http://localhost:5173/?debug
+
+- Muestra los cuerpos de choque (cuadros de colores) y la velocidad de los objetos.
+- Deja el juego accesible desde la consola del navegador como `window.juego`.
+
 ## Cómo trabajar en equipo
 
 La rama `main` está **protegida**: nadie puede subir cambios directamente a `main`. Todo cambio
