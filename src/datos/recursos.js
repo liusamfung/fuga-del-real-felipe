@@ -43,6 +43,20 @@ export const RECURSOS = Object.freeze({
 		],
 	},
 
+	'enemigo-debil': {
+		tipo: 'generado',
+		ancho: 32,
+		alto: 32,
+		formas: [
+			{ x: 4, y: 6, ancho: 24, alto: 22, color: 0x5f7a4a }, // cuerpo
+			{ x: 4, y: 24, ancho: 24, alto: 6, color: 0x46593a }, // sombra de abajo
+			{ x: 8, y: 12, ancho: 5, alto: 5, color: 0xe8d9a0 }, // ojo izquierdo
+			{ x: 19, y: 12, ancho: 5, alto: 5, color: 0xe8d9a0 }, // ojo derecho
+			{ x: 10, y: 13, ancho: 2, alto: 3, color: 0x8a2b2b }, // pupila izquierda
+			{ x: 21, y: 13, ancho: 2, alto: 3, color: 0x8a2b2b }, // pupila derecha
+		],
+	},
+
 	bala: {
 		tipo: 'generado',
 		ancho: 8,
