@@ -1,13 +1,13 @@
 # Fuga del Real Felipe
 
-Juego 2D top-down de escape ambientado en el sitio del Callao (1824–1826). Proyecto de
-Videojuegos I.
+Juego de acción 2D top-down, parecido a _The Binding of Isaac_, ambientado en el sitio del Callao
+(1824–1826). Proyecto de Videojuegos I.
 
-Un prisionero ficticio debe escapar de las mazmorras de la Fortaleza del Real Felipe. No hay
-combate: el peligro se resuelve con **eventos de reacción** ("!") que se contestan con el
-teclado o con la voz.
+El jugador recorre las salas de un piso de la Fortaleza del Real Felipe, vence enemigos, abre
+cofres que lo mejoran y busca la llave de la sala del jefe. Con la **voz** deletrea palabras para
+lanzar poderes y sobrevivir a los ataques más fuertes del jefe.
 
-> El título es provisional. El diseño completo está en [`docs/diseno-del-juego.md`](docs/diseno-del-juego.md).
+> El título es provisional. El diseño completo está en [`docs/`](docs/README.md).
 
 ## Tecnología
 
@@ -92,7 +92,7 @@ versión que funciona.
 
 | Prefijo | Para qué                         | Ejemplo                      |
 | ------- | -------------------------------- | ---------------------------- |
-| `feat/` | Una función nueva del juego      | `feat/evento-de-reaccion`    |
+| `feat/` | Una función nueva del juego      | `feat/disparo-del-jugador`   |
 | `fix/`  | Corregir un error                | `fix/colision-con-paredes`   |
 | `docs/` | Documentación                    | `docs/duracion-de-niveles`   |
 | `arte/` | Imágenes, audio y otros recursos | `arte/sprite-del-prisionero` |
@@ -117,8 +117,13 @@ versión que funciona.
 
 ## Documentación
 
-- [Documento de diseño](docs/diseno-del-juego.md): qué es el juego (del borrador del equipo).
-- [Mapa del proyecto](docs/mapa-del-proyecto.md): qué módulos de código lo implementan y en qué orden.
+Todo está en [`docs/`](docs/README.md). Los más importantes:
+
+- [Requisitos de la tarea](docs/requisitos-de-la-tarea.md): lo que pide el curso.
+- [Diseño del juego](docs/diseno-del-juego.md): niveles, mapa 3×3, cofres, enemigos.
+- [Mecánicas](docs/mecanicas.md): controles, disparo, dash y control de voz.
+- [Mapa del proyecto](docs/mapa-del-proyecto.md): módulos de código y **hoja de ruta** para empezar.
+- [Decisiones pendientes](docs/decisiones-pendientes.md): lo que falta decidir.
 
 ## Estructura
 

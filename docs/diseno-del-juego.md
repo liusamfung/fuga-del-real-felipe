@@ -1,268 +1,162 @@
-# Documento de diseño — Fuga del Real Felipe
+# Diseño del juego — Fuga del Real Felipe
+
+> Documento principal de diseño. Reemplaza al borrador anterior del compañero
+> ([`referencia/borrador-qte-companero.md`](referencia/borrador-qte-companero.md)), de donde se
+> conservan la ambientación histórica y la idea de la cámara lenta con la palabra a decir.
+> El título del juego es provisional.
+
+## 1. Idea en una frase
 
-> Transcripción en Markdown del borrador de un compañero del equipo
-> ([original en Word](referencia/borrador-original.docx)). El contenido es el del borrador;
-> aquí se puede editar y comentar con Git. El título del juego es provisional.
-
-## 1. Premisa
+Un juego de acción **top-down** parecido a _The Binding of Isaac_: el jugador explora salas llenas
+de enemigos, abre cofres que lo mejoran y, con la **voz**, deletrea palabras para lanzar poderes
+y sobrevivir a los ataques más fuertes del jefe del piso.
 
-Un prisionero ficticio, encerrado en la Fortaleza del Real Felipe durante el sitio del Callao
-(1824–1826), debe escapar de las mazmorras inferiores y atravesar las alcantarillas y los muros
-exteriores antes de que la fortaleza caiga o lo ejecuten. No busca salvar al país ni derrotar a
-nadie: busca salir con vida y, en el camino, decide si ayuda a otros prisioneros.
+## 2. Pilares de diseño
 
-**Género:** mazmorra / laberinto 2D con exploración lineal, evasión y eventos de reacción (QTE).
+1. **Acción clara y rápida.** Moverse, apuntar con el ratón y disparar debe sentirse bien desde el
+   primer minuto.
+2. **La voz es una mecánica, no un adorno.** Deletrear una palabra bajo presión es el momento más
+   tenso y más especial del juego.
+3. **Riesgo y recompensa.** Cada sala tiene un cofre que mejora al personaje; la llave del jefe
+   está escondida en uno de ellos.
+4. **Basado en hechos reales.** El escenario (la Fortaleza del Real Felipe, sitio del Callao,
+   1824–1826) y las palabras que se deletrean vienen de la historia real.
 
-## 2. Contexto histórico y cercanía a lo real
+Qué pide la tarea y dónde se cumple cada punto: [`requisitos-de-la-tarea.md`](requisitos-de-la-tarea.md).
 
-- **Época:** sitio del Callao, 1824–1826. La fortaleza resistió bajo el mando realista de José
-  Ramón Rodil incluso después de la capitulación española en Ayacucho (diciembre de 1824). Cayó
-  finalmente en enero de 1826.
-- **Nivel de fidelidad:** ficción históricamente inspirada, no recreación exacta.
-  - **Real:** la fortaleza, el asedio, el hambre, las enfermedades, la resistencia de Rodil.
-  - **Ficticio:** el protagonista, los prisioneros concretos, los documentos secretos y los
-    eventos específicos de la fuga.
-- Rodil existe como figura histórica y se menciona como autoridad lejana (órdenes, propaganda,
-  miedo de los soldados), pero **no** aparece como jefe final ni como personaje jugable.
-- El juego no pretende enseñar historia exacta, sino ambientar una mecánica de escape en un
-  contexto real documentado. Se incluye una **nota histórica breve al final** que aclara qué es
-  real y qué es ficción.
+## 3. Ambientación
 
-## 3. Perspectiva y estilo visual
+Se mantiene la del borrador del equipo: **ficción históricamente inspirada** en el sitio del Callao
+(1824–1826), cuando la Fortaleza del Real Felipe resistió bajo el mando realista de José Ramón
+Rodil incluso después de la capitulación española en Ayacucho. Cayó en enero de 1826.
 
-- **Perspectiva:** 2D top-down pura (vista cenital). Un solo plano, legible, funcional para el
-  laberinto y el QTE.
-- **Estilo:** pixel art con paleta contenida y ambiente serio.
-- **Paleta:** colores apagados pero no monocromáticos (marrones, grises, verdes sucios, azules
-  fríos). Nada saturado ni vibrante, pero tampoco negro sobre negro.
-- **Ambiente:** serio y algo sombrío, con contraste moderado. Legibilidad por encima de
-  atmósfera.
-- **Iluminación:** antorchas y velas como fuentes de luz estáticas y suaves. Sin efectos
-  dinámicos. Viñeteado leve en los bordes de la pantalla.
-- **Detalles:** grietas, cadenas, manchas, escombros. Suficiente textura, sin recargar.
+- **Real:** la fortaleza, el asedio, el hambre, las enfermedades y la resistencia de Rodil.
+- **Ficticio:** el protagonista, los enemigos concretos y los eventos de la fuga.
+- Al final del juego se incluye una **nota histórica breve** que aclara qué es real y qué es
+  ficción.
+- El primer piso es una prisión (celdas, barras metálicas, cajas de madera). El segundo piso está
+  pendiente de definir (ver [`decisiones-pendientes.md`](decisiones-pendientes.md)).
 
-### Progresión de paleta por zona
+## 4. Estructura de un nivel
 
-| Zona                     | Paleta                                                                                                                              |
-| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
-| Celdas inferiores        | Marrones, ocres, grises piedra. Algo de luz de antorcha (naranja apagado).                                                          |
-| Alcantarillas            | Verdes sucios, azules apagados, agua turbia.                                                                                        |
-| Patio y muros exteriores | Azules fríos, gris oscuro, luz de luna pálida.                                                                                      |
-| Final (huida al mar)     | Cambio drástico a tonos cálidos y luminosos: amanecer, naranjas, amarillos suaves, azul del mar. Es la recompensa visual del juego. |
+Cada nivel (piso) es un **lienzo de 3×3 habitaciones**. Cada habitación mide **800×640 px**, así
+que el mapa completo mide **2400×1920 px**, que es también el tamaño de cada fondo.
 
-## 4. Objetivo del jugador
+```
+        columna 0       columna 1       columna 2
+      ┌───────────────┬───────────────┬───────────────┐
+fila 0│  Sala 0,0     │  Sala 1,0     │  Sala 2,0     │
+      │  (inicio ★)   │               │               │
+      ├───────────────┼───────────────┼───────────────┤
+fila 1│  Sala 0,1     │  SALA DEL     │  Sala 2,1     │
+      │               │  JEFE  🔒     │               │
+      ├───────────────┼───────────────┼───────────────┤
+fila 2│  Sala 0,2     │  Sala 1,2     │  Sala 2,2     │
+      └───────────────┴───────────────┴───────────────┘
+        ★ = posible punto de partida (según el boceto; por confirmar)
+```
 
-**Objetivo principal:** escapar de la fortaleza atravesando dos niveles lineales.
+- Las **8 salas de alrededor** tienen cada una **un enemigo débil y un cofre**.
+- La **sala central** es la del **jefe** del nivel y empieza cerrada con llave.
+- La posición de una sala en el mundo es `x = columna × 800`, `y = fila × 640`.
+- La cámara muestra **una sala a la vez**: al cruzar una puerta salta a la sala vecina.
 
-**Filosofía:** la tensión viene de huir y reaccionar, no de vencer. El jugador no es un héroe de
-combate: es alguien que corre, se esconde y reacciona a tiempo.
+![Boceto del mapa](referencia/mapa-overview.png)
 
-## 5. Tipo de gameplay
+### 4.1 Cómo se recorre
 
-**Bucle de juego:** explorar laberinto → detectar peligro → entrar en zona de riesgo → resolver
-el QTE de reacción → avanzar → salir del nivel.
+```
+Entrar a una sala → vencer al enemigo débil → abrir el cofre → mejorar al personaje
+        → pasar a otra sala → ... → conseguir la llave → abrir la sala central
+        → vencer al jefe (deletreando) → pasar al siguiente piso
+```
 
-**Pilares:**
+Las 8 salas forman un **anillo**: se avanza de una a la vecina por las puertas. Qué puertas
+existen exactamente entre salas es una decisión de nivel (ver §4.3).
 
-1. Exploración de laberinto lineal con sensación de desorientación.
-2. Eventos de reacción ("!") como única interacción con enemigos y trampas.
-3. Peligros ambientales (agua, derrumbe, humo, cañonazos).
+### 4.2 La llave del jefe
 
-**No hay:** combate cuerpo a cuerpo, IA de persecución, sistema de vida complejo, inventario
-elaborado, jefe final ni ramificaciones narrativas grandes.
+Los cofres tienen **1/8 de probabilidad** de dar la llave, y **tiene que salir sí o sí** en uno
+de los 8 cofres. Para cumplir las dos reglas a la vez, el nivel se prepara así:
 
-## 6. Mecánica central: eventos de reacción ("!")
+1. Al empezar el nivel se elige **una de las 8 salas al azar** (todas con la misma probabilidad).
+2. El cofre de esa sala es el que contiene la llave.
 
-Es el corazón del juego y la única forma de interactuar con enemigos y peligros.
+Para el jugador, cada cofre sigue teniendo una probabilidad de 1/8, pero la llave **nunca falta**.
+Si el jugador abre todos los cofres, siempre la encuentra.
 
-### 6.1 Disparo del evento
+### 4.3 Puertas y conexiones (propuesta)
 
-El jugador entra en una zona de peligro (radio de un enemigo, trampa, zona de derrumbe) o pisa un
-_trigger_ específico.
+- Cada sala se conecta con sus vecinas del anillo.
+- La sala central tiene **una puerta cerrada** hacia el jefe; la llave abre esa puerta (y no se
+  gasta si el jugador sale y vuelve a entrar).
+- Una sala con enemigo **bloquea sus puertas** hasta que el enemigo muere (como en _Isaac_).
 
-### 6.2 Secuencia
+## 5. Fondos y arte
 
-1. Suena el audio del peligro (gruñido, clic metálico, silbido, piedras). Es el _telegraph_
-   principal.
-2. 100–200 ms después aparece el "!" en pantalla.
-3. Aparece la palabra a teclear o decir (fija, no cambia) con la barra de tiempo junto a ella,
-   en un solo bloque visual centrado.
-4. El mundo entra en cámara lenta (aprox. 0.2x, con rampa suave de entrada de 100–150 ms).
-5. La barra de tiempo corre en **tiempo real**, no en tiempo de juego. El mundo se estira, el
-   tiempo del jugador no.
-6. El jugador teclea o dice la palabra:
-   - **Acierta:** el "!" se rompe, sonido de éxito, el mundo vuelve a velocidad normal en
-     ~200 ms, el peligro se neutraliza o se gana ventaja.
-   - **Falla o se acaba el tiempo:** barra en rojo, sonido de impacto, consecuencia aplicada, el
-     mundo vuelve a velocidad normal.
+| Nivel    | Fondo                                                                      | Estado    |
+| -------- | -------------------------------------------------------------------------- | --------- |
+| Piso 1   | 2400×1920 px. Piso de piedra, barras metálicas y cajas de madera (prisión) | Definido  |
+| Piso 2   | 2400×1920 px                                                               | Pendiente |
+| (Piso 3) | 2400×1920 px                                                               | Pendiente |
 
-### 6.3 Tipos de evento
+Los **compañeros dibujan los sprites y fondos finales**. Mientras tanto el equipo de lógica
+trabaja con **recursos genéricos y simples** (rectángulos de colores generados por código) que se
+reemplazan después sin cambiar la lógica. Cómo se hace y qué tamaños pedir:
+[`guia-de-recursos.md`](guia-de-recursos.md).
 
-| Tipo             | Audio             | "!"      | Palabra de ejemplo   | Consecuencia al fallar              |
-| ---------------- | ----------------- | -------- | -------------------- | ----------------------------------- |
-| Enemigo          | Gruñido / paso    | Rojo     | ¡ALTO! / ¡QUIETO!    | Golpe, retroceso, pérdida de vida   |
-| Trampa           | Clic metálico     | Amarillo | ¡ESPERA! / ¡CUIDADO! | Se activa la trampa, daño o bloqueo |
-| Derrumbe / cañón | Piedras / silbido | Blanco   | ¡CORRE! / ¡ABAJO!    | El mapa cambia, ruta bloqueada      |
+Sprite actual del jugador (provisional):
 
-### 6.4 Reglas de justicia
+![Sprite del jugador](referencia/sprite-jugador.png)
 
-- El "!" nunca aparece en mitad de un salto, caída o transición de sala.
-- La palabra no cambia mientras la barra corre.
-- El acierto devuelve el control de inmediato.
-- El fallo es legible: se ve la consecuencia en pantalla.
+## 6. Cofres y recompensas
 
-## 7. Enemigos
+### 6.1 Cofres comunes
 
-**Principio de diseño:** el enemigo no persigue. Es una zona de peligro con reacción. Cuando el
-jugador entra en su radio o cono, se dispara el "!". Si acierta, pasa. Si falla, recibe daño y
-retrocede. El enemigo vuelve a su estado inicial. No hay IA de persecución ni _pathfinding_.
+Dan una mejora permanente para el resto de la partida:
 
-### 7.1 Preso loco / amotinado (Nivel 1)
+| Mejora    | Efecto                             |
+| --------- | ---------------------------------- |
+| Vida      | Aumenta la vida máxima             |
+| Ataque    | Aumenta el daño de las balas       |
+| Velocidad | Aumenta la velocidad de movimiento |
 
-- Está en un punto, balanceándose, golpeando la pared, murmurando.
-- Radio de detección circular.
-- Palabra: ¡QUIETO! / ¡ATRÁS! / ¡CALMA!
-- **Acierto:** el preso se queda confundido un instante y el jugador pasa.
-- **Fallo:** el preso lo golpea (pierde vida, retrocede al borde del radio).
-- Encaja narrativamente: prisioneros desesperados por el hambre y el encierro que atacan a
-  cualquiera.
+Los valores concretos (+1 corazón, +10 % de daño, etc.) se ajustan con pruebas de juego y viven en
+`src/datos/recompensas.js`.
 
-### 7.2 Preso armado (variante, Nivel 1 tardío)
+### 6.2 Cofres especiales
 
-Mismo comportamiento que el preso loco, con parámetros distintos:
+| Recompensa      | Efecto                                                                                            |
+| --------------- | ------------------------------------------------------------------------------------------------- |
+| **Revivir**     | Al perder toda la vida, revives con la vida inicial y tienes **2 segundos de inmunidad**.         |
+| **PasaPalabra** | Permite atacar **sin deletrear bien** la palabra. Se tiene **1 uso cada 4 palabras** deletreadas. |
+| **DobleDash**   | El dash se puede usar **2 veces seguidas** y las dos usan el **mismo tiempo de recarga**.         |
 
-- Radio de detección más grande.
-- Tiempo del QTE más corto.
-- Golpe más fuerte.
+Dónde y cómo aparecen los cofres especiales está pendiente de decidir
+([`decisiones-pendientes.md`](decisiones-pendientes.md)).
 
-**Función:** escalar la dificultad sin añadir mecánica nueva.
+## 7. Enemigos y jefe
 
-### 7.3 Militar / soldado (Nivel 2)
+- **Enemigo débil** (uno por sala de alrededor): poca vida y un comportamiento simple. Es el
+  enemigo que se usa para aprender a moverse y disparar. Comportamiento exacto por definir.
+- **Jefe del nivel** (sala central): tiene ataques básicos que se pueden esquivar moviéndose y
+  **ataques fuertes que no se pueden esquivar con el movimiento**: para evitarlos hay que
+  deletrear una palabra mientras el mundo va en cámara lenta (ver
+  [`mecanicas.md`](mecanicas.md), sección "Ataque fuerte del jefe").
 
-- Posición fija vigilando un paso.
-- Zona de peligro en **cono de visión** (en vez de círculo).
-- Palabra: ¡ALTO! / ¡RÍNDETE!
-- **Acierto:** el jugador se esconde o pasa por el borde antes de que reaccione.
-- **Fallo:** disparo, daño, retroceso forzado.
-- **Función:** variedad visual y temática al final ("ahora son militares de verdad") sin añadir
-  mecánica nueva.
+## 8. Flujo de una partida
 
-### 7.4 Rata (entorno, no enemigo)
+```
+Portada → Nivel 1 (8 salas + jefe) → Nivel 2 (8 salas + jefe) → Pantalla final + nota histórica
+              ↑ efectos y sonido en todo el juego ↑
+```
 
-- No dispara "!". Es ambiente.
-- Corre por el suelo, chilla, se mete en agujeros.
-- **Función:** atmósfera + pista. Si las ratas corren en una dirección, algo las asustó.
+Si el jugador muere (y no tiene **Revivir**), vuelve a la portada o reinicia el nivel (por decidir).
 
-## 8. Cómo funciona la opción de voz
+## 9. Alcance
 
-La voz es un modo alternativo y **opcional** del QTE, no un sistema aparte.
+**Imprescindible (lo que pide la tarea):** portada, 2 niveles, control de voz, sonidos, efectos,
+multijugador y aplicar los principios de calidad total.
 
-### 8.1 Regla general
-
-- **Modo teclado:** el jugador teclea la palabra dentro del tiempo estándar (3 s en Nivel 1,
-  2 s en Nivel 2).
-- **Modo voz:** el jugador dice la palabra. Tiene más tiempo (aprox. +50 %) porque hablar bajo
-  presión es más difícil que teclear y porque el reconocimiento tarda en procesar.
-- El jugador elige el modo al inicio y puede cambiarlo en opciones.
-
-### 8.2 Flujo del modo voz
-
-1. Se dispara el evento ("!" + palabra + barra).
-2. El juego activa el micrófono automáticamente al inicio del evento.
-3. El jugador dice la palabra.
-4. El sistema devuelve el texto reconocido.
-5. Se compara por similitud aproximada, no por igualdad exacta ("halto", "alto!" y "ALTO"
-   cuentan).
-6. Si coincide → acierto. Si no entiende → un reintento con la mitad del tiempo restante. Si
-   vuelve a fallar → consecuencia.
-
-### 8.3 Fallback y accesibilidad
-
-- Si el dispositivo o el navegador no permite el reconocimiento de voz, el modo voz se desactiva
-  automáticamente con un mensaje discreto.
-- Si el usuario niega el permiso de micrófono, cae a teclado sin bloquear el juego.
-- Si el reconocimiento falla en mitad de una partida, el juego no se detiene.
-- Tiempo configurable o desactivable en opciones.
-- Fallback visible a teclado siempre presente.
-
-## 9. Niveles
-
-Dos niveles lineales, sin jefe final. Cada nivel tiene un arco propio (entrar → atravesar →
-salir) y un clímax de huida.
-
-### Nivel 1 — Las mazmorras inferiores
-
-**Tono:** encierro, confusión, primeros peligros. **Duración:** _por definir_.
-
-1. Celda inicial (tutorial silencioso, primera pista).
-2. Pasillo de celdas (primer preso loco, primer QTE).
-3. Sala de interrogatorio (evento narrativo, QTE de trampa).
-4. Túnel de mantenimiento (ratas, agua).
-5. Compuerta a las alcantarillas (cierre del nivel).
-
-**Aprendizajes:** moverse, QTE de enemigo y de trampa, distinguir sonidos.
-
-### Nivel 2 — Alcantarillas y muros exteriores
-
-**Tono:** agobio, agua, derrumbe, urgencia. **Duración:** _por definir_.
-
-1. Alcantarillas inundadas (derrumbes, QTE de derrumbe).
-2. Depósito de pólvora (incendios, humo).
-3. Patio interior superior (primer militar, cono de visión, QTE de enemigo).
-4. Brecha en el muro (bombardeo, QTE de cañonazo, el mapa cambia).
-5. Salida al mar (pantalla final luminosa, texto breve, nota histórica).
-
-**Aprendizajes:** el tiempo del QTE se acorta (3 s → 2 s); el entorno es tan peligroso como los
-enemigos.
-
-**Transición entre niveles:** texto breve, cambio de paleta, respiro sin reinicio.
-
-## 10. Personajes
-
-- **Protagonista (ficticio):** un mensajero independentista capturado, o un presidiario
-  condenado injustamente. No busca salvar al Perú: busca escapar y, en el camino, decide si
-  ayuda a otros. Su arco es el de un prisionero que recupera su voz (literal y
-  metafóricamente, con el modo voz).
-- **Antagonista (histórico, no jefe):** José Ramón Rodil. Presente a través de órdenes escritas,
-  propaganda y soldados que le temen. Motivación compleja: cree que rendirse es abandonar a sus
-  hombres y a los civiles refugiados. No se enfrenta directamente.
-- **Secundarios:** prisioneros con los que se cruza, un oficial que duda, un médico de la
-  enfermería.
-
-## 11. Tono y atmósfera
-
-Serio y contenido, sin gore. El peligro es constante pero legible. La atmósfera se construye con
-audio (gruñidos, agua, pasos, crujidos), paleta apagada con color suficiente para no ser
-opresiva, y contrastes moderados. Componente sobrenatural opcional solo en los túneles más
-profundos: susurros, sombras ambiguas que podrían ser alucinaciones por hambre y fiebre. Nunca se
-confirma si son reales.
-
-El final, en cambio, es luminoso y cálido. La salida al mar cambia por completo la paleta: ese
-contraste es la recompensa visual del juego.
-
-## 12. Resumen ejecutivo
-
-| Aspecto                  | Decisión                                                                                         |
-| ------------------------ | ------------------------------------------------------------------------------------------------ |
-| Género                   | Mazmorra / laberinto 2D con exploración lineal y eventos de reacción                             |
-| Perspectiva              | 2D top-down pura                                                                                 |
-| Estilo                   | Pixel art, paleta apagada con color contenido, ambiente serio                                    |
-| Época                    | Sitio del Callao, 1824–1826 (ficción históricamente inspirada)                                   |
-| Protagonista             | Ficticio (prisionero que escapa)                                                                 |
-| Antagonista              | Rodil como presencia histórica, no jefe final                                                    |
-| Niveles                  | 2 lineales (mazmorras inferiores → alcantarillas y muros exteriores)                             |
-| Duración total           | 20–25 min                                                                                        |
-| Mecánica central         | Eventos de reacción "!" con audio-_telegraph_, cámara lenta, barra en tiempo real, teclado o voz |
-| Interacción con enemigos | Solo QTE. Sin persecución ni IA compleja                                                         |
-| Enemigos                 | Preso loco, preso armado (variante), militar, rata (entorno)                                     |
-| Peligros                 | Agua, derrumbe, humo, incendio, cañonazo                                                         |
-| Modo voz                 | Opcional, +50 % de tiempo, fallback a teclado                                                    |
-| Combate                  | No hay. Solo evasión y reacción                                                                  |
-| Sobrenatural             | Opcional y ambiguo, solo en túneles profundos                                                    |
-| Fin                      | Huida al mar, paleta luminosa, texto breve, nota histórica                                       |
-| Accesibilidad            | Fallback de voz, tiempos configurables, QTE nunca en momentos injustos                           |
-
----
-
-_El borrador no incluye animación, tamaños de sprites ni tecnología. Cuando el equipo pruebe el
-estilo de dibujo y defina el tamaño del píxel, se añadirá esa sección visual._
+**Si alcanza el tiempo:** tercer piso, más tipos de enemigos, más poderes de voz, más cofres
+especiales, ranking de puntajes.

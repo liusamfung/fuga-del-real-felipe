@@ -19,6 +19,14 @@ en el resto de la asignatura. Los nombres propios de la API de Phaser se quedan 
 - Módulos ES con extensión `.js` en los `import` (`import { CONFIG } from './config.js'`).
 - Un archivo por clase; el nombre del archivo es el de la clase.
 - Los valores numéricos del juego van en `src/config.js` o en `src/datos/`, no dentro de las clases.
-- El diseño está en `docs/diseno-del-juego.md`; el plan técnico en `docs/mapa-del-proyecto.md`.
-- Phaser 4: el tiempo del QTE debe medirse en tiempo real, no con `time.timeScale`
-  (el mundo va en cámara lenta, la barra no).
+- El diseño está en `docs/diseno-del-juego.md` y `docs/mecanicas.md`; el plan técnico y la hoja de
+  ruta en `docs/mapa-del-proyecto.md`. Lo que falta decidir está en `docs/decisiones-pendientes.md`.
+- Medidas: cada sala mide 800×640 px, el nivel es una cuadrícula de 3×3 salas (2400×1920 px).
+- Mientras no existan los sprites finales, se usan texturas provisionales generadas por código con
+  las mismas claves que tendrán los recursos finales (`docs/guia-de-recursos.md`).
+- La lógica del deletreo (`src/utilidades/deletreo.js`) debe ser pura, sin Phaser ni micrófono, para
+  poder probarla con tests.
+- Phaser 4: el tiempo de la palabra a deletrear debe medirse en tiempo real, no con
+  `time.timeScale` (el mundo va en cámara lenta, la barra no).
+- Estructura el código para que pueda haber más de un jugador (lista de jugadores y acciones de
+  entrada), porque la tarea pide modo multijugador.
