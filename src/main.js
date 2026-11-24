@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { CONFIG } from './config.js';
 import { EscenaArranque } from './escenas/EscenaArranque.js';
+import { EscenaHUD } from './escenas/EscenaHUD.js';
 import { EscenaJuego } from './escenas/EscenaJuego.js';
 
 // Agregar ?debug a la dirección (http://localhost:5173/?debug) activa el modo de depuración:
@@ -24,7 +25,7 @@ const juego = new Phaser.Game({
 		default: 'arcade',
 		arcade: { debug: modoDebug },
 	},
-	scene: [EscenaArranque, EscenaJuego],
+	scene: [EscenaArranque, EscenaJuego, EscenaHUD],
 });
 
 if (modoDebug) {

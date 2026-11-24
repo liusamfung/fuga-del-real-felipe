@@ -22,5 +22,6 @@ export const SALA_DE_PRUEBA = Object.freeze({
 		{ x: 620, y: 140 },
 		{ x: 180, y: 470 },
 	],
+	cofre: { x: ANCHO / 2, y: 110 }, // aparece aquí cuando se limpia la sala
 	jugadorInicial: { x: ANCHO / 2, y: ALTO / 2 },
 });
