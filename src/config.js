@@ -27,4 +27,12 @@ export const CONFIG = Object.freeze({
 		CUERPO_ALTO: 20,
 		VELOCIDAD: 220,
 	}),
+
+	DISPARO: Object.freeze({
+		CADENCIA: 250, // ms mínimos entre un disparo y el siguiente
+		VELOCIDAD_BALA: 520,
+		DANO: 1,
+		MAX_BALAS: 30, // balas reservadas; se reciclan, nunca se crean más
+		PROFUNDIDAD_BALAS: 1000, // las balas se dibujan por encima de todo lo demás
+	}),
 });

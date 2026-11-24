@@ -43,6 +43,17 @@ export const RECURSOS = Object.freeze({
 		],
 	},
 
+	bala: {
+		tipo: 'generado',
+		ancho: 8,
+		alto: 8,
+		formas: [
+			{ x: 2, y: 0, ancho: 4, alto: 8, color: 0xd9b84a },
+			{ x: 0, y: 2, ancho: 8, alto: 4, color: 0xd9b84a },
+			{ x: 2, y: 2, ancho: 4, alto: 4, color: 0xfff1b8 },
+		],
+	},
+
 	jugador: {
 		tipo: 'generado',
 		ancho: 32,
