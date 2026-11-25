@@ -41,7 +41,7 @@ const COLOR_DE_LA_BARRA = Object.freeze({
 //
 //   scene.launch(ESCENAS.DELETREO, { palabra, invertida, modo, usaVoz, alTerminar })
 //
-// `usaVoz`: las letras se dicen al micrófono en vez de teclearse, con 50 % más de tiempo. Si el
+// `usaVoz`: las letras se dicen al micrófono en vez de teclearse, con el doble de tiempo. Si el
 // navegador no tiene reconocimiento de voz o el micrófono falla (sin permiso, sin conexión), la pantalla
 // pasa sola al teclado y lo avisa: el juego nunca se queda sin forma de deletrear.
 //

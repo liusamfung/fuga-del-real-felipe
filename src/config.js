@@ -76,7 +76,7 @@ export const CONFIG = Object.freeze({
 		// voz (docs/prueba-de-voz.md) y se ajustan con ella.
 		VOZ: Object.freeze({
 			IDIOMA: 'es-PE', // o 'es-ES'; ver docs/decisiones-pendientes.md
-			FACTOR_DE_TIEMPO: 1.5, // la voz es más lenta que el teclado: se da 50 % más de tiempo
+			FACTOR_DE_TIEMPO: 2, // la voz es más lenta que el teclado (con pausas, 0,7–0,85 s por letra): el doble
 			// Guardar la última letra de un resultado provisional hasta que el navegador la confirme.
 			// Apagado: en la prueba de voz retenerla costaba ~1,3 s por palabra y casi no evitaba errores.
 			RETENER_ULTIMA: false,

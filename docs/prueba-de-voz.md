@@ -89,7 +89,7 @@ Con los resultados se ajusta:
 1. **La tabla de nombres** (`src/datos/nombresDeLetras.js`): cada vez que el navegador escribe una
    letra de una forma que no conocemos (aparece en _Lo que oyó_ pero no como letra), se agrega.
 2. **El tiempo por letra y el factor de la voz** (`src/config.js`: `DELETREO.TECLADO` y
-   `DELETREO.VOZ.FACTOR_DE_TIEMPO`). Hoy la voz da 50 % más que el teclado _(provisional)_. Se mide con
+   `DELETREO.VOZ.FACTOR_DE_TIEMPO`). Hoy la voz da el doble que el teclado (×2, decidido el 25/11/2026 con la segunda ronda). Se mide con
    `msHastaLaUltima ÷ letras`.
 3. **El idioma** (`es-PE` o `es-ES`): el que dé más aciertos.
 4. **`RETENER_ULTIMA`**: hoy apagado (en la segunda ronda, retener la última letra costó ~1,3 s por
@@ -183,5 +183,5 @@ mostró ventaja visible (4 de 10 palabras con sesgo contra 2 de 6 sin él, con p
 
 En el juego, la tecla **V** cambia entre deletrear con el **teclado** y con la **voz** _(provisional,
 hasta el paso 9)_. Después, **E**, **T** e **Y** piden la palabra como siempre (ver
-[`mecanicas.md`](mecanicas.md) 5.7 y 5.8). Con la voz, el tiempo es 50 % mayor y el teclado se
+[`mecanicas.md`](mecanicas.md) 5.7 y 5.8). Con la voz, el tiempo es el doble y el teclado se
 desactiva mientras el micrófono esté activo.

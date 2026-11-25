@@ -21,9 +21,9 @@ Elegir entre Juran, Deming o Crosby y confirmar el nombre "Joseph Durand" con el
   [prueba de voz](prueba-de-voz.md).
 - **Prueba de voz con personas:** falta hacerla (5 personas, 5 palabras). Sus resultados deciden el
   idioma, la tabla de nombres de letras, el tiempo por letra y si la voz es viable.
-- Tiempo con voz: hoy **50 % más** que con el teclado _(provisional; aceptado por ahora el 25/11/2026)_.
+- Tiempo con voz: hoy **el doble (×2)** que con el teclado. **Decidido el 25/11/2026** con la segunda ronda de la prueba de voz.
   Hablando seguido se midió ~0,44 s por letra; con pausas, **0,7 a 0,85 s por letra**: con ×1,5
-  (0,6 s por letra) las palabras largas se quedan cortas. **Propuesta: ×2.** _(Pendiente de confirmar)_
+  (0,6 s por letra) las palabras largas se quedaban cortas; con ×2 alcanzan.
 - ~~La **B y la V** no se pueden distinguir hablando.~~ **Decidido (25/11/2026):** «be» vale para la B
   **y** para la V; no se le pide al jugador «be larga» ni «uve». (Decir «be larga»/«ve corta» sigue
   funcionando como forma exacta.)

@@ -155,7 +155,7 @@ Se guardan en `src/datos/palabras.js`. La palabra **no cambia** mientras la barr
   (`src/sistemas/AcumuladorDeVoz.js`). Contar cada resultado por separado daba letras de más y
   desordenadas (en la prueba de voz, 41 errores sueltos contra 13 con el texto unido). Guardar la
   última letra hasta el resultado final está **apagado**: costaba ~1,3 s por palabra.
-- **Tiempo:** `50 %` más que con el teclado _(provisional)_. Con el modo al revés los dos factores se
+- **Tiempo:** el **doble** que con el teclado (×2; con pausas entre letras se necesitan 0,7–0,85 s por letra). Con el modo al revés los dos factores se
   multiplican.
 - Mientras el micrófono está activo, el **teclado se desactiva** (así no hay trampa y W, A, S, D no
   cuentan como errores). Al terminar la palabra el micrófono se apaga.

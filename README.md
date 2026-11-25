@@ -40,7 +40,7 @@ El juego se abre en http://localhost:5173.
 | Apuntar                       | Mover el ratón (el cursor es la mira)                                                                                                                                  |
 | Disparar                      | Clic izquierdo; se puede mantener pulsado para seguir                                                                                                                  |
 | Dash                          | Barra espaciadora (una pulsación por dash)                                                                                                                             |
-| Deletrear con la voz (prueba) | `V`: cambia entre teclado y voz. Con la voz se usa el micrófono (Chrome) y hay 50 % más de tiempo                                                                      |
+| Deletrear con la voz (prueba) | `V`: cambia entre teclado y voz. Con la voz se usa el micrófono (Chrome) y hay el doble de tiempo                                                                      |
 | Deletrear (prueba)            | `E`: palabra visible. `T`: con huecos (Ahorcado). `Y`: de memoria. Con `Mayúsculas`: al revés. `R`: una fácil al revés. Provisional hasta que el deletreo sea un poder |
 
 ## Comandos
