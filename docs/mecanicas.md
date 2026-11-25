@@ -12,7 +12,7 @@ iniciales**: se ajustan jugando y viven en `src/config.js` o en `src/datos/`.
 | Apuntar      | Ratón (el personaje mira hacia el cursor)                    | Definido            |
 | Disparar     | Clic, varios clics o mantener pulsado el clic                | Definido            |
 | Disparo auto | Opción para que dispare solo mientras apuntas                | Por decidir         |
-| Dash         | Barra espaciadora (propuesta)                                | Tecla por confirmar |
+| Dash         | Barra espaciadora (una pulsación por dash)                   | Hecho (provisional) |
 | Voz          | El micrófono se activa solo cuando hay una palabra que decir | Definido            |
 
 ## 2. Movimiento y disparo
@@ -25,10 +25,18 @@ iniciales**: se ajustan jugando y viven en `src/config.js` o en `src/datos/`.
 
 ## 3. Dash
 
-- Un impulso corto en la dirección en que se mueve el jugador, con **tiempo de recarga**.
-- Durante el dash el jugador es **inmune** un instante (propuesta, por confirmar).
+- Un impulso corto en la dirección en que se mueve el jugador. Si está quieto, va hacia donde mira.
+  Mientras dura no se puede cambiar de rumbo, y deja una estela azul.
+- Valores iniciales (en `src/config.js`, sección `DASH`): dura **150 ms** (unos 100 px) y se
+  recarga en **1,2 s**.
+- Durante el dash el jugador es **inmune** (200 ms, un poco más que el impulso). Provisional.
 - **DobleDash:** el dash se puede usar 2 veces seguidas y las dos usan **el mismo tiempo de
-  recarga** (una sola barra de recarga, dos cargas).
+  recarga** (una sola barra de recarga, dos cargas). Se interpreta así: hay **un solo
+  temporizador**, que empieza con el primer uso. El segundo uso no lo reinicia: cuando se cumple
+  la recarga contada desde el primer uso, vuelven las dos cargas.
+- El HUD muestra una pastilla por carga y una barra que se llena al recargar.
+- La lógica está en `src/sistemas/Dash.js` (pura, con pruebas en `pruebas/dash.test.js`).
+  Todavía no hay forma de conseguir el DobleDash jugando: llega con los cofres especiales.
 
 ## 4. Estadísticas del jugador
 
@@ -100,9 +108,29 @@ Se guardan en `src/datos/palabras.js`. La palabra **no cambia** mientras la barr
 - **Tiempo:** hablar letra por letra es lento. Una palabra de 11 letras puede tardar 8–10 segundos.
   El tiempo de la barra debe calcularse con el largo de la palabra, por ejemplo
   `tiempo = base + letras × tiempoPorLetra`.
-- **Modo teclado (propuesta):** además del micrófono, un modo de **respaldo con teclado** (teclear
-  la palabra) sirve para desarrollar y probar sin hablar, y para quien no tenga micrófono. El
-  juego no debe quedarse bloqueado si el micrófono falla.
+- **Modo teclado:** además del micrófono, un modo de **respaldo con teclado** (teclear la
+  palabra) sirve para desarrollar y probar sin hablar, y para quien no tenga micrófono. El juego no
+  debe quedarse bloqueado si el micrófono falla. **Ya está hecho** (paso 7); ver más abajo.
+
+### 5.7 Cómo funciona hoy el deletreo con teclado
+
+- **Provisional:** la tecla **E** pide una palabra al azar y **R** una fácil al revés. Cuando el
+  deletreo sea un poder (paso 9) se activará desde el juego.
+- Aparece una pantalla encima del juego con la palabra, las letras acertadas en verde, la que toca
+  subrayada y una **barra de tiempo**. La barra mide el **tiempo real** (`performance.now()`), no el
+  del juego, para que la cámara lenta del jefe no la estire.
+- **Tiempo:** `1,5 s + 0,4 s por letra` (una palabra de 11 letras da 5,9 s). Al revés se da **1,5 veces**
+  ese tiempo.
+- **Errores:** se perdonan **2** letras equivocadas; con la tercera se falla. Una letra equivocada
+  no avanza la palabra. Lo que no es una letra (Shift, números, espacio) se ignora.
+- Las **tildes y mayúsculas no importan**, pero la **Ñ sí**: escribir N no cuenta como Ñ.
+- Mantener una tecla pulsada no repite la letra: cada letra necesita una pulsación nueva.
+- Mientras se deletrea el jugador **no puede moverse ni hacer dash** (las letras W, A, S y D son
+  las teclas de caminar), pero el juego **sigue**: los enemigos no esperan.
+- Al terminar, la pantalla muestra el resultado (**acertada**, **fallada** o **tiempo agotado**) y el
+  juego recibe el evento `deletreo-terminado` con ese resultado.
+- La lógica es pura y tiene pruebas: `src/utilidades/deletreo.js`, `src/sistemas/Deletreo.js` y
+  `pruebas/deletreo.test.js`. El modo de voz (paso 8) mandará sus letras al mismo lugar.
 
 ## 6. Ataque fuerte del jefe
 

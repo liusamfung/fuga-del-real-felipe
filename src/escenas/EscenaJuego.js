@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { CONFIG, ESCENAS } from '../config.js';
 import { NIVEL_1 } from '../datos/niveles.js';
+import { DIFICULTADES, elegirPalabra } from '../datos/palabras.js';
 import { Cofre } from '../entidades/Cofre.js';
 import { EnemigoDebil } from '../entidades/EnemigoDebil.js';
 import { Jugador } from '../entidades/Jugador.js';
@@ -9,6 +10,7 @@ import { Entrada } from '../sistemas/Entrada.js';
 import { generarNivel } from '../sistemas/GeneradorDeNivel.js';
 import { Nivel } from '../sistemas/Nivel.js';
 import { aplicarMejora, elegirMejoraComun } from '../sistemas/Recompensas.js';
+import { elegirAlAzar } from '../utilidades/azar.js';
 
 // Un nivel: una cuadrícula de salas con el jugador dentro. La cámara muestra una sala a la vez.
 //
@@ -24,6 +26,7 @@ export class EscenaJuego extends Phaser.Scene {
 	create() {
 		this.jugadorMuerto = false;
 		this.proximoAvisoDeLlave = 0;
+		this.deletreoActivo = false;
 		this.estadoDeSalas = new Map(); // 'columna,fila' -> { combateIniciado, limpia, enemigosVivos, ... }
 		this.entrada = new Entrada(this);
 
@@ -49,7 +52,10 @@ export class EscenaJuego extends Phaser.Scene {
 
 		// La interfaz es otra escena que se dibuja encima.
 		this.scene.launch(ESCENAS.HUD, { jugador: this.jugador });
-		this.events.once('shutdown', () => this.scene.stop(ESCENAS.HUD));
+		this.events.once('shutdown', () => {
+			this.scene.stop(ESCENAS.HUD);
+			this.scene.stop(ESCENAS.DELETREO);
+		});
 	}
 
 	update() {
@@ -57,8 +63,16 @@ export class EscenaJuego extends Phaser.Scene {
 			return;
 		}
 
+		const pedido = this.entrada.deletreoPedido(); // se consulta siempre, aunque no se use
+		if (pedido && !this.deletreoActivo) {
+			this.#empezarElDeletreo(pedido.invertida);
+		}
+
 		const direccion = this.entrada.direccionDeMovimiento();
 		const puntoDeApuntado = this.entrada.puntoDeApuntado();
+		if (this.entrada.dashPulsado()) {
+			this.jugador.intentarDash(direccion);
+		}
 		this.jugador.mover(direccion);
 		this.jugador.actualizarAnimacion(direccion, puntoDeApuntado);
 
@@ -80,6 +94,28 @@ export class EscenaJuego extends Phaser.Scene {
 		this.disparo.actualizar(
 			this.nivel.limitesDeSala(this.salaActual.columna, this.salaActual.fila),
 		);
+	}
+
+	// Provisional hasta el paso 9 (poderes por voz): la tecla E deletrea una palabra al azar y la R
+	// una fácil al revés. Mientras se deletrea el jugador no puede moverse (las letras W, A, S y D
+	// son las teclas de caminar), pero el juego sigue: los enemigos no esperan.
+	#empezarElDeletreo(invertida) {
+		this.deletreoActivo = true;
+		this.entrada.bloquearMovimiento(true);
+
+		const dificultad = invertida ? 'facil' : elegirAlAzar(DIFICULTADES);
+		this.scene.launch(ESCENAS.DELETREO, {
+			palabra: elegirPalabra(dificultad),
+			invertida,
+			alTerminar: (resultado) => this.#alTerminarElDeletreo(resultado),
+		});
+	}
+
+	/** `resultado` es 'acertada', 'fallada' o 'tiempo-agotado'. */
+	#alTerminarElDeletreo(resultado) {
+		this.deletreoActivo = false;
+		this.entrada.bloquearMovimiento(false);
+		this.events.emit('deletreo-terminado', resultado); // aquí se enganchará el poder (paso 9)
 	}
 
 	#crearColisiones() {

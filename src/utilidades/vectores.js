@@ -11,3 +11,11 @@ export function normalizar(x, y) {
 	}
 	return { x: x / largo, y: y / largo };
 }
+
+/** El vector de largo 1 de cada dirección del jugador (la pantalla tiene la y hacia abajo). */
+export const VECTORES_DE_DIRECCION = Object.freeze({
+	abajo: Object.freeze({ x: 0, y: 1 }),
+	arriba: Object.freeze({ x: 0, y: -1 }),
+	derecha: Object.freeze({ x: 1, y: 0 }),
+	izquierda: Object.freeze({ x: -1, y: 0 }),
+});

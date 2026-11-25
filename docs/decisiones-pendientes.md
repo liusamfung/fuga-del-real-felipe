@@ -18,8 +18,11 @@ Elegir entre Juran, Deming o Crosby y confirmar el nombre "Joseph Durand" con el
 
 - ¿Qué poderes hay además de la **granada**? (nombre, palabra, efecto, recarga).
 - Idioma del reconocimiento: `es-PE` o `es-ES`.
-- Tiempo para deletrear: ¿`base + letras × tiempoPorLetra`? Se define con el _spike_ de voz.
-- ¿Se acepta un modo de **teclado** como respaldo?
+- Tiempo para deletrear: hoy es `1,5 s + 0,4 s × letras` con teclado, y ×1,5 al revés _(provisional)_.
+  El de voz se define con el _spike_ de voz.
+- Modo de **teclado** como respaldo: hecho. ¿Cuántos errores se perdonan? Hoy son 2 _(provisional)_.
+- Mientras se deletrea, el jugador no se mueve pero los enemigos siguen: ¿es lo que se quiere?
+  (En el ataque fuerte del jefe el mundo irá en cámara lenta.)
 - **Recomendación:** decidir después del _spike_ de voz (ver [`mapa-del-proyecto.md`](mapa-del-proyecto.md)).
 
 ## 4. Cofres
@@ -33,7 +36,8 @@ Elegir entre Juran, Deming o Crosby y confirmar el nombre "Joseph Durand" con el
 ## 5. Combate
 
 - **Disparo:** ¿manual (clics), automático o ambos con una opción?
-- **Dash:** ¿qué tecla? ¿da inmunidad? ¿cuánto dura la recarga?
+- **Dash:** hoy es la barra espaciadora, con 0,2 s de inmunidad y 1,2 s de recarga _(provisional)_.
+  ¿Se confirma? ¿El DobleDash recarga las dos cargas a la vez (como está) o una por una?
 - **Enemigo débil:** ¿camina hacia el jugador, dispara o se mueve en patrones?
 - **Jefe:** vida, ataques básicos y cuántos ataques fuertes hace por pelea.
 - **Muerte:** ¿vuelve a la portada, reinicia el nivel o la sala?
