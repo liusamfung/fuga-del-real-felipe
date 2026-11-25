@@ -1,6 +1,8 @@
 // Funciones puras sobre palabras y letras para el deletreo. No dependen de Phaser, del teclado ni
 // del micrófono: lo que se escribe o se dice entra como texto. Se prueban con `npm test`.
 
+import { MODOS_DE_DELETREO } from '../config.js';
+
 const MARCAS_DE_TILDE = /[̀-ͯ]/g;
 
 /**
@@ -45,4 +47,36 @@ export function tiempoParaLaPalabra(cantidadDeLetras, tiempos, invertida = false
 	const { base, porLetra, factorInvertida = 1 } = tiempos;
 	const tiempo = base + cantidadDeLetras * porLetra;
 	return Math.round(invertida ? tiempo * factorInvertida : tiempo);
+}
+
+/**
+ * Cuánto tiempo (en ms) se ve la palabra antes de esconderla en los modos huecos y memoria: una base
+ * más un tiempo por cada letra, lo justo para leerla una sola vez.
+ */
+export function tiempoDeLectura(cantidadDeLetras, { base, porLetra }) {
+	return Math.round(base + cantidadDeLetras * porLetra);
+}
+
+/**
+ * Qué se dibuja en el lugar de una letra de la palabra:
+ *   'letra'  la letra misma
+ *   'hueco'  un hueco (`_`), sin decir qué letra va
+ *   'nada'   nada
+ *
+ * `orden` es el lugar de esa letra en el orden en que hay que escribirlas (0 la primera) e `indice`
+ * cuántas van acertadas. Mientras se lee, y al terminar, la palabra se ve entera en todos los modos:
+ * al fallar sirve para aprenderla. Solo durante el deletreo (estado 'activo') se esconde.
+ */
+export function visibilidadDeLaLetra({ modo, estado, orden, indice }) {
+	if (!Object.values(MODOS_DE_DELETREO).includes(modo)) {
+		throw new Error(`Modo de deletreo desconocido: "${modo}"`);
+	}
+
+	if (modo === MODOS_DE_DELETREO.VISIBLE || estado !== 'activo') {
+		return 'letra';
+	}
+	if (modo === MODOS_DE_DELETREO.HUECOS) {
+		return orden < indice ? 'letra' : 'hueco';
+	}
+	return 'nada';
 }

@@ -1,10 +1,17 @@
 import Phaser from 'phaser';
-import { CONFIG, ESCENAS } from '../config.js';
+import { CONFIG, ESCENAS, MODOS_DE_DELETREO } from '../config.js';
 import { Deletreo } from '../sistemas/Deletreo.js';
-import { letrasDeLaPalabra, normalizarLetra, tiempoParaLaPalabra } from '../utilidades/deletreo.js';
+import {
+	letrasDeLaPalabra,
+	normalizarLetra,
+	tiempoDeLectura,
+	tiempoParaLaPalabra,
+	visibilidadDeLaLetra,
+} from '../utilidades/deletreo.js';
 
 const {
 	TECLADO,
+	LECTURA,
 	FACTOR_INVERTIDA,
 	ERRORES_PERMITIDOS,
 	TIEMPO_DEL_RESULTADO,
@@ -19,11 +26,22 @@ const COLOR_DE_LETRA = Object.freeze({
 	fallada: '#e0695b',
 });
 const COLOR_DEL_MARCO = Object.freeze({ normal: 0xc9b79c, error: 0xc0392b, acierto: 0x7fd18a });
+const COLOR_DE_LA_BARRA = Object.freeze({
+	leyendo: 0x6b8fb3, // todavía no corre el tiempo
+	normal: 0xd9b84a,
+	mitad: 0xd9894a,
+	poco: 0xc0392b,
+});
 
 // La pantalla del deletreo: se dibuja encima del juego y muestra la palabra, las letras que van bien
 // y una barra con el tiempo que queda. La lanza `EscenaJuego`:
 //
-//   scene.launch(ESCENAS.DELETREO, { palabra, invertida, alTerminar })
+//   scene.launch(ESCENAS.DELETREO, { palabra, invertida, modo, alTerminar })
+//
+// `modo` es uno de `MODOS_DE_DELETREO`. En 'visible' la palabra se ve siempre. En 'huecos' y 'memoria'
+// se enseña una sola vez, el tiempo justo para leerla (la barra, azul, todavía no corre), y después
+// se esconde y empieza la cuenta regresiva: en 'huecos' quedan los espacios, como en el Ahorcado
+// (las letras acertadas van apareciendo); en 'memoria' no queda nada.
 //
 // `alTerminar(resultado)` se llama una vez, con 'acertada', 'fallada' o 'tiempo-agotado'. La pantalla
 // se queda un momento mostrando el resultado y se cierra sola.
@@ -37,9 +55,10 @@ export class EscenaDeletreo extends Phaser.Scene {
 		super(ESCENAS.DELETREO);
 	}
 
-	init({ palabra, invertida = false, alTerminar }) {
+	init({ palabra, invertida = false, modo = MODOS_DE_DELETREO.VISIBLE, alTerminar }) {
 		this.palabra = palabra;
 		this.invertida = invertida;
+		this.modo = modo;
 		this.alTerminar = alTerminar;
 	}
 
@@ -53,6 +72,10 @@ export class EscenaDeletreo extends Phaser.Scene {
 				{ base: TECLADO.BASE, porLetra: TECLADO.POR_LETRA, factorInvertida: FACTOR_INVERTIDA },
 				this.invertida,
 			),
+			lectura:
+				this.modo === MODOS_DE_DELETREO.VISIBLE
+					? 0
+					: tiempoDeLectura(cantidadDeLetras, { base: LECTURA.BASE, porLetra: LECTURA.POR_LETRA }),
 			erroresPermitidos: ERRORES_PERMITIDOS,
 		});
 		this.resultadoMostrado = false;
@@ -130,6 +153,7 @@ export class EscenaDeletreo extends Phaser.Scene {
 					color: COLOR_DE_LETRA.pendiente,
 				})
 				.setOrigin(0.5),
+			caracter,
 			orden: this.invertida ? mostradas.length - 1 - posicion : posicion,
 		}));
 	}
@@ -151,24 +175,44 @@ export class EscenaDeletreo extends Phaser.Scene {
 		this.time.delayedCall(TIEMPO_DEL_RESULTADO, () => this.scene.stop());
 	}
 
+	#textoDeArriba() {
+		const { estado } = this.deletreo;
+		const fijos = {
+			mostrando: '¡Memoriza la palabra!',
+			acertada: '¡Bien!',
+			fallada: '¡Te equivocaste!',
+			'tiempo-agotado': '¡Se acabó el tiempo!',
+		};
+		if (fijos[estado]) {
+			return fijos[estado];
+		}
+
+		if (this.modo === MODOS_DE_DELETREO.MEMORIA) {
+			return this.invertida ? '¡De memoria y AL REVÉS!' : '¡Deletrea de memoria!';
+		}
+		return this.invertida ? '¡Deletrea AL REVÉS!' : '¡Deletrea la palabra!';
+	}
+
 	#dibujar() {
 		const ahora = performance.now();
 		const { deletreo } = this;
 		const { Y, ANCHO, ALTO, ANCHO_BARRA, SEPARACION_LETRAS } = PANEL;
 		const centroX = CONFIG.ANCHO / 2;
 
-		// Texto de arriba
-		const textos = {
-			acertada: '¡Bien!',
-			fallada: '¡Te equivocaste!',
-			'tiempo-agotado': '¡Se acabó el tiempo!',
-		};
-		this.titulo.setText(
-			textos[deletreo.estado] ?? (this.invertida ? '¡Deletrea AL REVÉS!' : '¡Deletrea la palabra!'),
-		);
+		this.titulo.setText(this.#textoDeArriba());
 
-		// Letras: verdes las que van bien, la que toca en blanco, las demás en tono tierra.
-		for (const { texto, orden } of this.letras) {
+		// Letras: verdes las que van bien, la que toca en blanco, las demás en tono tierra. Según el
+		// modo, pueden estar escondidas: se cambian por un hueco o por nada.
+		for (const { texto, caracter, orden } of this.letras) {
+			const visibilidad = visibilidadDeLaLetra({
+				modo: this.modo,
+				estado: deletreo.estado,
+				orden,
+				indice: deletreo.indice,
+			});
+			texto.setVisible(visibilidad !== 'nada');
+			texto.setText(visibilidad === 'hueco' ? '_' : caracter);
+
 			let color = COLOR_DE_LETRA.pendiente;
 			if (orden < deletreo.indice) {
 				color = COLOR_DE_LETRA.acertada;
@@ -199,20 +243,23 @@ export class EscenaDeletreo extends Phaser.Scene {
 		g.lineStyle(3, colorDelMarco, 1);
 		g.strokeRect(centroX - ANCHO / 2, Y - ALTO / 2 - 10, ANCHO, ALTO);
 
-		// Una rayita bajo la letra que toca.
+		// Una rayita bajo la letra que toca. Solo en el modo visible: en los otros, saber cuál toca
+		// es parte del reto.
 		const siguiente = this.letras.find(({ orden }) => orden === deletreo.indice);
-		if (siguiente && !deletreo.terminada) {
+		if (this.modo === MODOS_DE_DELETREO.VISIBLE && siguiente && !deletreo.terminada) {
 			g.fillStyle(0xffffff, 1);
 			g.fillRect(siguiente.texto.x - SEPARACION_LETRAS / 2 + 4, Y + 24, SEPARACION_LETRAS - 8, 3);
 		}
 
 		// Barra de tiempo (tiempo real).
 		const fraccion = this.resultadoMostrado ? this.fraccionFinal : deletreo.fraccionRestante(ahora);
-		let colorDeLaBarra = 0xd9b84a;
-		if (fraccion < 0.25) {
-			colorDeLaBarra = 0xc0392b;
+		let colorDeLaBarra = COLOR_DE_LA_BARRA.normal;
+		if (deletreo.estado === 'mostrando') {
+			colorDeLaBarra = COLOR_DE_LA_BARRA.leyendo;
+		} else if (fraccion < 0.25) {
+			colorDeLaBarra = COLOR_DE_LA_BARRA.poco;
 		} else if (fraccion < 0.5) {
-			colorDeLaBarra = 0xd9894a;
+			colorDeLaBarra = COLOR_DE_LA_BARRA.mitad;
 		}
 		const yDeLaBarra = Y + 46;
 		g.fillStyle(0x34384a, 1);

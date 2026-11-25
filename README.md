@@ -34,13 +34,13 @@ El juego se abre en http://localhost:5173.
 
 ## Controles
 
-| Acción             | Control                                                                                           |
-| ------------------ | ------------------------------------------------------------------------------------------------- |
-| Moverse            | Flechas o W A S D                                                                                 |
-| Apuntar            | Mover el ratón (el cursor es la mira)                                                             |
-| Disparar           | Clic izquierdo; se puede mantener pulsado para seguir                                             |
-| Dash               | Barra espaciadora (una pulsación por dash)                                                        |
-| Deletrear (prueba) | `E`: una palabra al azar. `R`: una fácil al revés. Provisional hasta que el deletreo sea un poder |
+| Acción             | Control                                                                                                                                                                |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Moverse            | Flechas o W A S D                                                                                                                                                      |
+| Apuntar            | Mover el ratón (el cursor es la mira)                                                                                                                                  |
+| Disparar           | Clic izquierdo; se puede mantener pulsado para seguir                                                                                                                  |
+| Dash               | Barra espaciadora (una pulsación por dash)                                                                                                                             |
+| Deletrear (prueba) | `E`: palabra visible. `T`: con huecos (Ahorcado). `Y`: de memoria. Con `Mayúsculas`: al revés. `R`: una fácil al revés. Provisional hasta que el deletreo sea un poder |
 
 ## Comandos
 
