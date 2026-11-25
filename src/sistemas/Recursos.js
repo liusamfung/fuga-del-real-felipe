@@ -2,13 +2,18 @@ import { RECURSOS } from '../datos/recursos.js';
 
 // Carga los recursos del catálogo (src/datos/recursos.js).
 // Se usa en dos momentos de la escena de arranque:
-//   - preload: carga los recursos que son archivos de imagen.
+//   - preload: carga los recursos que son archivos (hojas de sprites e imágenes).
 //   - create: dibuja los recursos que son provisionales (generados por código).
 
-/** Carga los recursos de tipo "imagen". Llamar desde `preload()`. */
+/** Carga los recursos de tipo "hoja" e "imagen". Llamar desde `preload()`. */
 export function cargarRecursos(escena) {
 	for (const [clave, recurso] of Object.entries(RECURSOS)) {
-		if (recurso.tipo === 'imagen') {
+		if (recurso.tipo === 'hoja') {
+			escena.load.spritesheet(clave, recurso.ruta, {
+				frameWidth: recurso.ancho,
+				frameHeight: recurso.alto,
+			});
+		} else if (recurso.tipo === 'imagen') {
 			escena.load.image(clave, recurso.ruta);
 		}
 	}

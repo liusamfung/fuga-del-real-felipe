@@ -16,9 +16,11 @@ export class EnemigoDebil extends Phaser.Physics.Arcade.Sprite {
 		this.velocidad = VELOCIDAD;
 		this.dano = DANO; // lo que le quita al jugador al tocarlo
 
-		// Igual que el jugador: el cuerpo de choque son solo los pies.
+		// El cuerpo está centrado a lo ancho y pegado al borde de abajo, pero es alto (ver config.js).
 		this.body.setSize(CUERPO_ANCHO, CUERPO_ALTO);
 		this.body.setOffset((ANCHO - CUERPO_ANCHO) / 2, ALTO - CUERPO_ALTO);
+
+		this.anims.play('enemigo-debil-caminar');
 	}
 
 	/** Camina en línea recta hacia el objetivo (un objeto con cuerpo físico, como el jugador). */

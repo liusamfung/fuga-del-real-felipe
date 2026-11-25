@@ -40,10 +40,12 @@ export const CONFIG = Object.freeze({
 	// Enemigo débil de las salas de alrededor. Su comportamiento (por ahora solo camina hacia
 	// el jugador) está por definir; ver docs/decisiones-pendientes.md.
 	ENEMIGO_DEBIL: Object.freeze({
-		ANCHO: 32,
-		ALTO: 32,
+		ANCHO: 32, // tamaño del sprite
+		ALTO: 48,
+		// A diferencia del jugador, su cuerpo cubre casi todo el dibujo: a los enemigos se les apunta
+		// al cuerpo o a la cabeza, y si el cuerpo fuera solo los pies las balas pasarían por encima.
 		CUERPO_ANCHO: 24,
-		CUERPO_ALTO: 20,
+		CUERPO_ALTO: 40,
 		VIDA: 3,
 		VELOCIDAD: 70,
 		DANO: 1, // daño al jugador al tocarlo

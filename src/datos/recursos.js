@@ -1,36 +1,47 @@
-// Catálogo de recursos: la clave de cada imagen y de dónde sale.
+// Catálogo de recursos: la clave de cada imagen y de dónde sale. El resto del juego usa siempre
+// la clave, nunca la ruta. Hay tres tipos de recurso:
 //
-// Mientras no existan los sprites finales, cada recurso es "generado": se dibuja por código con
-// rectángulos de colores. Cuando llegue el PNG definitivo, solo se cambia la entrada:
+//   - 'hoja': una hoja de sprites (varios cuadros del mismo tamaño en un solo PNG). Es el formato
+//     de los dibujos finales. `ancho` y `alto` son el tamaño de UN cuadro.
+//   - 'imagen': un PNG suelto.
+//   - 'generado': un dibujo provisional hecho por código con rectángulos de colores, para trabajar
+//     mientras no existe el dibujo final. Los colores de cada forma son 0xRRGGBB.
 //
-//   jugador: { tipo: 'imagen', ruta: 'assets/img/jugador.png' },
+// Para cambiar un recurso provisional por el definitivo solo se cambia su entrada, por ejemplo:
 //
-// y el resto del juego sigue funcionando igual (usa siempre la clave).
-// Los colores de cada forma son 0xRRGGBB.
+//   cofre-cerrado: { tipo: 'imagen', ruta: 'assets/img/objetos/cofre-cerrado.png' },
+//
+// Cómo se arman y nombran las hojas: docs/guia-de-recursos.md.
 
 export const RECURSOS = Object.freeze({
-	suelo: {
-		tipo: 'generado',
+	// --- Dibujos finales (hojas de sprites de 32 x 48 px por cuadro) ---
+
+	// 3 columnas (quieto, paso 1, paso 2) x 4 filas (abajo, derecha, izquierda, arriba).
+	jugador: {
+		tipo: 'hoja',
+		ruta: 'assets/img/jugador/jugador.png',
 		ancho: 32,
-		alto: 32,
-		formas: [
-			{ x: 0, y: 0, ancho: 32, alto: 32, color: 0x4b4239 },
-			{ x: 0, y: 0, ancho: 32, alto: 1, color: 0x3f372f },
-			{ x: 0, y: 0, ancho: 1, alto: 32, color: 0x3f372f },
-		],
+		alto: 48,
 	},
 
-	pared: {
-		tipo: 'generado',
+	// 2 cuadros de caminar, en una fila.
+	'enemigo-debil': {
+		tipo: 'hoja',
+		ruta: 'assets/img/enemigos/enemigo-debil.png',
 		ancho: 32,
-		alto: 32,
-		formas: [
-			{ x: 0, y: 0, ancho: 32, alto: 32, color: 0x2d2824 },
-			{ x: 0, y: 0, ancho: 32, alto: 3, color: 0x4a423a },
-			{ x: 0, y: 29, ancho: 32, alto: 3, color: 0x1d1a17 },
-		],
+		alto: 48,
 	},
 
+	// 22 piezas de suelo y pared en 8 columnas x 3 filas. Los números de cuadro están en
+	// FOTOGRAMAS_TILESET (más abajo).
+	tileset: {
+		tipo: 'hoja',
+		ruta: 'assets/img/escenario/tileset-prision.png',
+		ancho: 32,
+		alto: 48,
+	},
+
+	// --- Dibujos provisionales (generados por código) ---
 	caja: {
 		tipo: 'generado',
 		ancho: 64,
@@ -40,20 +51,6 @@ export const RECURSOS = Object.freeze({
 			{ x: 4, y: 4, ancho: 56, alto: 56, color: 0x7a5a3a },
 			{ x: 30, y: 4, ancho: 4, alto: 56, color: 0x5e4630 },
 			{ x: 4, y: 30, ancho: 56, alto: 4, color: 0x5e4630 },
-		],
-	},
-
-	'enemigo-debil': {
-		tipo: 'generado',
-		ancho: 32,
-		alto: 32,
-		formas: [
-			{ x: 4, y: 6, ancho: 24, alto: 22, color: 0x5f7a4a }, // cuerpo
-			{ x: 4, y: 24, ancho: 24, alto: 6, color: 0x46593a }, // sombra de abajo
-			{ x: 8, y: 12, ancho: 5, alto: 5, color: 0xe8d9a0 }, // ojo izquierdo
-			{ x: 19, y: 12, ancho: 5, alto: 5, color: 0xe8d9a0 }, // ojo derecho
-			{ x: 10, y: 13, ancho: 2, alto: 3, color: 0x8a2b2b }, // pupila izquierda
-			{ x: 21, y: 13, ancho: 2, alto: 3, color: 0x8a2b2b }, // pupila derecha
 		],
 	},
 
@@ -127,16 +124,33 @@ export const RECURSOS = Object.freeze({
 			{ x: 2, y: 2, ancho: 4, alto: 4, color: 0xfff1b8 },
 		],
 	},
+});
 
-	jugador: {
-		tipo: 'generado',
-		ancho: 32,
-		alto: 48,
-		formas: [
-			{ x: 8, y: 0, ancho: 16, alto: 14, color: 0xd4bfa0 }, // cabeza
-			{ x: 4, y: 14, ancho: 24, alto: 24, color: 0x2a3f8f }, // cuerpo
-			{ x: 8, y: 38, ancho: 6, alto: 10, color: 0x1c2a63 }, // pierna izquierda
-			{ x: 18, y: 38, ancho: 6, alto: 10, color: 0x1c2a63 }, // pierna derecha
-		],
-	},
+// Número de cada cuadro de la hoja `tileset` (cuenta de izquierda a derecha y de arriba abajo,
+// empezando en 0). Es el número del archivo de arte/originales/escenario menos 1.
+// Los nombres describen lo que se ve en cada pieza; son provisionales hasta confirmar con quien
+// las dibujó para qué sirve cada una.
+export const FOTOGRAMAS_TILESET = Object.freeze({
+	marcoEsquinaArribaIzquierda: 0,
+	marcoEsquinaArribaDerecha: 1,
+	marcoEsquinaAbajoDerecha: 2,
+	marcoEsquinaAbajoIzquierda: 3,
+	marcoBordeArriba: 4,
+	marcoBordeAbajo: 5,
+	marcoBordeIzquierda: 6,
+	marcoBordeDerecha: 7,
+	texturaRayasMarron: 8,
+	texturaRanuras: 9,
+	panelMarco: 10,
+	panelConcentrico: 11,
+	sueloBordeAbajoDerecha: 12,
+	sueloBordeAbajoIzquierda: 13,
+	sueloBordeArribaIzquierda: 14,
+	sueloBordeArribaDerecha: 15,
+	sueloBordeArriba: 16,
+	sueloBordeAbajo: 17,
+	sueloBordeIzquierda: 18,
+	sueloBordeDerecha: 19,
+	sueloLiso: 20,
+	sueloRayas: 21,
 });
