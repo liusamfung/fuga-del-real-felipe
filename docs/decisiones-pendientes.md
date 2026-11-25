@@ -21,8 +21,17 @@ Elegir entre Juran, Deming o Crosby y confirmar el nombre "Joseph Durand" con el
 - Tiempo para deletrear: hoy es `1,5 s + 0,4 s × letras` con teclado, y ×1,5 al revés _(provisional)_.
   El de voz se define con el _spike_ de voz.
 - Modo de **teclado** como respaldo: hecho. ¿Cuántos errores se perdonan? Hoy son 2 _(provisional)_.
-- Mientras se deletrea, el jugador no se mueve pero los enemigos siguen: ¿es lo que se quiere?
-  (En el ataque fuerte del jefe el mundo irá en cámara lenta.)
+- Mientras se deletrea, el jugador no se mueve pero los enemigos siguen. **Confirmado.** La cámara
+  lenta es solo para los ataques fuertes del jefe y dura lo que la cuenta regresiva; si el jugador
+  falla o se le acaba el tiempo, el ataque le cae sí o sí.
+- **Modos de deletreo** (`visible`, `huecos`, `memoria`; ver `mecanicas.md` 5.8): ¿dónde se usa cada
+  uno? Por ejemplo, por nivel (más difícil en el nivel 2), por tipo de palabra o por quién ataca.
+  Falta decidir cuál va con el ataque fuerte del jefe y cuál con los poderes.
+- Tiempo de lectura en `huecos` y `memoria`: hoy `0,8 s + 0,12 s por letra` _(provisional)_.
+- En `huecos` las letras acertadas se descubren (como el Ahorcado) y en `memoria` no se ve el avance;
+  el marco rojo de error se muestra en todos los modos _(provisional)_. ¿Se confirma?
+- Modo con **voz que dice la palabra** (no se muestra nunca): después del paso 8. Habrá que decidir si
+  se usa la voz del navegador (`speechSynthesis`) o grabaciones.
 - **Recomendación:** decidir después del _spike_ de voz (ver [`mapa-del-proyecto.md`](mapa-del-proyecto.md)).
 
 ## 4. Cofres

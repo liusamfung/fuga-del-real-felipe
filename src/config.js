@@ -10,6 +10,18 @@ export const ESCENAS = Object.freeze({
 	DELETREO: 'EscenaDeletreo',
 });
 
+// Cómo se muestra la palabra que hay que deletrear (de menos a más difícil).
+//   visible  la palabra se ve todo el tiempo
+//   huecos   se ve una sola vez; luego solo quedan los huecos, como en el Ahorcado
+//            (las letras que se aciertan van apareciendo)
+//   memoria  se ve una sola vez; luego no queda nada en pantalla: hay que recordarla
+// Más adelante habrá un cuarto modo, en que una voz dice la palabra y no se muestra nunca.
+export const MODOS_DE_DELETREO = Object.freeze({
+	VISIBLE: 'visible',
+	HUECOS: 'huecos',
+	MEMORIA: 'memoria',
+});
+
 export const CONFIG = Object.freeze({
 	// La pantalla muestra una sala completa a la vez.
 	ANCHO: 800,
@@ -54,6 +66,10 @@ export const CONFIG = Object.freeze({
 		// Tiempo (ms) para deletrear con el teclado: BASE más POR_LETRA por cada letra. La voz tendrá
 		// más tiempo (docs/mecanicas.md, sección 5).
 		TECLADO: Object.freeze({ BASE: 1500, POR_LETRA: 400 }),
+		// Tiempo (ms) que se ve la palabra antes de esconderla, en los modos huecos y memoria: BASE
+		// más POR_LETRA por cada letra. Es lo justo para leerla UNA vez; durante la lectura no corre
+		// el tiempo de deletrear ni se aceptan letras.
+		LECTURA: Object.freeze({ BASE: 800, POR_LETRA: 120 }),
 		FACTOR_INVERTIDA: 1.5, // al revés se da 1,5 veces el tiempo
 		ERRORES_PERMITIDOS: 2, // letras equivocadas que se perdonan; una más y se falla
 		TIEMPO_DEL_RESULTADO: 900, // ms que se ve el resultado antes de cerrar la pantalla

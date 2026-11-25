@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { CONFIG, ESCENAS } from '../config.js';
+import { CONFIG, ESCENAS, MODOS_DE_DELETREO } from '../config.js';
 import { NIVEL_1 } from '../datos/niveles.js';
 import { DIFICULTADES, elegirPalabra } from '../datos/palabras.js';
 import { Cofre } from '../entidades/Cofre.js';
@@ -65,7 +65,7 @@ export class EscenaJuego extends Phaser.Scene {
 
 		const pedido = this.entrada.deletreoPedido(); // se consulta siempre, aunque no se use
 		if (pedido && !this.deletreoActivo) {
-			this.#empezarElDeletreo(pedido.invertida);
+			this.#empezarElDeletreo(pedido);
 		}
 
 		const direccion = this.entrada.direccionDeMovimiento();
@@ -96,17 +96,20 @@ export class EscenaJuego extends Phaser.Scene {
 		);
 	}
 
-	// Provisional hasta el paso 9 (poderes por voz): la tecla E deletrea una palabra al azar y la R
-	// una fácil al revés. Mientras se deletrea el jugador no puede moverse (las letras W, A, S y D
-	// son las teclas de caminar), pero el juego sigue: los enemigos no esperan.
-	#empezarElDeletreo(invertida) {
+	// Provisional hasta el paso 9 (poderes por voz): E, T e Y piden una palabra al azar (visible, con
+	// huecos, de memoria), con Mayúsculas al revés, y R una fácil al revés. Mientras se deletrea el
+	// jugador no puede moverse (las letras W, A, S y D son las teclas de caminar), pero el juego sigue:
+	// los enemigos no esperan.
+	#empezarElDeletreo({ modo, invertida }) {
 		this.deletreoActivo = true;
 		this.entrada.bloquearMovimiento(true);
 
-		const dificultad = invertida ? 'facil' : elegirAlAzar(DIFICULTADES);
+		const esLaFacilAlReves = invertida && modo === MODOS_DE_DELETREO.VISIBLE;
+		const dificultad = esLaFacilAlReves ? 'facil' : elegirAlAzar(DIFICULTADES);
 		this.scene.launch(ESCENAS.DELETREO, {
 			palabra: elegirPalabra(dificultad),
 			invertida,
+			modo,
 			alTerminar: (resultado) => this.#alTerminarElDeletreo(resultado),
 		});
 	}

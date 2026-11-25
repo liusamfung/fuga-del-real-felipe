@@ -86,24 +86,24 @@ Cada paso termina en algo que se **puede ver funcionando** y se entrega con un p
 pequeño. Los pasos del 1 al 5 se hacen en orden; el **spike de voz** va en paralelo desde el
 principio porque es lo más riesgoso.
 
-| Paso | Qué se construye                                                         | Cómo se sabe que está listo                                             |
-| ---- | ------------------------------------------------------------------------ | ----------------------------------------------------------------------- |
-| 0    | Preparar la base: pantalla de 800×640, texturas provisionales por código | `npm run dev` muestra una sala vacía con paredes                        |
-| 1    | Jugador que se mueve (flechas o WASD) con colisiones                     | Se mueve por la sala y no atraviesa las paredes                         |
-| 2    | Apuntar con el ratón y disparar (mantener clic)                          | Salen balas hacia el cursor con cadencia fija                           |
-| 3    | Un enemigo débil con vida; sala que se limpia                            | El enemigo recibe daño, muere y la sala se marca como limpia            |
-| 4    | Cofre con mejora común (vida, ataque, velocidad) y HUD                   | Al limpiar la sala aparece el cofre y la mejora se nota en la pantalla  |
-| 5    | Mapa 3×3: 8 salas, puertas, cámara que salta, sala central con llave     | Se recorre el anillo; la llave siempre aparece en algún cofre           |
-| 6    | Dash, y luego DobleDash                                                  | El dash tiene recarga visible; con DobleDash se puede usar dos veces    |
-| 7    | Deletreo con teclado (respaldo) y barra de tiempo real                   | Se teclea una palabra; hay acierto, fallo y tiempo agotado              |
-| 8    | Voz real: integrar el reconocimiento con el deletreo                     | Deletrear con el micrófono funciona en Chrome con tolerancia de errores |
-| 9    | Poder especial por voz (granada)                                         | Deletrear una palabra lanza la granada                                  |
-| 10   | Jefe: ataques básicos y ataque fuerte con cámara lenta                   | El ataque fuerte solo se evita deletreando; al revés devuelve el golpe  |
-| 11   | Cofres especiales: Revivir, PasaPalabra, DobleDash                       | Cada uno hace lo que dice el diseño                                     |
-| 12   | Portada, transiciones, Nivel 2 y pantalla final                          | Se juega de la portada al final con los dos niveles                     |
-| 13   | Efectos y sonido                                                         | Temblor, destellos, partículas, música y sonidos en todo el juego       |
-| 14   | Multijugador (solo si el profesor lo exige)                              | Dos personas pueden jugar la misma partida                              |
-| 15   | Pulido, pruebas finales, registro de calidad y entrega                   | Lista de requisitos completa                                            |
+| Paso | Qué se construye                                                                           | Cómo se sabe que está listo                                                                           |
+| ---- | ------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------- |
+| 0    | Preparar la base: pantalla de 800×640, texturas provisionales por código                   | `npm run dev` muestra una sala vacía con paredes                                                      |
+| 1    | Jugador que se mueve (flechas o WASD) con colisiones                                       | Se mueve por la sala y no atraviesa las paredes                                                       |
+| 2    | Apuntar con el ratón y disparar (mantener clic)                                            | Salen balas hacia el cursor con cadencia fija                                                         |
+| 3    | Un enemigo débil con vida; sala que se limpia                                              | El enemigo recibe daño, muere y la sala se marca como limpia                                          |
+| 4    | Cofre con mejora común (vida, ataque, velocidad) y HUD                                     | Al limpiar la sala aparece el cofre y la mejora se nota en la pantalla                                |
+| 5    | Mapa 3×3: 8 salas, puertas, cámara que salta, sala central con llave                       | Se recorre el anillo; la llave siempre aparece en algún cofre                                         |
+| 6    | Dash, y luego DobleDash                                                                    | El dash tiene recarga visible; con DobleDash se puede usar dos veces                                  |
+| 7    | Deletreo con teclado (respaldo), barra de tiempo real y 3 modos (visible, huecos, memoria) | Se teclea una palabra; hay acierto, fallo y tiempo agotado; en huecos y memoria la palabra se esconde |
+| 8    | Voz real: integrar el reconocimiento con el deletreo                                       | Deletrear con el micrófono funciona en Chrome con tolerancia de errores                               |
+| 9    | Poder especial por voz (granada)                                                           | Deletrear una palabra lanza la granada                                                                |
+| 10   | Jefe: ataques básicos y ataque fuerte con cámara lenta                                     | El ataque fuerte solo se evita deletreando; al revés devuelve el golpe                                |
+| 11   | Cofres especiales: Revivir, PasaPalabra, DobleDash                                         | Cada uno hace lo que dice el diseño                                                                   |
+| 12   | Portada, transiciones, Nivel 2 y pantalla final                                            | Se juega de la portada al final con los dos niveles                                                   |
+| 13   | Efectos y sonido                                                                           | Temblor, destellos, partículas, música y sonidos en todo el juego                                     |
+| 14   | Multijugador (solo si el profesor lo exige)                                                | Dos personas pueden jugar la misma partida                                                            |
+| 15   | Pulido, pruebas finales, registro de calidad y entrega                                     | Lista de requisitos completa                                                                          |
 
 ### Spike de voz (en paralelo, desde ya)
 

@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { MODOS_DE_DELETREO } from '../config.js';
 import { normalizar } from '../utilidades/vectores.js';
 
 // Traduce las teclas y el ratón en "acciones" del juego.
@@ -10,8 +11,13 @@ export class Entrada {
 		this.flechas = teclado.createCursorKeys();
 		this.wasd = teclado.addKeys({ arriba: 'W', abajo: 'S', izquierda: 'A', derecha: 'D' });
 		this.puntero = escena.input.activePointer;
-		this.teclaDeDeletreo = teclado.addKey('E');
+		this.teclasDeDeletreo = [
+			{ tecla: teclado.addKey('E'), modo: MODOS_DE_DELETREO.VISIBLE },
+			{ tecla: teclado.addKey('T'), modo: MODOS_DE_DELETREO.HUECOS },
+			{ tecla: teclado.addKey('Y'), modo: MODOS_DE_DELETREO.MEMORIA },
+		];
 		this.teclaDeDeletreoInvertido = teclado.addKey('R');
+		this.teclaMayuscula = teclado.addKey('SHIFT');
 		this.movimientoBloqueado = false;
 	}
 
@@ -24,17 +30,26 @@ export class Entrada {
 	}
 
 	/**
-	 * Provisional (hasta que el deletreo sea un poder, paso 9): E pide una palabra al azar y R una
-	 * fácil al revés. Devuelve `{ invertida }` en el fotograma en que se pulsa, o null.
+	 * Provisional (hasta que el deletreo sea un poder, paso 9): E pide una palabra al azar con la
+	 * palabra siempre visible, T con huecos (Ahorcado) e Y de memoria. Con Mayúsculas pulsada se pide
+	 * al revés. R pide una palabra fácil al revés, siempre visible.
+	 * Devuelve `{ modo, invertida }` en el fotograma en que se pulsa, o null.
 	 * Se debe consultar en cada fotograma, para que una pulsación vieja no quede esperando.
 	 */
 	deletreoPedido() {
-		const normal = Phaser.Input.Keyboard.JustDown(this.teclaDeDeletreo);
+		// Se consultan todas las teclas, aunque una ya haya dado respuesta: JustDown "gasta" la pulsación.
+		const pulsadas = this.teclasDeDeletreo.filter(({ tecla }) =>
+			Phaser.Input.Keyboard.JustDown(tecla),
+		);
 		const invertido = Phaser.Input.Keyboard.JustDown(this.teclaDeDeletreoInvertido);
+
 		if (invertido) {
-			return { invertida: true };
+			return { modo: MODOS_DE_DELETREO.VISIBLE, invertida: true };
 		}
-		return normal ? { invertida: false } : null;
+		if (pulsadas.length > 0) {
+			return { modo: pulsadas[0].modo, invertida: this.teclaMayuscula.isDown };
+		}
+		return null;
 	}
 
 	/**

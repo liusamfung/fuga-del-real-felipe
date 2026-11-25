@@ -6,6 +6,7 @@ import { letrasEsperadas, normalizarLetra } from '../utilidades/deletreo.js';
 //
 // Estados:
 //   'esperando'      todavía no empezó
+//   'mostrando'      se enseña la palabra para leerla; el tiempo todavía no corre y las letras no cuentan
 //   'activo'         se está deletreando
 //   'acertada'       se escribieron todas las letras a tiempo
 //   'fallada'        se cometieron más errores de los permitidos
@@ -14,10 +15,11 @@ export class Deletreo {
 	/**
 	 * @param palabra la palabra tal como se muestra (puede llevar tildes)
 	 * @param invertida si es verdadero, hay que deletrearla de la última letra a la primera
-	 * @param tiempoTotal ms para completarla
+	 * @param tiempoTotal ms para completarla, contados desde que acaba la lectura
+	 * @param lectura ms que se enseña la palabra antes de empezar a contar (0 = no hay lectura)
 	 * @param erroresPermitidos letras equivocadas que se perdonan; una más y se falla
 	 */
-	constructor({ palabra, invertida = false, tiempoTotal, erroresPermitidos = 0 }) {
+	constructor({ palabra, invertida = false, tiempoTotal, lectura = 0, erroresPermitidos = 0 }) {
 		this.palabra = palabra;
 		this.invertida = invertida;
 		this.letras = letrasEsperadas(palabra, invertida);
@@ -26,21 +28,22 @@ export class Deletreo {
 		}
 
 		this.tiempoTotal = tiempoTotal;
+		this.lectura = lectura;
 		this.erroresPermitidos = erroresPermitidos;
 		this.indice = 0; // cuántas letras van bien
 		this.errores = 0;
 		this.estado = 'esperando';
-		this.inicio = 0;
+		this.inicio = 0; // cuándo empieza a correr el tiempo (después de la lectura)
 	}
 
 	empezar(ahora) {
-		this.estado = 'activo';
-		this.inicio = ahora;
+		this.estado = this.lectura > 0 ? 'mostrando' : 'activo';
+		this.inicio = ahora + this.lectura;
 	}
 
 	/** Verdadero cuando ya no se puede seguir: se acertó, se falló o se acabó el tiempo. */
 	get terminada() {
-		return this.estado !== 'esperando' && this.estado !== 'activo';
+		return this.estado !== 'esperando' && this.estado !== 'mostrando' && this.estado !== 'activo';
 	}
 
 	/** La letra que hay que escribir ahora (ya normalizada), o undefined si ya se completó. */
@@ -49,7 +52,8 @@ export class Deletreo {
 	}
 
 	tiempoRestante(ahora) {
-		return Math.max(0, this.tiempoTotal - (ahora - this.inicio));
+		// Durante la lectura todavía no corre: queda todo el tiempo.
+		return Math.min(this.tiempoTotal, Math.max(0, this.tiempoTotal - (ahora - this.inicio)));
 	}
 
 	/** Cuánto tiempo queda, de 1 (todo) a 0 (nada). */
@@ -57,8 +61,11 @@ export class Deletreo {
 		return this.tiempoRestante(ahora) / this.tiempoTotal;
 	}
 
-	/** Revisa si se acabó el tiempo. Devuelve el estado. */
+	/** Revisa si acabó la lectura o se acabó el tiempo. Devuelve el estado. */
 	actualizar(ahora) {
+		if (this.estado === 'mostrando' && ahora >= this.inicio) {
+			this.estado = 'activo';
+		}
 		if (this.estado === 'activo' && ahora - this.inicio >= this.tiempoTotal) {
 			this.estado = 'tiempo-agotado';
 		}
@@ -69,7 +76,7 @@ export class Deletreo {
 	 * Recibe una letra (lo que escribió o dijo el jugador). Devuelve:
 	 *   'acierto'  era la letra que tocaba
 	 *   'error'    era otra letra
-	 *   'ignorada' no era una letra, o la palabra ya terminó
+	 *   'ignorada' no era una letra, se está leyendo la palabra o ya terminó
 	 * Las tildes y las mayúsculas no importan, pero la Ñ sí (una N no cuenta como Ñ).
 	 */
 	escribir(caracter, ahora) {
