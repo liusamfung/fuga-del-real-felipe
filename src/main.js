@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { CONFIG } from './config.js';
 import { EscenaArranque } from './escenas/EscenaArranque.js';
+import { EscenaDeletreo } from './escenas/EscenaDeletreo.js';
 import { EscenaHUD } from './escenas/EscenaHUD.js';
 import { EscenaJuego } from './escenas/EscenaJuego.js';
 
@@ -25,7 +26,7 @@ const juego = new Phaser.Game({
 		default: 'arcade',
 		arcade: { debug: modoDebug },
 	},
-	scene: [EscenaArranque, EscenaJuego, EscenaHUD],
+	scene: [EscenaArranque, EscenaJuego, EscenaHUD, EscenaDeletreo],
 });
 
 if (modoDebug) {

@@ -7,6 +7,7 @@ export const ESCENAS = Object.freeze({
 	ARRANQUE: 'EscenaArranque',
 	JUEGO: 'EscenaJuego',
 	HUD: 'EscenaHUD',
+	DELETREO: 'EscenaDeletreo',
 });
 
 export const CONFIG = Object.freeze({
@@ -46,6 +47,24 @@ export const CONFIG = Object.freeze({
 		INMUNIDAD: 200, // ms sin recibir daño desde que empieza (un poco más que el impulso)
 		CARGAS_INICIALES: 1, // con DobleDash son 2
 		INTERVALO_DE_ESTELA: 40, // ms entre una imagen de la estela y la siguiente
+	}),
+
+	// Deletrear palabras (hoy con el teclado; luego con la voz). Valores iniciales, se ajustan jugando.
+	DELETREO: Object.freeze({
+		// Tiempo (ms) para deletrear con el teclado: BASE más POR_LETRA por cada letra. La voz tendrá
+		// más tiempo (docs/mecanicas.md, sección 5).
+		TECLADO: Object.freeze({ BASE: 1500, POR_LETRA: 400 }),
+		FACTOR_INVERTIDA: 1.5, // al revés se da 1,5 veces el tiempo
+		ERRORES_PERMITIDOS: 2, // letras equivocadas que se perdonan; una más y se falla
+		TIEMPO_DEL_RESULTADO: 900, // ms que se ve el resultado antes de cerrar la pantalla
+		DESTELLO_DE_ERROR: 150, // ms que el marco se pone rojo al equivocarse
+		PANEL: Object.freeze({
+			Y: 170,
+			ANCHO: 640,
+			ALTO: 150,
+			ANCHO_BARRA: 520,
+			SEPARACION_LETRAS: 36,
+		}),
 	}),
 
 	// Los mensajes en pantalla se dibujan por encima de todo, incluso de las balas.

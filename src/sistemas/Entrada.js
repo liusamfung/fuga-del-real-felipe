@@ -10,6 +10,31 @@ export class Entrada {
 		this.flechas = teclado.createCursorKeys();
 		this.wasd = teclado.addKeys({ arriba: 'W', abajo: 'S', izquierda: 'A', derecha: 'D' });
 		this.puntero = escena.input.activePointer;
+		this.teclaDeDeletreo = teclado.addKey('E');
+		this.teclaDeDeletreoInvertido = teclado.addKey('R');
+		this.movimientoBloqueado = false;
+	}
+
+	/**
+	 * Bloquea o desbloquea el movimiento y el dash. Se bloquean mientras se deletrea, porque las
+	 * letras W, A, S y D son las mismas teclas con las que se camina.
+	 */
+	bloquearMovimiento(bloqueado) {
+		this.movimientoBloqueado = bloqueado;
+	}
+
+	/**
+	 * Provisional (hasta que el deletreo sea un poder, paso 9): E pide una palabra al azar y R una
+	 * fácil al revés. Devuelve `{ invertida }` en el fotograma en que se pulsa, o null.
+	 * Se debe consultar en cada fotograma, para que una pulsación vieja no quede esperando.
+	 */
+	deletreoPedido() {
+		const normal = Phaser.Input.Keyboard.JustDown(this.teclaDeDeletreo);
+		const invertido = Phaser.Input.Keyboard.JustDown(this.teclaDeDeletreoInvertido);
+		if (invertido) {
+			return { invertida: true };
+		}
+		return normal ? { invertida: false } : null;
 	}
 
 	/**
@@ -33,11 +58,16 @@ export class Entrada {
 	 * cada dash necesita una pulsación nueva.
 	 */
 	dashPulsado() {
-		return Phaser.Input.Keyboard.JustDown(this.flechas.space);
+		const pulsada = Phaser.Input.Keyboard.JustDown(this.flechas.space); // se consume siempre
+		return pulsada && !this.movimientoBloqueado;
 	}
 
 	/** Dirección de movimiento con largo 1 (o (0, 0) si no hay teclas pulsadas). */
 	direccionDeMovimiento() {
+		if (this.movimientoBloqueado) {
+			return { x: 0, y: 0 };
+		}
+
 		const izquierda = this.flechas.left.isDown || this.wasd.izquierda.isDown;
 		const derecha = this.flechas.right.isDown || this.wasd.derecha.isDown;
 		const arriba = this.flechas.up.isDown || this.wasd.arriba.isDown;

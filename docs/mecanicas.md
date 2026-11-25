@@ -108,9 +108,29 @@ Se guardan en `src/datos/palabras.js`. La palabra **no cambia** mientras la barr
 - **Tiempo:** hablar letra por letra es lento. Una palabra de 11 letras puede tardar 8–10 segundos.
   El tiempo de la barra debe calcularse con el largo de la palabra, por ejemplo
   `tiempo = base + letras × tiempoPorLetra`.
-- **Modo teclado (propuesta):** además del micrófono, un modo de **respaldo con teclado** (teclear
-  la palabra) sirve para desarrollar y probar sin hablar, y para quien no tenga micrófono. El
-  juego no debe quedarse bloqueado si el micrófono falla.
+- **Modo teclado:** además del micrófono, un modo de **respaldo con teclado** (teclear la
+  palabra) sirve para desarrollar y probar sin hablar, y para quien no tenga micrófono. El juego no
+  debe quedarse bloqueado si el micrófono falla. **Ya está hecho** (paso 7); ver más abajo.
+
+### 5.7 Cómo funciona hoy el deletreo con teclado
+
+- **Provisional:** la tecla **E** pide una palabra al azar y **R** una fácil al revés. Cuando el
+  deletreo sea un poder (paso 9) se activará desde el juego.
+- Aparece una pantalla encima del juego con la palabra, las letras acertadas en verde, la que toca
+  subrayada y una **barra de tiempo**. La barra mide el **tiempo real** (`performance.now()`), no el
+  del juego, para que la cámara lenta del jefe no la estire.
+- **Tiempo:** `1,5 s + 0,4 s por letra` (una palabra de 11 letras da 5,9 s). Al revés se da **1,5 veces**
+  ese tiempo.
+- **Errores:** se perdonan **2** letras equivocadas; con la tercera se falla. Una letra equivocada
+  no avanza la palabra. Lo que no es una letra (Shift, números, espacio) se ignora.
+- Las **tildes y mayúsculas no importan**, pero la **Ñ sí**: escribir N no cuenta como Ñ.
+- Mantener una tecla pulsada no repite la letra: cada letra necesita una pulsación nueva.
+- Mientras se deletrea el jugador **no puede moverse ni hacer dash** (las letras W, A, S y D son
+  las teclas de caminar), pero el juego **sigue**: los enemigos no esperan.
+- Al terminar, la pantalla muestra el resultado (**acertada**, **fallada** o **tiempo agotado**) y el
+  juego recibe el evento `deletreo-terminado` con ese resultado.
+- La lógica es pura y tiene pruebas: `src/utilidades/deletreo.js`, `src/sistemas/Deletreo.js` y
+  `pruebas/deletreo.test.js`. El modo de voz (paso 8) mandará sus letras al mismo lugar.
 
 ## 6. Ataque fuerte del jefe
 

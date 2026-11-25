@@ -1,0 +1,48 @@
+// Funciones puras sobre palabras y letras para el deletreo. No dependen de Phaser, del teclado ni
+// del micrófono: lo que se escribe o se dice entra como texto. Se prueban con `npm test`.
+
+const MARCAS_DE_TILDE = /[̀-ͯ]/g;
+
+/**
+ * La letra normalizada de un carácter: en mayúscula y sin tilde ni diéresis (Ó → O, Ü → U).
+ * La Ñ se conserva: en español es otra letra, no una N con tilde.
+ * Devuelve null si el carácter no es una letra suelta (un número, un espacio, 'Shift'…).
+ */
+export function normalizarLetra(caracter) {
+	if (typeof caracter !== 'string' || [...caracter].length !== 1) {
+		return null;
+	}
+
+	const mayuscula = caracter.toUpperCase();
+	if (mayuscula === 'Ñ') {
+		return 'Ñ';
+	}
+
+	// NFD separa la letra de su tilde (Ó → O + ´) y así se puede quitar la tilde.
+	const sinTilde = mayuscula.normalize('NFD').replace(MARCAS_DE_TILDE, '');
+	return /^[A-Z]$/.test(sinTilde) ? sinTilde : null;
+}
+
+/** Las letras de una palabra, normalizadas. Ignora lo que no es letra (espacios, guiones…). */
+export function letrasDeLaPalabra(palabra) {
+	return [...palabra].map(normalizarLetra).filter((letra) => letra !== null);
+}
+
+/**
+ * Las letras en el orden en que hay que escribirlas o decirlas. Al revés, la palabra se
+ * deletrea de la última letra a la primera: FERROCARRIL → L I R R A C O R R E F.
+ */
+export function letrasEsperadas(palabra, invertida = false) {
+	const letras = letrasDeLaPalabra(palabra);
+	return invertida ? letras.reverse() : letras;
+}
+
+/**
+ * Cuánto tiempo (en ms) se da para deletrear una palabra: una base más un tiempo por cada letra.
+ * Al revés es más difícil y se multiplica por `factorInvertida`.
+ */
+export function tiempoParaLaPalabra(cantidadDeLetras, tiempos, invertida = false) {
+	const { base, porLetra, factorInvertida = 1 } = tiempos;
+	const tiempo = base + cantidadDeLetras * porLetra;
+	return Math.round(invertida ? tiempo * factorInvertida : tiempo);
+}
