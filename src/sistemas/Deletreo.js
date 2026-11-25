@@ -73,7 +73,9 @@ export class Deletreo {
 	}
 
 	/**
-	 * Recibe una letra (lo que escribió o dijo el jugador). Devuelve:
+	 * Recibe una letra (lo que escribió o dijo el jugador). También puede ser una LISTA de letras
+	 * candidatas, para cuando la voz no distingue entre dos (la B y la V suenan igual): se acierta si
+	 * la que toca está entre ellas. Devuelve:
 	 *   'acierto'  era la letra que tocaba
 	 *   'error'    era otra letra
 	 *   'ignorada' no era una letra, se está leyendo la palabra o ya terminó
@@ -85,12 +87,14 @@ export class Deletreo {
 			return 'ignorada';
 		}
 
-		const letra = normalizarLetra(caracter);
-		if (letra === null) {
+		const candidatas = (Array.isArray(caracter) ? caracter : [caracter])
+			.map(normalizarLetra)
+			.filter((letra) => letra !== null);
+		if (candidatas.length === 0) {
 			return 'ignorada';
 		}
 
-		if (letra === this.letraEsperada) {
+		if (candidatas.includes(this.letraEsperada)) {
 			this.indice += 1;
 			if (this.indice === this.letras.length) {
 				this.estado = 'acertada';

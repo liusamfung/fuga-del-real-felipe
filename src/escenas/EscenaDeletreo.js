@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { CONFIG, ESCENAS, MODOS_DE_DELETREO } from '../config.js';
 import { Deletreo } from '../sistemas/Deletreo.js';
+import { ReconocedorDeVoz } from '../sistemas/ReconocedorDeVoz.js';
 import {
 	letrasDeLaPalabra,
 	normalizarLetra,
@@ -17,6 +18,7 @@ const {
 	TIEMPO_DEL_RESULTADO,
 	DESTELLO_DE_ERROR,
 	PANEL,
+	VOZ,
 } = CONFIG.DELETREO;
 
 const COLOR_DE_LETRA = Object.freeze({
@@ -36,7 +38,11 @@ const COLOR_DE_LA_BARRA = Object.freeze({
 // La pantalla del deletreo: se dibuja encima del juego y muestra la palabra, las letras que van bien
 // y una barra con el tiempo que queda. La lanza `EscenaJuego`:
 //
-//   scene.launch(ESCENAS.DELETREO, { palabra, invertida, modo, alTerminar })
+//   scene.launch(ESCENAS.DELETREO, { palabra, invertida, modo, usaVoz, alTerminar })
+//
+// `usaVoz`: las letras se dicen al micrófono en vez de teclearse, con 50 % más de tiempo. Si el
+// navegador no tiene reconocimiento de voz o el micrófono falla (sin permiso, sin conexión), la pantalla
+// pasa sola al teclado y lo avisa: el juego nunca se queda sin forma de deletrear.
 //
 // `modo` es uno de `MODOS_DE_DELETREO`. En 'visible' la palabra se ve siempre. En 'huecos' y 'memoria'
 // se enseña una sola vez, el tiempo justo para leerla (la barra, azul, todavía no corre), y después
@@ -49,27 +55,41 @@ const COLOR_DE_LA_BARRA = Object.freeze({
 // La barra mide el tiempo REAL (`performance.now()`), no el del juego: cuando el mundo vaya en cámara
 // lenta (el ataque fuerte del jefe), el tiempo del jugador no se estira.
 //
-// Las letras entran por `recibirLetra`. Hoy las manda el teclado; el modo de voz usará el mismo método.
+// Las letras entran por `recibirLetra`, las mande el teclado o la voz: las mismas reglas para las dos.
 export class EscenaDeletreo extends Phaser.Scene {
 	constructor() {
 		super(ESCENAS.DELETREO);
 	}
 
-	init({ palabra, invertida = false, modo = MODOS_DE_DELETREO.VISIBLE, alTerminar }) {
+	init({
+		palabra,
+		invertida = false,
+		modo = MODOS_DE_DELETREO.VISIBLE,
+		usaVoz = false,
+		alTerminar,
+	}) {
 		this.palabra = palabra;
 		this.invertida = invertida;
 		this.modo = modo;
+		this.usaVoz = usaVoz;
 		this.alTerminar = alTerminar;
 	}
 
 	create() {
 		const cantidadDeLetras = letrasDeLaPalabra(this.palabra).length;
+		// Sin reconocimiento de voz en el navegador se usa el teclado, con el tiempo del teclado.
+		const conVoz = this.usaVoz && ReconocedorDeVoz.disponible();
 		this.deletreo = new Deletreo({
 			palabra: this.palabra,
 			invertida: this.invertida,
 			tiempoTotal: tiempoParaLaPalabra(
 				cantidadDeLetras,
-				{ base: TECLADO.BASE, porLetra: TECLADO.POR_LETRA, factorInvertida: FACTOR_INVERTIDA },
+				{
+					base: TECLADO.BASE,
+					porLetra: TECLADO.POR_LETRA,
+					factorInvertida: FACTOR_INVERTIDA,
+					factor: conVoz ? VOZ.FACTOR_DE_TIEMPO : 1,
+				},
 				this.invertida,
 			),
 			lectura:
@@ -82,15 +102,23 @@ export class EscenaDeletreo extends Phaser.Scene {
 		this.eventosYaProcesados = new WeakSet();
 		this.errorHasta = 0; // hasta cuándo el marco se ve rojo por un error
 		this.fraccionFinal = 1; // lo que quedaba de tiempo cuando terminó
+		this.vozActiva = false; // verdadero mientras las letras entran por el micrófono
+		this.estadoDeLaVoz = '';
+		this.ultimoTextoOido = '';
+		this.avisoDeVoz = '';
 
 		this.#crearPantalla();
 
 		this.input.keyboard.on('keydown', this.#alPulsarUnaTecla, this);
 		this.events.once('shutdown', () => {
 			this.input.keyboard.off('keydown', this.#alPulsarUnaTecla, this);
+			this.voz?.detener();
 		});
 
 		this.deletreo.empezar(performance.now());
+		if (this.usaVoz) {
+			this.#empezarLaVoz();
+		}
 		this.#dibujar();
 	}
 
@@ -100,8 +128,8 @@ export class EscenaDeletreo extends Phaser.Scene {
 	}
 
 	/**
-	 * Recibe una letra. Es la entrada del deletreo: la usa el teclado y la usará la voz.
-	 * Devuelve 'acierto', 'error' o 'ignorada'.
+	 * Recibe una letra (o una lista de letras candidatas, para la voz). Es la entrada del deletreo:
+	 * la usan el teclado y la voz. Devuelve 'acierto', 'error' o 'ignorada'.
 	 */
 	recibirLetra(caracter) {
 		const ahora = performance.now();
@@ -114,7 +142,45 @@ export class EscenaDeletreo extends Phaser.Scene {
 		return resultado;
 	}
 
+	// Escuchar al micrófono. Las letras que reconoce entran por `recibirLetra`. Si falla de forma grave
+	// (sin permiso, sin conexión, sin soporte) se pasa al teclado.
+	#empezarLaVoz() {
+		this.vozActiva = true;
+		this.estadoDeLaVoz = 'conectando';
+		this.voz = new ReconocedorDeVoz({
+			idioma: VOZ.IDIOMA,
+			retenerUltima: VOZ.RETENER_ULTIMA,
+			alLetras: (letras) => letras.forEach((candidatas) => this.recibirLetra(candidatas)),
+			alTexto: ({ texto }) => {
+				this.ultimoTextoOido = texto;
+			},
+			alEstado: (estado) => {
+				this.estadoDeLaVoz = estado;
+			},
+			alError: (codigo, grave) => {
+				if (grave) {
+					this.#pasarAlTeclado(codigo);
+				}
+			},
+		});
+		this.voz.iniciar();
+	}
+
+	#pasarAlTeclado(motivo) {
+		if (!this.vozActiva) {
+			return;
+		}
+		this.vozActiva = false;
+		this.voz?.detener();
+		this.avisoDeVoz = `Sin micrófono (${motivo}): ¡usa el teclado!`;
+	}
+
 	#alPulsarUnaTecla(evento) {
+		// Con la voz activa las letras entran por el micrófono, no por el teclado.
+		if (this.vozActiva) {
+			return;
+		}
+
 		// Mantener una tecla pulsada repite el evento: cada letra necesita una pulsación nueva.
 		if (evento.repeat || evento.ctrlKey || evento.metaKey || evento.altKey) {
 			return;
@@ -132,10 +198,19 @@ export class EscenaDeletreo extends Phaser.Scene {
 	}
 
 	#crearPantalla() {
-		const { Y, SEPARACION_LETRAS } = PANEL;
+		const { Y, ALTO, SEPARACION_LETRAS } = PANEL;
 		const centroX = CONFIG.ANCHO / 2;
 
 		this.graficos = this.add.graphics();
+		this.textoDeVoz = this.add
+			.text(centroX, Y + ALTO / 2 + 22, '', {
+				fontFamily: 'monospace',
+				fontSize: '14px',
+				color: '#c9b79c',
+				stroke: '#000000',
+				strokeThickness: 3,
+			})
+			.setOrigin(0.5);
 		this.titulo = this.add
 			.text(centroX, Y - 48, '', { fontFamily: 'monospace', fontSize: '18px', color: '#c9b79c' })
 			.setOrigin(0.5);
@@ -170,9 +245,24 @@ export class EscenaDeletreo extends Phaser.Scene {
 		}
 
 		this.resultadoMostrado = true;
+		this.voz?.detener(); // ya terminó: el micrófono se apaga
 		this.fraccionFinal = this.deletreo.fraccionRestante(ahora);
 		this.alTerminar?.(this.deletreo.estado);
 		this.time.delayedCall(TIEMPO_DEL_RESULTADO, () => this.scene.stop());
+	}
+
+	// La línea de abajo: qué hace el micrófono y lo último que oyó, o el aviso si falló.
+	#textoDeLaVoz() {
+		if (this.avisoDeVoz) {
+			return this.avisoDeVoz;
+		}
+		if (!this.vozActiva || this.resultadoMostrado) {
+			return '';
+		}
+
+		const estado = this.estadoDeLaVoz === 'escuchando' ? 'escuchando' : 'conectando…';
+		const oido = this.ultimoTextoOido ? ` · oí: «${this.ultimoTextoOido.slice(-40)}»` : '';
+		return `Micrófono: ${estado}${oido}`;
 	}
 
 	#textoDeArriba() {
@@ -200,6 +290,7 @@ export class EscenaDeletreo extends Phaser.Scene {
 		const centroX = CONFIG.ANCHO / 2;
 
 		this.titulo.setText(this.#textoDeArriba());
+		this.textoDeVoz.setText(this.#textoDeLaVoz());
 
 		// Letras: verdes las que van bien, la que toca en blanco, las demás en tono tierra. Según el
 		// modo, pueden estar escondidas: se cambian por un hueco o por nada.

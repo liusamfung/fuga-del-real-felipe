@@ -11,6 +11,7 @@
 | [Guía de recursos](guia-de-recursos.md)             | Tamaños y formatos de sprites, fondos y audio                     |
 | [Calidad total](calidad-total.md)                   | Autor elegido y cómo se aplican sus principios                    |
 | [Decisiones pendientes](decisiones-pendientes.md)   | Lo que falta decidir, con recomendaciones                         |
+| [Prueba de voz](prueba-de-voz.md)                   | Cómo medir qué tan bien reconoce el navegador a quien deletrea    |
 
 ## Referencias
 

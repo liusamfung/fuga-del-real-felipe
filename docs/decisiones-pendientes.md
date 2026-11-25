@@ -17,7 +17,15 @@ Elegir entre Juran, Deming o Crosby y confirmar el nombre "Joseph Durand" con el
 ## 3. Voz: poderes, idioma y tiempo
 
 - ¿Qué poderes hay además de la **granada**? (nombre, palabra, efecto, recarga).
-- Idioma del reconocimiento: `es-PE` o `es-ES`.
+- Idioma del reconocimiento: `es-PE` o `es-ES`. Hoy `es-PE` _(provisional)_; se decide con la
+  [prueba de voz](prueba-de-voz.md).
+- **Prueba de voz con personas:** falta hacerla (5 personas, 5 palabras). Sus resultados deciden el
+  idioma, la tabla de nombres de letras, el tiempo por letra y si la voz es viable.
+- Tiempo con voz: hoy **50 % más** que con el teclado _(provisional)_.
+- La **B y la V** no se pueden distinguir hablando: valen las dos. ¿Se acepta? (Alternativa: pedir
+  «be larga» y «ve corta», que es incómodo.)
+- Con voz, el **teclado se desactiva** mientras se deletrea, para que no se pueda hacer trampa.
+  ¿Se confirma, o debe quedar como ayuda?
 - Tiempo para deletrear: hoy es `1,5 s + 0,4 s × letras` con teclado, y ×1,5 al revés _(provisional)_.
   El de voz se define con el _spike_ de voz.
 - Modo de **teclado** como respaldo: hecho. ¿Cuántos errores se perdonan? Hoy son 2 _(provisional)_.

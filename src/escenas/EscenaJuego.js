@@ -5,6 +5,7 @@ import { DIFICULTADES, elegirPalabra } from '../datos/palabras.js';
 import { Cofre } from '../entidades/Cofre.js';
 import { EnemigoDebil } from '../entidades/EnemigoDebil.js';
 import { Jugador } from '../entidades/Jugador.js';
+import { ReconocedorDeVoz } from '../sistemas/ReconocedorDeVoz.js';
 import { Disparo } from '../sistemas/Disparo.js';
 import { Entrada } from '../sistemas/Entrada.js';
 import { generarNivel } from '../sistemas/GeneradorDeNivel.js';
@@ -27,6 +28,7 @@ export class EscenaJuego extends Phaser.Scene {
 		this.jugadorMuerto = false;
 		this.proximoAvisoDeLlave = 0;
 		this.deletreoActivo = false;
+		this.usarVoz = false; // provisional: la tecla V activa deletrear con el micrófono
 		this.estadoDeSalas = new Map(); // 'columna,fila' -> { combateIniciado, limpia, enemigosVivos, ... }
 		this.entrada = new Entrada(this);
 
@@ -61,6 +63,11 @@ export class EscenaJuego extends Phaser.Scene {
 	update() {
 		if (this.jugadorMuerto) {
 			return;
+		}
+
+		const alternarVoz = this.entrada.vozAlternada(); // se consulta siempre, aunque no se use
+		if (alternarVoz && !this.deletreoActivo) {
+			this.#alternarLaVoz();
 		}
 
 		const pedido = this.entrada.deletreoPedido(); // se consulta siempre, aunque no se use
@@ -110,8 +117,21 @@ export class EscenaJuego extends Phaser.Scene {
 			palabra: elegirPalabra(dificultad),
 			invertida,
 			modo,
+			usaVoz: this.usarVoz,
 			alTerminar: (resultado) => this.#alTerminarElDeletreo(resultado),
 		});
+	}
+
+	// Provisional hasta el paso 9: la tecla V cambia entre deletrear con el teclado y con la voz. La
+	// primera vez que se deletrea con la voz, el navegador pide permiso para el micrófono.
+	#alternarLaVoz() {
+		if (!ReconocedorDeVoz.disponible()) {
+			this.#mostrarMensaje('Este navegador no tiene voz: usa Chrome', { tamano: 20 });
+			return;
+		}
+
+		this.usarVoz = !this.usarVoz;
+		this.#mostrarMensaje(this.usarVoz ? 'Deletreo: VOZ' : 'Deletreo: TECLADO', { tamano: 24 });
 	}
 
 	/** `resultado` es 'acertada', 'fallada' o 'tiempo-agotado'. */

@@ -76,7 +76,16 @@ El reconocimiento de voz devuelve texto, no letras. Por eso hace falta un paso d
    pequeño** (por ejemplo, 1 letra de diferencia en palabras largas).
 
 Esta lógica es **pura** (texto entrante → acierto sí/no) y por eso se puede probar con tests
-automáticos sin micrófono. Va en `src/utilidades/deletreo.js`.
+automáticos sin micrófono. Va en `src/utilidades/voz.js` (texto → letras) y `src/utilidades/deletreo.js`.
+Lo que se hace hoy:
+
+- Los nombres de las letras están en una **tabla de datos** (`src/datos/nombresDeLetras.js`), fácil de
+  ampliar con lo que se vea en la prueba de voz.
+- **B y V suenan igual:** "be" y "ve" dan **dos candidatas** (`B`, `V`) y valen para las dos. Solo se
+  distinguen con _be larga_, _ve corta_ o _uve_.
+- Lo que **no es el nombre de una letra** (por ejemplo, la palabra entera que el navegador se
+  inventa) se **ignora**, no cuenta como error.
+- Los errores perdonados son los mismos que con el teclado (2).
 
 ### 5.4 Palabras al revés
 
@@ -112,7 +121,7 @@ Se guardan en `src/datos/palabras.js`. La palabra **no cambia** mientras la barr
   palabra) sirve para desarrollar y probar sin hablar, y para quien no tenga micrófono. El juego no
   debe quedarse bloqueado si el micrófono falla. **Ya está hecho** (paso 7); ver más abajo.
 
-### 5.7 Cómo funciona hoy el deletreo con teclado
+### 5.7 Cómo funciona hoy el deletreo con teclado (y con voz, ver 5.9)
 
 - **Provisional:** la tecla **E** pide una palabra al azar con la palabra siempre visible, **T** con
   huecos e **Y** de memoria (ver 5.8). Con **Mayúsculas** pulsada se pide **al revés**. **R** pide una
@@ -133,6 +142,28 @@ Se guardan en `src/datos/palabras.js`. La palabra **no cambia** mientras la barr
   juego recibe el evento `deletreo-terminado` con ese resultado.
 - La lógica es pura y tiene pruebas: `src/utilidades/deletreo.js`, `src/sistemas/Deletreo.js` y
   `pruebas/deletreo.test.js`. El modo de voz (paso 8) mandará sus letras al mismo lugar.
+
+### 5.9 Cómo funciona hoy el deletreo con voz
+
+- **Provisional:** la tecla **V** cambia entre teclado y voz. Después se pide la palabra con **E**, **T**
+  o **Y** como siempre (5.7 y 5.8). La primera vez, el navegador pide permiso para el micrófono.
+- Se usa la **Web Speech API** (`SpeechRecognition`, `webkitSpeechRecognition` en Chrome) con el idioma
+  `es-PE` _(provisional)_. Escucha de forma continua y entrega resultados provisionales mientras se
+  habla (`src/sistemas/ReconocedorDeVoz.js`).
+- El navegador corrige lo que ya dijo. Para no contar una letra dos veces ni dar por buena una que
+  cambia después, un resultado provisional entrega todas sus letras **menos la última** y el resultado
+  final las entrega todas (`src/sistemas/AcumuladorDeVoz.js`). Cuesta una letra de retraso.
+- **Tiempo:** `50 %` más que con el teclado _(provisional)_. Con el modo al revés los dos factores se
+  multiplican.
+- Mientras el micrófono está activo, el **teclado se desactiva** (así no hay trampa y W, A, S, D no
+  cuentan como errores). Al terminar la palabra el micrófono se apaga.
+- **Plan B automático:** si el navegador no tiene reconocimiento de voz, no hay permiso, no hay
+  internet o no hay micrófono, la pantalla **pasa sola al teclado** y avisa («Sin micrófono… ¡usa el
+  teclado!»). El juego nunca se queda sin forma de deletrear.
+- Chrome corta el reconocimiento tras un silencio: se **reinicia solo** mientras se deletrea.
+- Abajo del panel se ve lo último que oyó el navegador, para saber si te está entendiendo.
+- Todo lo que no depende del micrófono tiene pruebas con `npm test` (se usa un reconocimiento falso).
+  Lo que sí depende de él se mide con la [prueba de voz](prueba-de-voz.md).
 
 ### 5.8 Modos de deletreo (dificultad)
 

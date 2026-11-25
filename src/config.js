@@ -8,6 +8,7 @@ export const ESCENAS = Object.freeze({
 	JUEGO: 'EscenaJuego',
 	HUD: 'EscenaHUD',
 	DELETREO: 'EscenaDeletreo',
+	PRUEBA_VOZ: 'EscenaPruebaVoz',
 });
 
 // Cómo se muestra la palabra que hay que deletrear (de menos a más difícil).
@@ -71,6 +72,14 @@ export const CONFIG = Object.freeze({
 		// el tiempo de deletrear ni se aceptan letras.
 		LECTURA: Object.freeze({ BASE: 800, POR_LETRA: 120 }),
 		FACTOR_INVERTIDA: 1.5, // al revés se da 1,5 veces el tiempo
+		// Deletrear con la voz (Web Speech API del navegador). Valores iniciales: salen de la prueba de
+		// voz (docs/prueba-de-voz.md) y se ajustan con ella.
+		VOZ: Object.freeze({
+			IDIOMA: 'es-PE', // o 'es-ES'; ver docs/decisiones-pendientes.md
+			FACTOR_DE_TIEMPO: 1.5, // la voz es más lenta que el teclado: se da 50 % más de tiempo
+			// Guardar la última letra de un resultado provisional hasta que el navegador la confirme.
+			RETENER_ULTIMA: true,
+		}),
 		ERRORES_PERMITIDOS: 2, // letras equivocadas que se perdonan; una más y se falla
 		TIEMPO_DEL_RESULTADO: 900, // ms que se ve el resultado antes de cerrar la pantalla
 		DESTELLO_DE_ERROR: 150, // ms que el marco se pone rojo al equivocarse

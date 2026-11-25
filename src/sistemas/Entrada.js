@@ -18,6 +18,7 @@ export class Entrada {
 		];
 		this.teclaDeDeletreoInvertido = teclado.addKey('R');
 		this.teclaMayuscula = teclado.addKey('SHIFT');
+		this.teclaDeVoz = teclado.addKey('V');
 		this.movimientoBloqueado = false;
 	}
 
@@ -50,6 +51,14 @@ export class Entrada {
 			return { modo: pulsadas[0].modo, invertida: this.teclaMayuscula.isDown };
 		}
 		return null;
+	}
+
+	/**
+	 * Provisional: V activa o desactiva deletrear con la voz. Devuelve verdadero en el fotograma en
+	 * que se pulsa. Se debe consultar en cada fotograma (JustDown "gasta" la pulsación).
+	 */
+	vozAlternada() {
+		return Phaser.Input.Keyboard.JustDown(this.teclaDeVoz);
 	}
 
 	/**

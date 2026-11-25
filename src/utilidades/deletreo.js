@@ -41,11 +41,12 @@ export function letrasEsperadas(palabra, invertida = false) {
 
 /**
  * Cuánto tiempo (en ms) se da para deletrear una palabra: una base más un tiempo por cada letra.
- * Al revés es más difícil y se multiplica por `factorInvertida`.
+ * Al revés es más difícil y se multiplica por `factorInvertida`. `factor` es un multiplicador
+ * general (por ejemplo, más tiempo para la voz, que es más lenta que el teclado).
  */
 export function tiempoParaLaPalabra(cantidadDeLetras, tiempos, invertida = false) {
-	const { base, porLetra, factorInvertida = 1 } = tiempos;
-	const tiempo = base + cantidadDeLetras * porLetra;
+	const { base, porLetra, factorInvertida = 1, factor = 1 } = tiempos;
+	const tiempo = (base + cantidadDeLetras * porLetra) * factor;
 	return Math.round(invertida ? tiempo * factorInvertida : tiempo);
 }
 
