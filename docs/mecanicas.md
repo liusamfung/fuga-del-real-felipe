@@ -150,9 +150,11 @@ Se guardan en `src/datos/palabras.js`. La palabra **no cambia** mientras la barr
 - Se usa la **Web Speech API** (`SpeechRecognition`, `webkitSpeechRecognition` en Chrome) con el idioma
   `es-PE` _(provisional)_. Escucha de forma continua y entrega resultados provisionales mientras se
   habla (`src/sistemas/ReconocedorDeVoz.js`).
-- El navegador corrige lo que ya dijo. Para no contar una letra dos veces ni dar por buena una que
-  cambia después, un resultado provisional entrega todas sus letras **menos la última** y el resultado
-  final las entrega todas (`src/sistemas/AcumuladorDeVoz.js`). Cuesta una letra de retraso.
+- El navegador corrige lo que ya dijo y reparte el texto entre varios resultados a la vez. Por eso
+  se **unen todos en un solo texto** y se entregan solo las letras nuevas, una sola vez
+  (`src/sistemas/AcumuladorDeVoz.js`). Contar cada resultado por separado daba letras de más y
+  desordenadas (en la prueba de voz, 41 errores sueltos contra 13 con el texto unido). Guardar la
+  última letra hasta el resultado final está **apagado**: costaba ~1,3 s por palabra.
 - **Tiempo:** `50 %` más que con el teclado _(provisional)_. Con el modo al revés los dos factores se
   multiplican.
 - Mientras el micrófono está activo, el **teclado se desactiva** (así no hay trampa y W, A, S, D no
@@ -164,7 +166,8 @@ Se guardan en `src/datos/palabras.js`. La palabra **no cambia** mientras la barr
 - Abajo del panel se ve lo último que oyó el navegador, para saber si te está entendiendo.
 - **Hay que decir las letras con una pequeña pausa.** Si se dicen seguidas, Chrome las junta en una
   palabra («calllao») y no cuentan; decir la palabra entera tampoco la completa (no se puede hacer
-  trampa). Hay dos ayudas opcionales en `CONFIG.DELETREO.VOZ` (`SESGAR_A_LAS_LETRAS` y
+  trampa). La única excepción son **dos letras juntas** en una palabra de dos caracteres («fu» por
+  «efe u», «il» por «i ele»), que se leen como dos letras. Hay dos ayudas opcionales en `CONFIG.DELETREO.VOZ` (`SESGAR_A_LAS_LETRAS` y
   `PROCESAR_EN_EL_EQUIPO`) que se prueban en la [prueba de voz](prueba-de-voz.md).
 - Todo lo que no depende del micrófono tiene pruebas con `npm test` (se usa un reconocimiento falso).
   Lo que sí depende de él se mide con la [prueba de voz](prueba-de-voz.md).

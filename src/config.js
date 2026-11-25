@@ -78,7 +78,8 @@ export const CONFIG = Object.freeze({
 			IDIOMA: 'es-PE', // o 'es-ES'; ver docs/decisiones-pendientes.md
 			FACTOR_DE_TIEMPO: 1.5, // la voz es más lenta que el teclado: se da 50 % más de tiempo
 			// Guardar la última letra de un resultado provisional hasta que el navegador la confirme.
-			RETENER_ULTIMA: true,
+			// Apagado: en la prueba de voz retenerla costaba ~1,3 s por palabra y casi no evitaba errores.
+			RETENER_ULTIMA: false,
 			// Dos ayudas contra el reconocedor que junta las letras en palabras. Se prueban con `?voz`
 			// (teclas P y L) y se activan aquí si ayudan. Ver docs/prueba-de-voz.md. El sesgo solo
 			// funciona junto con PROCESAR_EN_EL_EQUIPO: con el servidor, Chrome lo rechaza.

@@ -92,7 +92,8 @@ Con los resultados se ajusta:
    `DELETREO.VOZ.FACTOR_DE_TIEMPO`). Hoy la voz da 50 % más que el teclado _(provisional)_. Se mide con
    `msHastaLaUltima ÷ letras`.
 3. **El idioma** (`es-PE` o `es-ES`): el que dé más aciertos.
-4. **`RETENER_ULTIMA`**: si hay letras que se cuentan mal, probar con `false` y comparar.
+4. **`RETENER_ULTIMA`**: hoy apagado (en la segunda ronda, retener la última letra costó ~1,3 s por
+   palabra y casi no evitó errores).
 
 ## Primera ronda (una persona, 10 intentos)
 
@@ -125,6 +126,46 @@ que mandó Chrome:
 4. «de» por «te» es un malentendido real. Pendiente de decidir si se perdona (ver
    [`decisiones-pendientes.md`](decisiones-pendientes.md)).
 5. Falta repetir la ronda con la pausa entre letras, con más personas y con el JSON nuevo (`eventos`).
+
+## Segunda ronda (una persona, 35 intentos)
+
+Dos tandas: **19 intentos con el servidor** (lo normal) y **16 con el reconocimiento en el equipo**
+(tecla `L`; 6 sin sesgo y 10 con sesgo `P`). No se hizo con las mismas palabras en cada tanda, así que
+solo se puede comparar en conjunto.
+
+**Hallazgo principal: un fallo mío.** El flujo crudo (`eventos`) mostró que Chrome reparte lo que
+oye entre varios resultados a la vez («r o d» en el resultado 0 y «i l» en el 1, y luego el 0 se come
+al 1). El acumulador contaba cada resultado por separado y sacaba letras de más y desordenadas
+(`R O (I) D I L`). Se arregló uniendo todos los resultados en un solo texto. Reproduciendo los
+eventos grabados con el código nuevo:
+
+| Servidor (19 intentos)             | Antes         | Después        |
+| ---------------------------------- | ------------- | -------------- |
+| Letras acertadas                   | 83/148 (56 %) | 104/148 (70 %) |
+| Palabras completas con ≤ 2 errores | 9 de 19       | **13 de 19**   |
+| Errores sueltos                    | 41            | 13             |
+
+(El reproductor imita exactamente los resultados grabados con el código viejo: 83/148 y 10 completas.)
+Además se leen como dos letras las palabras de dos caracteres que son letras pegadas («fu», «il»,
+«fe») y se añadió «sí» como C.
+
+**Lo que sigue fallando, todo en el servidor** (6 de 19): Chrome junta letras en una palabra, sobre
+todo con **«ce a»** («cañña», «Canon», «call lao», «capitula») y se pierde una **L** en PÓLVORA. Las
+palabras largas sin ese comienzo salieron bien: INDEPENDENCIA, ARTILLERÍA y FERROCARRIL completas y
+sin errores.
+
+**Reconocer en el equipo (L): no ayuda.** 62 % de las letras y 6 de 16 palabras, peor que el servidor.
+Cuando acierta no se equivoca, pero a menudo **no oye la última letra** («F u e R T» por FUERTE,
+«C a l l a» por CALLAO) y corta el resultado a la mitad («F o R» y luego «a l e Z a»). El sesgo (`P`) no
+mostró ventaja visible (4 de 10 palabras con sesgo contra 2 de 6 sin él, con palabras distintas).
+**Recomendación: seguir con el servidor.** Las teclas L y P se quedan como experimento.
+
+**«de» por «te»:** no se repitió en 35 intentos. Se deja como está (la D no vale por la T).
+
+**Tiempo.** Con pausas entre letras, el tiempo desde la primera letra hasta la última fue de unos
+**0,7 a 0,85 s por letra** (FORTALEZA 7,0–7,7 s, INDEPENDENCIA 11 s, ARTILLERÍA 7,4 s). El tiempo actual
+(teclado × 1,5) da 0,6 s por letra: **se queda corto en las palabras largas** (INDEPENDENCIA tiene
+10 s y necesitó 11 más el tiempo de empezar). Con un factor de **2** alcanza.
 
 ## Cosas que ya sabemos
 

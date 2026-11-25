@@ -87,22 +87,25 @@ test('cada letra del alfabeto español tiene al menos un nombre', () => {
 
 // --- Acumulador ---
 
+// Un resultado del navegador: texto y si es final.
+const r = (texto, esFinal = false) => ({ texto, esFinal });
+
 test('el acumulador entrega cada letra una sola vez aunque el resultado crezca', () => {
 	const acumulador = new AcumuladorDeVoz({ retenerUltima: false });
 
-	assert.deepEqual(acumulador.procesar(0, 'efe', false), [['F']]);
-	assert.deepEqual(acumulador.procesar(0, 'efe e', false), [['E']]);
-	assert.deepEqual(acumulador.procesar(0, 'efe e', false), [], 'repetido: nada nuevo');
-	assert.deepEqual(acumulador.procesar(0, 'efe e ere', true), [['R']]);
+	assert.deepEqual(acumulador.procesar([r('efe')]), [['F']]);
+	assert.deepEqual(acumulador.procesar([r('efe e')]), [['E']]);
+	assert.deepEqual(acumulador.procesar([r('efe e')]), [], 'repetido: nada nuevo');
+	assert.deepEqual(acumulador.procesar([r('efe e ere', true)]), [['R']]);
 });
 
 test('reteniendo la última, un resultado provisional entrega todas menos la última', () => {
 	const acumulador = new AcumuladorDeVoz({ retenerUltima: true });
 
-	assert.deepEqual(acumulador.procesar(0, 'efe', false), []);
-	assert.deepEqual(acumulador.procesar(0, 'efe e', false), [['F']]);
+	assert.deepEqual(acumulador.procesar([r('efe')]), []);
+	assert.deepEqual(acumulador.procesar([r('efe e')]), [['F']]);
 	assert.deepEqual(
-		acumulador.procesar(0, 'efe e ere', true),
+		acumulador.procesar([r('efe e ere', true)]),
 		[['E'], ['R']],
 		'al final salen todas',
 	);
@@ -111,28 +114,74 @@ test('reteniendo la última, un resultado provisional entrega todas menos la úl
 test('si el navegador corrige la última letra retenida, vale la corregida', () => {
 	const acumulador = new AcumuladorDeVoz({ retenerUltima: true });
 
-	assert.deepEqual(acumulador.procesar(0, 'efe de', false), [['F']]);
+	assert.deepEqual(acumulador.procesar([r('efe de')]), [['F']]);
 	assert.deepEqual(
-		acumulador.procesar(0, 'efe e', true),
+		acumulador.procesar([r('efe e', true)]),
 		[['E']],
 		'la "de" provisional se corrigió',
 	);
 });
 
-test('un resultado que se acorta no vuelve a entregar letras ya entregadas', () => {
+test('un texto que se acorta no vuelve a entregar letras ya entregadas', () => {
 	const acumulador = new AcumuladorDeVoz({ retenerUltima: false });
 
-	assert.deepEqual(acumulador.procesar(0, 'efe e ere', false), [['F'], ['E'], ['R']]);
-	assert.deepEqual(acumulador.procesar(0, 'efe e', true), []);
+	assert.deepEqual(acumulador.procesar([r('efe e ere')]), [['F'], ['E'], ['R']]);
+	assert.deepEqual(acumulador.procesar([r('efe e', true)]), []);
 });
 
-test('cada resultado lleva su propia cuenta, y reiniciar empieza de cero', () => {
+test('varios resultados a la vez cuentan como un solo texto, en orden', () => {
 	const acumulador = new AcumuladorDeVoz({ retenerUltima: false });
 
-	assert.deepEqual(acumulador.procesar(0, 'efe', true), [['F']]);
-	assert.deepEqual(acumulador.procesar(1, 'e', true), [['E']]);
+	assert.deepEqual(acumulador.procesar([r('efe', true)]), [['F']]);
+	assert.deepEqual(acumulador.procesar([r('efe', true), r('e')]), [['E']]);
+	assert.deepEqual(acumulador.procesar([r('efe', true), r('e ere')]), [['R']]);
+});
+
+test('reiniciar empieza de cero', () => {
+	const acumulador = new AcumuladorDeVoz({ retenerUltima: false });
+
+	assert.deepEqual(acumulador.procesar([r('efe', true)]), [['F']]);
 	acumulador.reiniciar();
-	assert.deepEqual(acumulador.procesar(0, 'efe', true), [['F']]);
+	assert.deepEqual(acumulador.procesar([r('efe', true)]), [['F']]);
+});
+
+test('sin resultados no hay letras', () => {
+	assert.deepEqual(new AcumuladorDeVoz().procesar([]), []);
+});
+
+// El flujo REAL de Chrome al decir RODIL (prueba de voz del 25/11/2026): el texto salta del
+// resultado 0 al 1 y vuelve. Contando cada resultado por separado salía "R O I D I L" (una I de
+// más y desordenada); unidos, sale bien.
+const FLUJO_REAL_DE_RODIL = [
+	[r('r')],
+	[r('r'), r('o')],
+	[r('r o')],
+	[r('r o'), r('d')],
+	[r('r o d')],
+	[r('r o d'), r('i')],
+	[r('r o d'), r('i l')],
+	[r('r o d i'), r('l')],
+	[r('r o d i l', true)],
+];
+
+test('real: el flujo de RODIL entrega R O D I L, sin letras de más ni desordenadas', () => {
+	for (const retenerUltima of [false, true]) {
+		const acumulador = new AcumuladorDeVoz({ retenerUltima });
+		const letras = FLUJO_REAL_DE_RODIL.flatMap((evento) => acumulador.procesar(evento));
+
+		assert.deepEqual(letras.flat(), ['R', 'O', 'D', 'I', 'L'], `retenerUltima: ${retenerUltima}`);
+	}
+});
+
+test('real: el flujo de RODIL completa el deletreo sin errores', () => {
+	const deletreo = crearDeletreo('RODIL');
+	const acumulador = new AcumuladorDeVoz({ retenerUltima: false });
+	for (const evento of FLUJO_REAL_DE_RODIL) {
+		acumulador.procesar(evento).forEach((letra) => deletreo.escribir(letra, 1));
+	}
+
+	assert.equal(deletreo.estado, 'acertada');
+	assert.equal(deletreo.errores, 0);
 });
 
 // --- Con el deletreo ---
@@ -574,4 +623,24 @@ test('si Chrome rechaza el sesgo, se avisa una vez y el reinicio sigue sin él (
 	assert.equal(ReconocimientoFalso.instancias.length, 2, 'se reinicia una sola vez');
 	assert.deepEqual(segundo.phrases, [], 'la segunda vez, sin sesgo');
 	assert.equal(voz.sesgoAplicado, false);
+});
+
+test('real: Chrome escribió "sí" por "ce" y vale como C', () => {
+	assert.equal(aciertosPorPosicion('CALLAO', false, 'sí a L L A o'), 6);
+});
+
+test('dos letras que Chrome juntó en una palabra corta se leen como dos letras', () => {
+	assert.deepEqual(planas('fu e r t e'), ['F', 'U', 'E', 'R', 'T', 'E']);
+	assert.deepEqual(planas('fe r r o c a r r il'), [
+		...'FERROCARRIL'.split(''), // F E R R O C A R R I L
+	]);
+	assert.deepEqual(planas('r o d il'), ['R', 'O', 'D', 'I', 'L']);
+	assert.deepEqual(planas('ba'), ['B/V', 'A']);
+});
+
+test('tres letras o más juntas NO se separan: no se puede decir la palabra entera', () => {
+	for (const palabra of ['asedio', 'calllao', 'cañon', 'fue', 'rodil']) {
+		assert.deepEqual(planas(palabra), [], `«${palabra}» no es una letra`);
+		assert.deepEqual(letrasDeLoDicho(palabra).desconocidas, [palabra]);
+	}
 });

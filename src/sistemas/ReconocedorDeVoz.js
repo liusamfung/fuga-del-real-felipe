@@ -76,7 +76,7 @@ export class ReconocedorDeVoz {
 
 	constructor({
 		idioma = 'es-PE',
-		retenerUltima = true,
+		retenerUltima = false,
 		sesgo = [],
 		impulsoDelSesgo = 5,
 		procesarLocal = false,
@@ -237,20 +237,30 @@ export class ReconocedorDeVoz {
 	}
 
 	#alResultado(evento) {
+		// Se avisa de lo nuevo (desde resultIndex), pero las letras se sacan de TODOS los resultados
+		// juntos: Chrome mueve texto de un resultado a otro (ver AcumuladorDeVoz).
+		const todos = Array.from(evento.results, (resultado) => ({
+			texto: resultado[0]?.transcript ?? '',
+			esFinal: resultado.isFinal,
+		}));
+
 		for (let numero = evento.resultIndex; numero < evento.results.length; numero += 1) {
 			const resultado = evento.results[numero];
 			const alternativas = Array.from(resultado, (alternativa) => ({
 				texto: alternativa.transcript,
 				confianza: alternativa.confidence,
 			}));
-			const texto = alternativas[0]?.texto ?? '';
+			this.alTexto?.({
+				numero,
+				texto: todos[numero].texto,
+				esFinal: resultado.isFinal,
+				alternativas,
+			});
+		}
 
-			this.alTexto?.({ numero, texto, esFinal: resultado.isFinal, alternativas });
-
-			const letras = this.acumulador.procesar(numero, texto, resultado.isFinal);
-			if (letras.length > 0) {
-				this.alLetras?.(letras);
-			}
+		const letras = this.acumulador.procesar(todos);
+		if (letras.length > 0) {
+			this.alLetras?.(letras);
 		}
 	}
 }

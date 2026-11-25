@@ -25,6 +25,16 @@ export function normalizarTexto(texto) {
 		.trim();
 }
 
+// Si la palabra son exactamente dos letras pegadas ("fu", "il"), devuelve las dos; si no, null.
+function dosLetrasJuntas(palabra) {
+	const [primera, segunda] = [...palabra];
+	const sonDos = [...palabra].length === 2;
+	const esLetra = (c) => Object.hasOwn(NOMBRES_DE_LETRAS, c);
+	return sonDos && esLetra(primera) && esLetra(segunda)
+		? [[...NOMBRES_DE_LETRAS[primera]], [...NOMBRES_DE_LETRAS[segunda]]]
+		: null;
+}
+
 /**
  * Las letras que se dijeron en un texto, en orden. Cada letra es una lista de candidatas: casi
  * siempre una sola, pero "be" y "ve" suenan igual y dan ['B', 'V'].
@@ -32,6 +42,10 @@ export function normalizarTexto(texto) {
  * Los nombres de dos palabras ("doble ve", "i griega") ganan a los de una. Lo que no es el nombre
  * de una letra (por ejemplo, la palabra entera que el reconocedor se inventó) se ignora y se
  * devuelve aparte en `desconocidas`, para verlo en la prueba de voz.
+ *
+ * Excepción: a veces el reconocedor junta DOS letras seguidas en una palabra corta ("fu" por "efe u",
+ * "il" por "i ele"). Si la palabra tiene dos caracteres y cada uno es una letra, se leen como dos
+ * letras. Con tres o más no se hace: así no se puede completar una palabra diciéndola entera.
  */
 export function letrasDeLoDicho(texto) {
 	const palabras = normalizarTexto(texto).split(' ').filter(Boolean);
@@ -58,6 +72,9 @@ export function letrasDeLoDicho(texto) {
 		if (candidatas) {
 			letras.push(candidatas);
 			posicion += usadas;
+		} else if (dosLetrasJuntas(palabras[posicion])) {
+			letras.push(...dosLetrasJuntas(palabras[posicion]));
+			posicion += 1;
 		} else {
 			desconocidas.push(palabras[posicion]);
 			posicion += 1;

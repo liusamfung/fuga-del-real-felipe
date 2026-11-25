@@ -17,6 +17,7 @@ export const NOMBRES_DE_LETRAS = Object.freeze({
 	ce: ['C'],
 	c: ['C'],
 	se: ['C'], // el reconocedor suele oír "ce" como "se"
+	si: ['C'], // o como "sí" (prueba de voz, 25/11/2026)
 	de: ['D'],
 	d: ['D'],
 	e: ['E'],
