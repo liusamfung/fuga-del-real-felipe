@@ -24,6 +24,9 @@ en el resto de la asignatura. Los nombres propios de la API de Phaser se quedan 
 - Medidas: cada sala mide 800×640 px, el nivel es una cuadrícula de 3×3 salas (2400×1920 px).
 - Mientras no existan los sprites finales, se usan texturas provisionales generadas por código con
   las mismas claves que tendrán los recursos finales (`docs/guia-de-recursos.md`).
+- Los dibujos finales están en `public/assets/img/` como hojas de sprites (32×48 px por cuadro). Los
+  originales, ampliados ×5, están en `arte/originales/`. Los nombres van en minúsculas, con guiones
+  y en español (`quién-dirección-acción-número`).
 - La lógica del deletreo (`src/utilidades/deletreo.js`) debe ser pura, sin Phaser ni micrófono, para
   poder probarla con tests.
 - Phaser 4: el tiempo de la palabra a deletrear debe medirse en tiempo real, no con

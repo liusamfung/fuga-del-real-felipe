@@ -16,6 +16,9 @@ export class EscenaHUD extends Phaser.Scene {
 	create() {
 		const { MARGEN, Y } = CONFIG.HUD;
 
+		// Franja oscura detrás de la interfaz: así se lee sobre cualquier textura de pared.
+		this.add.rectangle(0, 0, CONFIG.ANCHO, CONFIG.SALA.CASILLA, 0x000000, 0.6).setOrigin(0, 0);
+
 		this.corazones = [];
 		this.textoEstadisticas = this.add
 			.text(CONFIG.ANCHO - MARGEN, Y, '', {

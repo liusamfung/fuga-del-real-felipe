@@ -1,7 +1,10 @@
 import Phaser from 'phaser';
 import { CONFIG } from '../config.js';
+import { cuadroQuietoDelJugador } from '../datos/animaciones.js';
 
 // El personaje que controla el jugador: se mueve, tiene vida y puede mejorar sus estadísticas.
+// Mira hacia donde apunta el ratón (porque hacia ahí dispara) y camina con la animación de esa
+// dirección.
 //
 // Eventos que emite:
 //   - 'estadisticas-cambiadas': cambió la vida o alguna estadística (lo escucha el HUD).
@@ -22,6 +25,7 @@ export class Jugador extends Phaser.Physics.Arcade.Sprite {
 			velocidad: VELOCIDAD,
 		};
 		this.inmuneHasta = 0; // instante (en ms del reloj de la escena) hasta el que no recibe daño
+		this.direccionMirada = 'abajo'; // 'abajo', 'derecha', 'izquierda' o 'arriba'
 
 		// El cuerpo de choque son solo los pies: centrado a lo ancho y pegado al borde de abajo.
 		this.body.setSize(CUERPO_ANCHO, CUERPO_ALTO);
@@ -34,6 +38,36 @@ export class Jugador extends Phaser.Physics.Arcade.Sprite {
 		this.setVelocity(direccion.x * velocidad, direccion.y * velocidad);
 		// Dibujar más adelante a quien está más abajo en la pantalla (vista top-down).
 		this.setDepth(this.body.bottom);
+	}
+
+	/**
+	 * Elige el dibujo del jugador: mira hacia `puntoDeApuntado` y, si se mueve, camina.
+	 * `direccion` es el mismo vector que se le pasó a `mover`. Si `puntoDeApuntado` es null (el
+	 * ratón aún no se ha movido), sigue mirando hacia donde miraba.
+	 */
+	actualizarAnimacion(direccion, puntoDeApuntado) {
+		if (puntoDeApuntado) {
+			this.direccionMirada = this.#direccionHacia(puntoDeApuntado);
+		}
+
+		if (direccion.x !== 0 || direccion.y !== 0) {
+			// `true`: si ya se está reproduciendo esta animación, no la reinicia.
+			this.anims.play(`jugador-caminar-${this.direccionMirada}`, true);
+		} else {
+			this.anims.stop();
+			this.setFrame(cuadroQuietoDelJugador(this.direccionMirada));
+		}
+	}
+
+	/** 'abajo', 'derecha', 'izquierda' o 'arriba', según el eje en que el punto está más lejos. */
+	#direccionHacia(punto) {
+		const dx = punto.x - this.x;
+		const dy = punto.y - this.y;
+
+		if (Math.abs(dx) > Math.abs(dy)) {
+			return dx > 0 ? 'derecha' : 'izquierda';
+		}
+		return dy > 0 ? 'abajo' : 'arriba';
 	}
 
 	/**

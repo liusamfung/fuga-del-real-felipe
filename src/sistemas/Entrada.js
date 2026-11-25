@@ -11,8 +11,14 @@ export class Entrada {
 		this.puntero = escena.input.activePointer;
 	}
 
-	/** Punto de la sala al que apunta el ratón, en píxeles. */
+	/**
+	 * Punto de la sala al que apunta el ratón, en píxeles. Devuelve null mientras el ratón no se ha
+	 * movido ni se ha pulsado dentro del juego: hasta entonces Phaser cree que está en (0, 0).
+	 */
 	puntoDeApuntado() {
+		if (this.puntero.moveTime === 0 && this.puntero.downTime === 0) {
+			return null;
+		}
 		return { x: this.puntero.worldX, y: this.puntero.worldY };
 	}
 

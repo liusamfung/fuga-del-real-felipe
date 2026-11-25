@@ -1,54 +1,138 @@
 # Guía de recursos (sprites, fondos y audio)
 
-Para los compañeros que dibujan y para quienes programan con recursos provisionales.
+Para los compañeros que dibujan y para quienes programan. Explica las medidas, cómo se nombran y
+organizan los archivos, qué dibujos ya tenemos y cuáles faltan.
 
 ## 1. Medidas del juego
 
-| Elemento           | Medida       | Nota                                                 |
-| ------------------ | ------------ | ---------------------------------------------------- |
-| Pantalla del juego | 800×640 px   | Una sala completa por pantalla                       |
-| Sala               | 800×640 px   | 25×20 casillas de 32 px                              |
-| Mapa de un nivel   | 2400×1920 px | 3×3 salas; es el tamaño de cada fondo                |
-| Casilla (tile)     | 32×32 px     | Propuesta                                            |
-| Jugador            | 32×48 px     | El sprite actual mide 256×384 px, que es 8 veces eso |
+| Elemento           | Medida       | Nota                                           |
+| ------------------ | ------------ | ---------------------------------------------- |
+| Pantalla del juego | 800×640 px   | Una sala completa por pantalla                 |
+| Sala               | 800×640 px   | 25×20 casillas de 32 px                        |
+| Mapa de un nivel   | 2400×1920 px | 3×3 salas                                      |
+| Cuadro del jugador | 32×48 px     | Confirmado: los dibujos recibidos son de 32×48 |
+| Cuadro del enemigo | 32×48 px     | Confirmado                                     |
+| Pieza del tileset  | 32×48 px     | Ver las preguntas pendientes (sección 7)       |
 
-> El sprite del jugador que tenemos parece un dibujo de 32×48 **ampliado 8 veces** y por eso se ve
-> borroso. Hay que pedir la versión **a tamaño real** (32×48) para no perder nitidez.
+> **Los dibujos se entregan "ampliados ×5".** El editor de pixel art exportó cada cuadro de
+> 32×48 como una imagen de 160×240 (cada píxel dibujado es un cuadro de 5×5). Está bien para
+> trabajar, pero el juego usa el tamaño real de 32×48. Se comprobó que la reducción es **exacta**,
+> sin pérdida. Cómo se hace: [`arte/README.md`](../arte/README.md).
 
-## 2. Formato
+## 2. Dónde está cada cosa
 
-- Imágenes en **PNG con fondo transparente**, sin suavizado (_pixel art_ nítido).
-- Fondos: un PNG de **2400×1920 px** por piso.
-- Hojas de animación (_spritesheets_): una fila por dirección o animación, con todos los cuadros del
-  mismo tamaño.
+```
+arte/
+  originales/            Lo que entrega quien dibuja, ampliado ×5 y con nombres estándar
+    jugador/  enemigos/  escenario/
+public/assets/
+  img/                   Lo que carga el juego: hojas de sprites a tamaño real
+    jugador/jugador.png
+    enemigos/enemigo-debil.png
+    escenario/tileset-prision.png
+  audio/                 Sonidos y música
+```
+
+`arte/` no se publica con el juego; `public/` sí.
+
+## 3. Cómo se nombran los archivos
+
+- Todo en **minúsculas, con guiones y en español**, sin tildes ni espacios: `jugador-abajo-paso-1.png`.
+- Orden del nombre, de lo general a lo particular: **`quién-dirección-acción-número`**.
+  Ejemplos: `jugador-derecha-quieto.png`, `enemigo-debil-caminar-2.png`.
+- Las direcciones son siempre `abajo`, `derecha`, `izquierda` y `arriba`.
+- Las piezas del tileset llevan un número de dos cifras al principio (`09-textura-rayas-marron.png`).
+  Ese número, menos 1, es su número de cuadro en la hoja.
+
+## 4. Las hojas de sprites que ya tenemos
+
+Una **hoja** junta varios cuadros del mismo tamaño en una sola imagen. Se cuentan de izquierda a
+derecha y de arriba abajo, empezando en 0.
+
+### Jugador — `jugador.png` (96×192, 12 cuadros)
+
+| Fila      | Cuadros | Quieto | Paso 1 | Paso 2 |
+| --------- | ------- | ------ | ------ | ------ |
+| Abajo     | 0 – 2   | 0      | 1      | 2      |
+| Derecha   | 3 – 5   | 3      | 4      | 5      |
+| Izquierda | 6 – 8   | 6      | 7      | 8      |
+| Arriba    | 9 – 11  | 9      | 10     | 11     |
+
+La animación de caminar es **quieto, paso 1, quieto, paso 2**. Los cuadros de la izquierda son
+**espejos exactos** de los de la derecha (y el paso 2 de frente es el espejo del paso 1), así que a
+quien dibuja le basta con dibujar un lado.
+
+El jugador **mira hacia donde apunta el ratón** (porque hacia ahí dispara) y camina con la
+animación de esa dirección.
+
+### Enemigo débil — `enemigo-debil.png` (64×48, 2 cuadros)
+
+| Cuadro | Qué es            |
+| ------ | ----------------- |
+| 0      | Caminar, cuadro 1 |
+| 1      | Caminar, cuadro 2 |
+
+### Tileset de la prisión — `tileset-prision.png` (256×144, 22 piezas en 8×3)
+
+Los **nombres describen lo que se ve** en cada pieza y son provisionales hasta confirmar con quien
+las dibujó para qué sirve cada una.
+
+| Cuadro | Nombre                         | Cuadro | Nombre                       |
+| ------ | ------------------------------ | ------ | ---------------------------- |
+| 0      | marco-esquina-arriba-izquierda | 11     | panel-concentrico            |
+| 1      | marco-esquina-arriba-derecha   | 12     | suelo-borde-abajo-derecha    |
+| 2      | marco-esquina-abajo-derecha    | 13     | suelo-borde-abajo-izquierda  |
+| 3      | marco-esquina-abajo-izquierda  | 14     | suelo-borde-arriba-izquierda |
+| 4      | marco-borde-arriba             | 15     | suelo-borde-arriba-derecha   |
+| 5      | marco-borde-abajo              | 16     | suelo-borde-arriba           |
+| 6      | marco-borde-izquierda          | 17     | suelo-borde-abajo            |
+| 7      | marco-borde-derecha            | 18     | suelo-borde-izquierda        |
+| 8      | textura-rayas-marron           | 19     | suelo-borde-derecha          |
+| 9      | textura-ranuras                | 20     | suelo-liso                   |
+| 10     | panel-marco                    | 21     | suelo-rayas                  |
+
+Las 8 piezas `marco-*` encajan entre sí formando un marco de bandas concéntricas (se comprobó
+armándolas). Los números de cuadro también están en `FOTOGRAMAS_TILESET`, en
+`src/datos/recursos.js`. **Hoy el juego usa dos:** `suelo-rayas` para el suelo y
+`textura-rayas-marron` para las paredes.
+
+## 5. Formato de los dibujos finales
+
+- **PNG con fondo transparente**, sin suavizado (_pixel art_ nítido).
+- Todos los cuadros de una hoja miden lo mismo.
+- Fondos: un PNG de **2400×1920 px** por piso (cuando se decida cómo se arman).
 - Audio: **.ogg** o **.mp3** cortos para efectos, y música en bucle.
-- Archivos en `public/assets/img/` y `public/assets/audio/`, con nombres en minúsculas y con
-  guiones (`jugador-caminar.png`, `fondo-piso-1.png`).
+- Para agregar o cambiar un dibujo: poner el archivo en `public/assets/img/` y cambiar su entrada en
+  `src/datos/recursos.js`. El resto del juego no cambia, porque usa siempre la clave y no la ruta.
 
-## 3. Lista de recursos que hacen falta
+## 6. Qué recursos hacen falta
 
-| Recurso          | Detalle                                                         | Prioridad |
-| ---------------- | --------------------------------------------------------------- | --------- |
-| Jugador          | Quieto y caminando en 4 direcciones                             | Alta      |
-| Enemigo débil    | Quieto, caminando, recibiendo daño                              | Alta      |
-| Bala             | Una imagen pequeña                                              | Alta      |
-| Fondo del piso 1 | 2400×1920 px: piedra, barras metálicas, cajas de madera         | Alta      |
-| Cofre            | Cerrado y abierto                                               | Alta      |
-| Puerta           | Abierta, cerrada y con llave                                    | Media     |
-| Jefe             | Quieto, ataque básico, ataque fuerte                            | Media     |
-| Llave y mejoras  | Iconos para el HUD                                              | Media     |
-| Portada          | Imagen de título                                                | Media     |
-| Fondo del piso 2 | 2400×1920 px (por definir)                                      | Baja      |
-| Sonidos          | Disparo, golpe, cofre, puerta, acierto, fallo, aviso del ataque | Media     |
-| Música           | Una pista por piso y una para la portada                        | Baja      |
+| Recurso                    | Estado      | Detalle                                                       |
+| -------------------------- | ----------- | ------------------------------------------------------------- |
+| Jugador                    | **Hecho**   | 4 direcciones, quieto y caminar. Faltan: recibir daño, morir  |
+| Enemigo débil              | **Parcial** | Solo 2 cuadros de caminar. Faltan: recibir daño, morir        |
+| Suelo y paredes del piso 1 | **Parcial** | Hay tileset; falta decidir cómo se arma la sala (sección 7)   |
+| Bala                       | Provisional | Una imagen pequeña                                            |
+| Cofre                      | Provisional | Cerrado y abierto                                             |
+| Cajas (obstáculos)         | Provisional | 64×64 px                                                      |
+| Corazones del HUD          | Provisional | Lleno y vacío                                                 |
+| Puerta                     | Pendiente   | Abierta, cerrada y con llave                                  |
+| Jefe                       | Pendiente   | Quieto, ataque básico, ataque fuerte                          |
+| Llave y mejoras            | Pendiente   | Iconos para el HUD                                            |
+| Portada                    | Pendiente   | Imagen de título                                              |
+| Piso 2                     | Pendiente   | Por definir                                                   |
+| Sonidos y música           | Pendiente   | Disparo, golpe, cofre, puerta, acierto, fallo, aviso del jefe |
 
-## 4. Cómo trabaja la lógica sin los recursos finales
+"Provisional" quiere decir que el código dibuja un rectángulo de colores mientras no exista el
+dibujo final (ver `src/datos/recursos.js`).
 
-Mientras los dibujos no estén listos, el código **genera texturas simples** (rectángulos y círculos
-de colores) con una **clave** para cada recurso, por ejemplo `jugador`, `enemigo-debil`, `bala`,
-`cofre`.
+## 7. Preguntas pendientes para quien dibuja
 
-- El catálogo de claves vive en `src/datos/recursos.js`.
-- Para cambiar un recurso provisional por el definitivo, solo se cambia su entrada en el catálogo
-  (de "generado por código" a "archivo PNG"). **El resto del juego no cambia.**
-- Así el equipo de lógica y el de dibujo trabajan a la vez sin esperarse.
+1. **¿Para qué sirve cada pieza del tileset?** Los nombres de la sección 4 son por lo que se ve.
+2. **Las piezas miden 32×48, pero la sala mide 640 de alto.** 640 ÷ 48 no es un número entero
+   (13,3), y 640 ÷ 32 sí (20). ¿Se piensa armar la sala con casillas de 32×48 o de 32×32?
+3. **¿Qué es el enemigo?** Parece una criatura oscura con garras (¿una rata, un murciélago…?). El
+   nombre actual, `enemigo-debil`, es por su función en el juego.
+4. **Faltan cuadros** de recibir daño y de morir, para el jugador y el enemigo.
+5. **¿Se puede entregar la hoja ya armada** (en vez de cuadros sueltos ampliados ×5)? Y avisar el
+   tamaño de un cuadro. Así no hay que reducir ni armar nada a mano.

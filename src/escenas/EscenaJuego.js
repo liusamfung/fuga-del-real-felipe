@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { CONFIG, ESCENAS } from '../config.js';
+import { FOTOGRAMAS_TILESET } from '../datos/recursos.js';
 import { SALA_DE_PRUEBA } from '../datos/salaDePrueba.js';
 import { Cofre } from '../entidades/Cofre.js';
 import { EnemigoDebil } from '../entidades/EnemigoDebil.js';
@@ -43,15 +44,18 @@ export class EscenaJuego extends Phaser.Scene {
 			return;
 		}
 
-		this.jugador.mover(this.entrada.direccionDeMovimiento());
+		const direccion = this.entrada.direccionDeMovimiento();
+		const puntoDeApuntado = this.entrada.puntoDeApuntado();
+		this.jugador.mover(direccion);
+		this.jugador.actualizarAnimacion(direccion, puntoDeApuntado);
 
 		for (const enemigo of this.enemigos.getChildren()) {
 			enemigo.perseguir(this.jugador);
 		}
 
-		if (this.entrada.estaDisparando()) {
+		if (puntoDeApuntado && this.entrada.estaDisparando()) {
 			const { ataque } = this.jugador.estadisticas;
-			this.disparo.intentarDisparar(this.jugador, this.entrada.puntoDeApuntado(), ataque);
+			this.disparo.intentarDisparar(this.jugador, puntoDeApuntado, ataque);
 		}
 		this.disparo.actualizar();
 	}
@@ -157,12 +161,17 @@ export class EscenaJuego extends Phaser.Scene {
 
 	#crearSuelo() {
 		const { ANCHO, ALTO } = CONFIG.SALA;
-		this.add.tileSprite(0, 0, ANCHO, ALTO, 'suelo').setOrigin(0, 0).setDepth(-1);
+		this.add
+			.tileSprite(0, 0, ANCHO, ALTO, 'tileset', FOTOGRAMAS_TILESET.sueloRayas)
+			.setOrigin(0, 0)
+			.setDepth(-1);
 	}
 
 	#crearParedes() {
 		for (const { x, y, ancho, alto } of SALA_DE_PRUEBA.paredes) {
-			const pared = this.add.tileSprite(x, y, ancho, alto, 'pared').setOrigin(0, 0);
+			const pared = this.add
+				.tileSprite(x, y, ancho, alto, 'tileset', FOTOGRAMAS_TILESET.texturaRayasMarron)
+				.setOrigin(0, 0);
 			pared.setDepth(y + alto);
 			this.bloques.add(pared);
 		}
