@@ -33,7 +33,8 @@ Elegir entre Juran, Deming o Crosby y confirmar el nombre "Joseph Durand" con el
 ## 5. Combate
 
 - **Disparo:** ¿manual (clics), automático o ambos con una opción?
-- **Dash:** ¿qué tecla? ¿da inmunidad? ¿cuánto dura la recarga?
+- **Dash:** hoy es la barra espaciadora, con 0,2 s de inmunidad y 1,2 s de recarga _(provisional)_.
+  ¿Se confirma? ¿El DobleDash recarga las dos cargas a la vez (como está) o una por una?
 - **Enemigo débil:** ¿camina hacia el jugador, dispara o se mueve en patrones?
 - **Jefe:** vida, ataques básicos y cuántos ataques fuertes hace por pelea.
 - **Muerte:** ¿vuelve a la portada, reinicia el nivel o la sala?

@@ -38,6 +38,16 @@ export const CONFIG = Object.freeze({
 		INMUNIDAD: 1000, // ms sin recibir daño después de un golpe
 	}),
 
+	// El dash: un impulso corto del jugador, con recarga. Valores iniciales, se ajustan jugando.
+	DASH: Object.freeze({
+		VELOCIDAD: 640, // px/s durante el impulso: en 150 ms avanza unos 100 px (3 casillas)
+		DURACION: 150, // ms que dura el impulso
+		RECARGA: 1200, // ms desde el primer uso hasta recuperar todas las cargas
+		INMUNIDAD: 200, // ms sin recibir daño desde que empieza (un poco más que el impulso)
+		CARGAS_INICIALES: 1, // con DobleDash son 2
+		INTERVALO_DE_ESTELA: 40, // ms entre una imagen de la estela y la siguiente
+	}),
+
 	// Los mensajes en pantalla se dibujan por encima de todo, incluso de las balas.
 	PROFUNDIDAD_MENSAJES: 2000,
 
@@ -73,5 +83,6 @@ export const CONFIG = Object.freeze({
 		MARGEN: 48,
 		Y: 16,
 		SEPARACION_CORAZONES: 20,
+		DASH_X: 372, // donde empiezan las cargas del dash, en el centro de la franja
 	}),
 });

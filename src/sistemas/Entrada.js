@@ -1,3 +1,4 @@
+import Phaser from 'phaser';
 import { normalizar } from '../utilidades/vectores.js';
 
 // Traduce las teclas y el ratón en "acciones" del juego.
@@ -25,6 +26,14 @@ export class Entrada {
 	/** Verdadero mientras el botón izquierdo del ratón está pulsado (un clic o mantenerlo). */
 	estaDisparando() {
 		return this.puntero.leftButtonDown();
+	}
+
+	/**
+	 * Verdadero en el fotograma en que se pulsa la barra espaciadora. Mantenerla pulsada no repite:
+	 * cada dash necesita una pulsación nueva.
+	 */
+	dashPulsado() {
+		return Phaser.Input.Keyboard.JustDown(this.flechas.space);
 	}
 
 	/** Dirección de movimiento con largo 1 (o (0, 0) si no hay teclas pulsadas). */

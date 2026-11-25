@@ -1,10 +1,12 @@
 import Phaser from 'phaser';
 import { CONFIG } from '../config.js';
 import { cuadroQuietoDelJugador } from '../datos/animaciones.js';
+import { Dash } from '../sistemas/Dash.js';
+import { VECTORES_DE_DIRECCION } from '../utilidades/vectores.js';
 
-// El personaje que controla el jugador: se mueve, tiene vida y puede mejorar sus estadísticas.
-// Mira hacia donde apunta el ratón (porque hacia ahí dispara) y camina con la animación de esa
-// dirección.
+// El personaje que controla el jugador: se mueve, hace dash, tiene vida y puede mejorar sus
+// estadísticas. Mira hacia donde apunta el ratón (porque hacia ahí dispara) y camina con la
+// animación de esa dirección.
 //
 // Eventos que emite:
 //   - 'estadisticas-cambiadas': cambió la vida o alguna estadística (lo escucha el HUD).
@@ -27,18 +29,52 @@ export class Jugador extends Phaser.Physics.Arcade.Sprite {
 		this.inmuneHasta = 0; // instante (en ms del reloj de la escena) hasta el que no recibe daño
 		this.direccionMirada = 'abajo'; // 'abajo', 'derecha', 'izquierda' o 'arriba'
 		this.tieneLlave = false; // la llave de la sala del jefe
+		this.dash = new Dash({
+			duracion: CONFIG.DASH.DURACION,
+			recarga: CONFIG.DASH.RECARGA,
+			cargasMaximas: CONFIG.DASH.CARGAS_INICIALES,
+		});
+		this.ultimaEstela = 0; // instante de la última imagen de la estela del dash
 
 		// El cuerpo de choque son solo los pies: centrado a lo ancho y pegado al borde de abajo.
 		this.body.setSize(CUERPO_ANCHO, CUERPO_ALTO);
 		this.body.setOffset((ANCHO - CUERPO_ANCHO) / 2, ALTO - CUERPO_ALTO);
 	}
 
-	/** Mueve al jugador en la dirección dada (un vector de largo 1, o (0, 0) para quedarse quieto). */
+	/**
+	 * Mueve al jugador en la dirección dada (un vector de largo 1, o (0, 0) para quedarse quieto).
+	 * Durante un dash no hace caso: el jugador va en línea recta, rápido, y deja una estela.
+	 */
 	mover(direccion) {
-		const { velocidad } = this.estadisticas;
-		this.setVelocity(direccion.x * velocidad, direccion.y * velocidad);
+		const ahora = this.scene.time.now;
+
+		if (this.dash.estaActivo(ahora)) {
+			const { x, y } = this.dash.direccion;
+			this.setVelocity(x * CONFIG.DASH.VELOCIDAD, y * CONFIG.DASH.VELOCIDAD);
+			this.#dejarEstela(ahora);
+		} else {
+			const { velocidad } = this.estadisticas;
+			this.setVelocity(direccion.x * velocidad, direccion.y * velocidad);
+		}
 		// Dibujar más adelante a quien está más abajo en la pantalla (vista top-down).
 		this.setDepth(this.body.bottom);
+	}
+
+	/**
+	 * Intenta hacer un dash. Va hacia donde se mueve el jugador (`direccion`, el mismo vector que
+	 * se le pasa a `mover`) y, si está quieto, hacia donde mira. Devuelve verdadero si lo hizo.
+	 * Mientras dura el dash el jugador no recibe daño.
+	 */
+	intentarDash(direccion) {
+		const ahora = this.scene.time.now;
+		const seMueve = direccion.x !== 0 || direccion.y !== 0;
+		const haciaDonde = seMueve ? direccion : VECTORES_DE_DIRECCION[this.direccionMirada];
+
+		if (!this.dash.intentar(haciaDonde, ahora)) {
+			return false;
+		}
+		this.inmuneHasta = Math.max(this.inmuneHasta, ahora + CONFIG.DASH.INMUNIDAD);
+		return true;
 	}
 
 	/**
@@ -51,7 +87,9 @@ export class Jugador extends Phaser.Physics.Arcade.Sprite {
 			this.direccionMirada = this.#direccionHacia(puntoDeApuntado);
 		}
 
-		if (direccion.x !== 0 || direccion.y !== 0) {
+		const seMueve =
+			direccion.x !== 0 || direccion.y !== 0 || this.dash.estaActivo(this.scene.time.now);
+		if (seMueve) {
 			// `true`: si ya se está reproduciendo esta animación, no la reinicia.
 			this.anims.play(`jugador-caminar-${this.direccionMirada}`, true);
 		} else {
@@ -109,6 +147,26 @@ export class Jugador extends Phaser.Physics.Arcade.Sprite {
 	recogerLlave() {
 		this.tieneLlave = true;
 		this.emit('estadisticas-cambiadas');
+	}
+
+	/** Deja una copia azulada del jugador que se desvanece: así se ve el recorrido del dash. */
+	#dejarEstela(ahora) {
+		if (ahora - this.ultimaEstela < CONFIG.DASH.INTERVALO_DE_ESTELA) {
+			return;
+		}
+		this.ultimaEstela = ahora;
+
+		const copia = this.scene.add
+			.image(this.x, this.y, this.texture.key, this.frame.name)
+			.setTint(0x7f9bff)
+			.setAlpha(0.6)
+			.setDepth(this.depth - 1);
+		this.scene.tweens.add({
+			targets: copia,
+			alpha: 0,
+			duration: 220,
+			onComplete: () => copia.destroy(),
+		});
 	}
 
 	#parpadear() {
