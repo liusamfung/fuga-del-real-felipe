@@ -17,13 +17,21 @@ Elegir entre Juran, Deming o Crosby y confirmar el nombre "Joseph Durand" con el
 ## 3. Voz: poderes, idioma y tiempo
 
 - ¿Qué poderes hay además de la **granada**? (nombre, palabra, efecto, recarga).
-- Idioma del reconocimiento: `es-PE` o `es-ES`. Hoy `es-PE` _(provisional)_; se decide con la
+- Idioma del reconocimiento: `es-PE` o `es-ES`. Hoy `es-PE` _(provisional; aceptado por ahora el 25/11/2026)_; se decide con la
   [prueba de voz](prueba-de-voz.md).
 - **Prueba de voz con personas:** falta hacerla (5 personas, 5 palabras). Sus resultados deciden el
   idioma, la tabla de nombres de letras, el tiempo por letra y si la voz es viable.
-- Tiempo con voz: hoy **50 % más** que con el teclado _(provisional)_.
-- La **B y la V** no se pueden distinguir hablando: valen las dos. ¿Se acepta? (Alternativa: pedir
-  «be larga» y «ve corta», que es incómodo.)
+- Tiempo con voz: hoy **50 % más** que con el teclado _(provisional; aceptado por ahora el 25/11/2026)_.
+  Hablando seguido se midió ~0,44 s por letra; con pausas hará falta más. Se mide en la próxima ronda.
+- ~~La **B y la V** no se pueden distinguir hablando.~~ **Decidido (25/11/2026):** «be» vale para la B
+  **y** para la V; no se le pide al jugador «be larga» ni «uve». (Decir «be larga»/«ve corta» sigue
+  funcionando como forma exacta.)
+- **«de» por «te»:** en la prueba, Chrome oyó «de» cuando se dijo «te». ¿Se perdona (la D vale por la T,
+  como con la B y la V)? Es más fácil, pero deja pasar un error real. Falta ver si se repite con más
+  personas. _(Pendiente)_
+- **Letras juntas en una palabra:** si se deletrea seguido, Chrome las junta («calllao») y se pierden.
+  Hoy se pide hablar con una pausa entre letras. Falta probar las ayudas (teclas P y L de `?voz`) y ver
+  cuánto tiempo por letra necesita hablar así.
 - Con voz, el **teclado se desactiva** mientras se deletrea, para que no se pueda hacer trampa.
   ¿Se confirma, o debe quedar como ayuda?
 - Tiempo para deletrear: hoy es `1,5 s + 0,4 s × letras` con teclado, y ×1,5 al revés _(provisional)_.

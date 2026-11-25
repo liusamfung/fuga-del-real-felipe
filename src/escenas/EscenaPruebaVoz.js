@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { CONFIG, ESCENAS } from '../config.js';
+import { NOMBRES_PARA_SESGAR } from '../datos/nombresDeLetras.js';
 import { PALABRAS } from '../datos/palabras.js';
 import { Deletreo } from '../sistemas/Deletreo.js';
 import { ReconocedorDeVoz } from '../sistemas/ReconocedorDeVoz.js';
@@ -15,8 +16,11 @@ const { VOZ } = CONFIG.DELETREO;
 // Muestra, en vivo, lo que el navegador "oye", las letras que el juego entiende de eso y cómo
 // quedaría el deletreo con las mismas reglas del juego (un error no avanza la palabra).
 // Cada intento se guarda en `window.registroDeVoz`; con la tecla C se copia como JSON para pasarlo.
+// El JSON trae, además, el flujo crudo de lo que mandó el navegador (`eventos`), para poder
+// reproducirlo después con otras reglas sin volver a hablar.
 //
-// Teclas: ENTER escuchar/parar · ESPACIO otra palabra · BACKSPACE repetir · R al revés · C copiar.
+// Teclas: ENTER escuchar/parar · ESPACIO otra palabra · BACKSPACE repetir · R al revés · C copiar
+//         P sesgar hacia las letras · L reconocer en el equipo
 export class EscenaPruebaVoz extends Phaser.Scene {
 	constructor() {
 		super(ESCENAS.PRUEBA_VOZ);
@@ -26,10 +30,13 @@ export class EscenaPruebaVoz extends Phaser.Scene {
 		this.palabras = Object.values(PALABRAS).flat();
 		this.numeroDePalabra = 0;
 		this.invertida = false;
+		this.sesgar = false;
+		this.local = false;
 		this.registro = [];
+		this.indiceAnotado = null; // dónde quedó anotado el intento actual (para no repetirlo)
 		window.registroDeVoz = this.registro;
 		this.estado = ReconocedorDeVoz.disponible()
-			? 'Pulsa ENTER y deletrea la palabra'
+			? 'Pulsa ENTER y deletrea la palabra, letra por letra'
 			: 'Este navegador NO tiene reconocimiento de voz (usa Chrome)';
 		this.aviso = '';
 
@@ -41,35 +48,19 @@ export class EscenaPruebaVoz extends Phaser.Scene {
 			wordWrap: { width: CONFIG.ANCHO - 48 },
 		});
 
-		this.voz = new ReconocedorDeVoz({
-			idioma: VOZ.IDIOMA,
-			retenerUltima: VOZ.RETENER_ULTIMA,
-			alLetras: (letras) => this.#alLlegarLetras(letras),
-			alTexto: (texto) => this.#alLlegarTexto(texto),
-			alEstado: (estado) => {
-				this.escuchando = estado === 'escuchando';
-			},
-			alError: (codigo, grave) => {
-				this.estado = `Error del micrófono: ${codigo}${grave ? ' (grave: se detuvo)' : ''}`;
-				if (grave) {
-					this.escuchando = false;
-				}
-			},
-		});
-
 		const teclado = this.input.keyboard;
 		teclado.on('keydown-ENTER', () => this.#alternarEscucha());
-		teclado.on('keydown-SPACE', () => this.#palabraSiguiente());
-		teclado.on('keydown-BACKSPACE', () => this.#nuevoIntento());
-		teclado.on('keydown-R', () => {
-			this.invertida = !this.invertida;
-			this.#nuevoIntento();
-		});
+		teclado.on('keydown-SPACE', () => this.#cambiarDeIntento(() => (this.numeroDePalabra += 1)));
+		teclado.on('keydown-BACKSPACE', () => this.#cambiarDeIntento());
+		teclado.on('keydown-R', () => this.#cambiarDeIntento(() => (this.invertida = !this.invertida)));
 		teclado.on('keydown-C', () => this.#copiarRegistro());
+		teclado.on('keydown-P', () => this.#alternarElSesgo());
+		teclado.on('keydown-L', () => this.#alternarLocal());
 		this.events.once('shutdown', () => this.voz.detener());
 
 		this.escuchando = false;
-		this.#nuevoIntento();
+		this.#crearLaVoz();
+		this.#empezarIntento();
 	}
 
 	update() {
@@ -80,9 +71,46 @@ export class EscenaPruebaVoz extends Phaser.Scene {
 		return this.palabras[this.numeroDePalabra % this.palabras.length];
 	}
 
-	// Un intento nuevo: la misma palabra (o la siguiente) con la cuenta en cero.
-	#nuevoIntento() {
-		this.#guardarElIntento();
+	// El reconocedor se crea de nuevo cada vez que cambia una opción (sesgo, en el equipo).
+	#crearLaVoz() {
+		this.voz?.detener();
+		this.escuchando = false;
+		this.voz = new ReconocedorDeVoz({
+			idioma: VOZ.IDIOMA,
+			retenerUltima: VOZ.RETENER_ULTIMA,
+			sesgo: this.sesgar ? NOMBRES_PARA_SESGAR : [],
+			impulsoDelSesgo: VOZ.IMPULSO_DEL_SESGO,
+			procesarLocal: this.local,
+			alLetras: (letras) => this.#alLlegarLetras(letras),
+			alTexto: (texto) => this.#alLlegarTexto(texto),
+			alEstado: (estado) => {
+				this.escuchando = estado === 'escuchando';
+				if (estado === 'detenido' && this.estado.startsWith('Cerrando')) {
+					this.estado = 'Parado. ESPACIO: otra palabra · BACKSPACE: repetir';
+				}
+			},
+			alError: (codigo, grave) => {
+				this.estado = `Error del micrófono: ${codigo}${grave ? ' (grave: se detuvo)' : ''}`;
+				if (grave) {
+					this.escuchando = false;
+				}
+			},
+		});
+	}
+
+	// Anota el intento que se acaba y empieza otro. Primero se anota y se corta el micrófono, y recién
+	// después se cambia la palabra: así el intento queda con SU palabra y nada de lo que llegue tarde
+	// se cuenta en el intento nuevo.
+	#cambiarDeIntento(cambiar) {
+		this.#anotarElIntento();
+		this.voz.detener();
+		this.escuchando = false;
+		cambiar?.();
+		this.#empezarIntento();
+		this.estado = 'Pulsa ENTER y deletrea la palabra, letra por letra';
+	}
+
+	#empezarIntento() {
 		this.deletreo = new Deletreo({
 			palabra: this.palabra,
 			invertida: this.invertida,
@@ -92,31 +120,74 @@ export class EscenaPruebaVoz extends Phaser.Scene {
 		this.deletreo.empezar(performance.now());
 		this.entendidas = []; // { letra, resultado, ms }
 		this.textosOidos = []; // lo que dijo el navegador, tal cual
+		this.eventos = []; // el flujo crudo, con el tiempo de cada cosa
 		this.desconocidas = [];
 		this.primeraLetraA = null;
+		this.inicioDeEscucha = performance.now();
+		this.indiceAnotado = null;
 		this.aviso = '';
-	}
-
-	#palabraSiguiente() {
-		this.numeroDePalabra += 1;
-		this.#nuevoIntento();
 	}
 
 	#alternarEscucha() {
 		if (this.escuchando) {
-			this.voz.detener();
-			this.escuchando = false;
-			this.estado = 'Parado. ESPACIO: otra palabra · BACKSPACE: repetir';
+			// Se pide parar, pero se esperan los últimos resultados: la última letra llega al final.
+			this.voz.detener({ esperarLoPendiente: true });
+			this.estado = 'Cerrando… espera a que diga «Parado» antes de pasar a otra palabra';
 			return;
 		}
 
+		this.inicioDeEscucha = performance.now();
 		if (this.voz.iniciar()) {
-			this.estado = 'Escuchando… deletrea la palabra';
+			this.estado = 'Escuchando… deletrea la palabra, una letra a la vez';
 		}
 	}
 
-	#alLlegarTexto({ texto, esFinal, alternativas }) {
+	#alternarElSesgo() {
+		this.sesgar = !this.sesgar;
+		this.#crearLaVoz();
+		this.aviso = this.sesgar
+			? this.local
+				? 'Sesgo hacia los nombres de las letras: ACTIVADO (ENTER para probar)'
+				: 'Sesgo pedido, pero Chrome solo lo admite con L (reconocer en el equipo)'
+			: 'Sesgo hacia los nombres de las letras: apagado';
+	}
+
+	async #alternarLocal() {
+		if (this.local) {
+			this.local = false;
+			this.#crearLaVoz();
+			this.aviso = 'Reconocimiento en el servidor de Google (lo normal)';
+			return;
+		}
+
+		this.aviso = 'Mirando si se puede reconocer en el equipo…';
+		let disponibilidad = await ReconocedorDeVoz.disponibilidadLocal(VOZ.IDIOMA);
+		if (disponibilidad === 'downloadable') {
+			this.aviso = 'Descargando el idioma para reconocer en el equipo…';
+			disponibilidad = (await ReconocedorDeVoz.instalarLocal(VOZ.IDIOMA))
+				? 'available'
+				: 'no-se-pudo-descargar';
+		}
+
+		if (disponibilidad === 'available') {
+			this.local = true;
+			this.#crearLaVoz();
+			this.aviso = 'Reconociendo EN EL EQUIPO, sin servidor (ENTER para probar)';
+		} else {
+			this.aviso = `No se puede reconocer en el equipo (${disponibilidad}). Sigue en el servidor.`;
+		}
+	}
+
+	#msDeEscucha() {
+		return Math.round(performance.now() - this.inicioDeEscucha);
+	}
+
+	#alLlegarTexto({ numero, texto, esFinal, alternativas }) {
 		this.textosOidos.push({ texto, esFinal, alternativas });
+		const lista = alternativas.map((alternativa) => `«${alternativa.texto.trim()}»`).join(' ');
+		this.eventos.push(
+			`${this.#msDeEscucha()} ms · resultado ${numero} · ${esFinal ? 'FINAL' : 'prov'} · ${lista}`,
+		);
 		if (esFinal) {
 			this.desconocidas.push(...letrasDeLoDicho(texto).desconocidas);
 		}
@@ -132,6 +203,7 @@ export class EscenaPruebaVoz extends Phaser.Scene {
 				resultado,
 				ms: Math.round(ahora - this.primeraLetraA),
 			});
+			this.eventos.push(`${this.#msDeEscucha()} ms · letra ${candidatas.join('/')} → ${resultado}`);
 		}
 
 		if (this.deletreo.estado === 'acertada') {
@@ -141,15 +213,16 @@ export class EscenaPruebaVoz extends Phaser.Scene {
 		}
 	}
 
-	// Anota el intento que se acaba de terminar (si hubo algo que anotar).
-	#guardarElIntento() {
-		if (!this.deletreo || (this.entendidas.length === 0 && this.textosOidos.length === 0)) {
+	// Anota el intento actual (si hubo algo que anotar). Si ya estaba anotado, lo reemplaza: así
+	// copiar a mitad del intento y seguir no deja el mismo intento dos veces.
+	#anotarElIntento() {
+		if (this.entendidas.length === 0 && this.textosOidos.length === 0) {
 			return;
 		}
 
 		const esperadas = letrasEsperadas(this.palabra, this.invertida);
 		const ultima = this.entendidas.at(-1);
-		this.registro.push({
+		const intento = {
 			palabra: this.palabra,
 			alReves: this.invertida,
 			esperadas: esperadas.join(' '),
@@ -162,14 +235,24 @@ export class EscenaPruebaVoz extends Phaser.Scene {
 			msHastaLaUltima: ultima?.ms ?? null,
 			noEntendidas: this.desconocidas,
 			oido: this.textosOidos.filter((t) => t.esFinal).map((t) => t.texto),
+			eventos: this.eventos,
 			idioma: VOZ.IDIOMA,
+			sesgo: this.sesgar ? (this.voz.sesgoAplicado ? 'activo' : 'pedido, no aceptado') : 'no',
+			enElEquipo: this.local,
 			navegador: navigator.userAgent,
-		});
-		console.log('Intento anotado', this.registro.at(-1));
+		};
+
+		if (this.indiceAnotado === null) {
+			this.indiceAnotado = this.registro.length;
+			this.registro.push(intento);
+		} else {
+			this.registro[this.indiceAnotado] = intento;
+		}
+		console.log('Intento anotado', intento);
 	}
 
 	async #copiarRegistro() {
-		this.#guardarElIntento();
+		this.#anotarElIntento();
 		const json = JSON.stringify(this.registro, null, 1);
 		try {
 			await navigator.clipboard.writeText(json);
@@ -206,8 +289,10 @@ export class EscenaPruebaVoz extends Phaser.Scene {
 		);
 		const bien = this.registro.reduce((suma, intento) => suma + intento.aciertos, 0);
 
+		const sesgo = this.sesgar ? (this.voz.sesgoAplicado ? 'sí' : 'pedido') : 'no';
 		return [
 			`PRUEBA DE VOZ  ·  idioma ${VOZ.IDIOMA}  ·  ${this.escuchando ? '● ESCUCHANDO' : '○ parado'}`,
+			`Sesgo a las letras (P): ${sesgo}   ·   Reconocer en el equipo (L): ${this.local ? 'sí' : 'no'}`,
 			'',
 			`Palabra: ${this.palabra}${this.invertida ? '   (AL REVÉS)' : ''}`,
 			`Hay que decir: ${esperadas.join(' ')}`,
@@ -225,7 +310,9 @@ export class EscenaPruebaVoz extends Phaser.Scene {
 			`Intentos anotados: ${this.registro.length}` +
 				(total ? `   Letras acertadas en total: ${bien}/${total}` : ''),
 			'',
-			'ENTER escuchar/parar · ESPACIO otra palabra · BACKSPACE repetir · R al revés · C copiar resultados',
+			'Di cada letra con una pequeña pausa. Al terminar pulsa ENTER y espera a ver «Parado».',
+			'ENTER escuchar/parar · ESPACIO otra palabra · BACKSPACE repetir · R al revés · C copiar',
+			'P sesgar hacia las letras · L reconocer en el equipo',
 		].join('\n');
 	}
 }

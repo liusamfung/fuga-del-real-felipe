@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { NOMBRES_DE_LETRAS } from '../src/datos/nombresDeLetras.js';
+import { NOMBRES_DE_LETRAS, NOMBRES_PARA_SESGAR } from '../src/datos/nombresDeLetras.js';
 import { AcumuladorDeVoz } from '../src/sistemas/AcumuladorDeVoz.js';
 import { Deletreo } from '../src/sistemas/Deletreo.js';
 import { ReconocedorDeVoz } from '../src/sistemas/ReconocedorDeVoz.js';
-import { tiempoParaLaPalabra } from '../src/utilidades/deletreo.js';
+import { letrasEsperadas, tiempoParaLaPalabra } from '../src/utilidades/deletreo.js';
 import { letrasDeLoDicho, normalizarTexto } from '../src/utilidades/voz.js';
 
 const planas = (texto) => letrasDeLoDicho(texto).letras.map((candidatas) => candidatas.join('/'));
@@ -204,6 +204,10 @@ class ReconocimientoFalso {
 	abort() {
 		this.abortado = true;
 	}
+
+	stop() {
+		this.parado = true;
+	}
 }
 
 const resultado = (texto, esFinal = false) => {
@@ -350,4 +354,224 @@ test('si el navegador no deja iniciar, se avisa con un error grave', () => {
 
 	assert.equal(voz.iniciar(), false);
 	assert.deepEqual(registro.errores, [['InvalidStateError', true]]);
+});
+
+test('detener esperando lo pendiente deja llegar los últimos resultados y luego cierra', async () => {
+	const { voz, registro } = crearReconocedor();
+	voz.iniciar();
+	const primero = ReconocimientoFalso.instancias[0];
+
+	voz.detener({ esperarLoPendiente: true });
+	primero.onresult(evento([resultado('efe e', true)])); // llega tarde, pero se acepta
+	primero.onend();
+	await esperarUnPoco();
+	primero.onresult(evento([resultado('ere', true)])); // ya cerrado: no cuenta
+
+	assert.equal(primero.parado, true, 'se pidió parar con calma');
+	assert.equal(primero.abortado, false, 'no se cortó de golpe');
+	assert.equal(ReconocimientoFalso.instancias.length, 1, 'no se reinicia');
+	assert.deepEqual(registro.letras, [['F'], ['E']]);
+});
+
+test('detener de golpe, aunque se hubiera pedido esperar, descarta lo que llegue', () => {
+	const { voz, registro } = crearReconocedor();
+	voz.iniciar();
+	const primero = ReconocimientoFalso.instancias[0];
+
+	voz.detener({ esperarLoPendiente: true });
+	voz.detener();
+	primero.onresult(evento([resultado('efe', true)]));
+
+	assert.equal(primero.abortado, true);
+	assert.deepEqual(registro.letras, []);
+});
+
+// --- Sesgo hacia las letras y reconocimiento en el equipo (opcionales) ---
+
+class ReconocimientoConSesgo extends ReconocimientoFalso {
+	phrases = [];
+}
+class FraseFalsa {
+	constructor(phrase, boost) {
+		this.phrase = phrase;
+		this.boost = boost;
+	}
+}
+
+test('con soporte, el sesgo se pasa al navegador con su impulso', () => {
+	ReconocimientoFalso.instancias = [];
+	const voz = new ReconocedorDeVoz({
+		ventana: {
+			webkitSpeechRecognition: ReconocimientoConSesgo,
+			SpeechRecognitionPhrase: FraseFalsa,
+		},
+		sesgo: ['efe', 'ere'],
+		impulsoDelSesgo: 7,
+		procesarLocal: true,
+	});
+	voz.iniciar();
+
+	const frases = ReconocimientoFalso.instancias[0].phrases;
+	assert.deepEqual(
+		frases.map(({ phrase, boost }) => [phrase, boost]),
+		[
+			['efe', 7],
+			['ere', 7],
+		],
+	);
+	assert.equal(voz.sesgoAplicado, true);
+});
+
+test('sin soporte para el sesgo, o si el navegador lo rechaza, se sigue sin él', () => {
+	const sinSoporte = new ReconocedorDeVoz({
+		ventana: { webkitSpeechRecognition: ReconocimientoFalso },
+		sesgo: ['efe'],
+	});
+	assert.equal(sinSoporte.iniciar(), true);
+	assert.equal(sinSoporte.sesgoAplicado, false);
+
+	class Rechaza extends ReconocimientoFalso {
+		set phrases(_valor) {
+			throw new TypeError('no se acepta');
+		}
+	}
+	const rechazado = new ReconocedorDeVoz({
+		ventana: { webkitSpeechRecognition: Rechaza, SpeechRecognitionPhrase: FraseFalsa },
+		sesgo: ['efe'],
+	});
+	assert.equal(rechazado.iniciar(), true, 'el reconocimiento arranca igual');
+	assert.equal(rechazado.sesgoAplicado, false);
+});
+
+test('sin pedir sesgo no se toca el del navegador, y procesarLocal se pasa tal cual', () => {
+	ReconocimientoFalso.instancias = [];
+	const normal = new ReconocedorDeVoz({
+		ventana: {
+			webkitSpeechRecognition: ReconocimientoConSesgo,
+			SpeechRecognitionPhrase: FraseFalsa,
+		},
+	});
+	normal.iniciar();
+	assert.deepEqual(ReconocimientoFalso.instancias[0].phrases, []);
+	assert.equal(ReconocimientoFalso.instancias[0].processLocally, undefined);
+
+	const local = new ReconocedorDeVoz({
+		ventana: { webkitSpeechRecognition: ReconocimientoFalso },
+		procesarLocal: true,
+	});
+	local.iniciar();
+	assert.equal(ReconocimientoFalso.instancias[1].processLocally, true);
+});
+
+test('se puede preguntar si el idioma está disponible en el equipo, y descargarlo', async () => {
+	const consultas = [];
+	class ConLocal {
+		static async available(opciones) {
+			consultas.push(opciones);
+			return 'downloadable';
+		}
+		static async install(opciones) {
+			consultas.push(opciones);
+			return true;
+		}
+	}
+	const ventana = { webkitSpeechRecognition: ConLocal };
+
+	assert.equal(await ReconocedorDeVoz.disponibilidadLocal('es-PE', ventana), 'downloadable');
+	assert.equal(await ReconocedorDeVoz.instalarLocal('es-PE', ventana), true);
+	assert.deepEqual(consultas, [
+		{ langs: ['es-PE'], processLocally: true },
+		{ langs: ['es-PE'], processLocally: true },
+	]);
+
+	const viejo = { webkitSpeechRecognition: class {} };
+	assert.equal(await ReconocedorDeVoz.disponibilidadLocal('es-PE', viejo), 'no-soportado');
+	assert.equal(await ReconocedorDeVoz.instalarLocal('es-PE', viejo), false);
+	assert.equal(await ReconocedorDeVoz.disponibilidadLocal('es-PE', {}), 'no-soportado');
+});
+
+test('cada nombre para sesgar es un nombre conocido y entre todos cubren el alfabeto', () => {
+	const letras = new Set();
+	for (const nombre of NOMBRES_PARA_SESGAR) {
+		assert.ok(nombre in NOMBRES_DE_LETRAS, `«${nombre}» debe estar en la tabla`);
+		NOMBRES_DE_LETRAS[nombre].forEach((letra) => letras.add(letra));
+	}
+	assert.deepEqual([...letras].sort(), [...'ABCDEFGHIJKLMNÑOPQRSTUVWXYZ'].sort());
+});
+
+// --- Lo que Chrome escribió de verdad en la prueba de voz (ver docs/prueba-de-voz.md) ---
+// Son resultados finales reales, de una persona deletreando. Sirven de registro de lo que sí se
+// entiende y de lo que no: cuando se deletrea rápido, Chrome junta letras en una "palabra".
+
+const aciertosPorPosicion = (palabra, alReves, oido) => {
+	const dichas = letrasDeLoDicho(oido).letras;
+	return letrasEsperadas(palabra, alReves).filter((letra, i) => dichas[i]?.includes(letra)).length;
+};
+
+test('real: letras bien separadas se entienden completas', () => {
+	assert.equal(aciertosPorPosicion('FUERTE', false, ' F u e r t e'), 6);
+	assert.equal(aciertosPorPosicion('FORTALEZA', true, ' a Z e l a t r o F'), 9);
+	assert.equal(aciertosPorPosicion('PÓLVORA', true, ' a r o b l o p'), 7, 'la B vale como V');
+});
+
+test('real: Chrome oyó "de" por "te": hoy cuenta como error', () => {
+	assert.equal(aciertosPorPosicion('FORTALEZA', false, ' f o r d a l e Z a'), 8);
+});
+
+test('real: si Chrome junta las letras en una palabra, no se cuentan (y no se puede hacer trampa)', () => {
+	for (const [palabra, oido] of [
+		['CALLAO', ' calllao'],
+		['ASEDIO', 'asedio'],
+		['CAÑÓN', 'cañ o n'],
+	]) {
+		const { desconocidas } = letrasDeLoDicho(oido);
+		assert.ok(desconocidas.length > 0, `«${oido}» debe quedar como "no son letras"`);
+		assert.ok(
+			aciertosPorPosicion(palabra, false, oido) < letrasEsperadas(palabra, false).length,
+			`decir la palabra «${palabra}» no la completa`,
+		);
+	}
+});
+
+test('el sesgo solo se pide con el reconocimiento en el equipo (con el servidor Chrome lo rechaza)', () => {
+	ReconocimientoFalso.instancias = [];
+	const voz = new ReconocedorDeVoz({
+		ventana: {
+			webkitSpeechRecognition: ReconocimientoConSesgo,
+			SpeechRecognitionPhrase: FraseFalsa,
+		},
+		sesgo: ['efe'],
+	});
+	voz.iniciar();
+
+	assert.deepEqual(ReconocimientoFalso.instancias[0].phrases, []);
+	assert.equal(voz.sesgoAplicado, false);
+});
+
+test('si Chrome rechaza el sesgo, se avisa una vez y el reinicio sigue sin él (sin bucle)', async () => {
+	ReconocimientoFalso.instancias = [];
+	const errores = [];
+	const voz = new ReconocedorDeVoz({
+		ventana: {
+			webkitSpeechRecognition: ReconocimientoConSesgo,
+			SpeechRecognitionPhrase: FraseFalsa,
+		},
+		sesgo: ['efe'],
+		procesarLocal: true,
+		esperaDeReinicio: 0,
+		alError: (codigo, grave) => errores.push([codigo, grave]),
+	});
+	voz.iniciar();
+	const primero = ReconocimientoFalso.instancias[0];
+	assert.equal(primero.phrases.length, 1);
+
+	primero.onerror({ error: 'phrases-not-supported' });
+	primero.onend();
+	await esperarUnPoco();
+
+	const segundo = ReconocimientoFalso.instancias[1];
+	assert.deepEqual(errores, [['phrases-not-supported', false]]);
+	assert.equal(ReconocimientoFalso.instancias.length, 2, 'se reinicia una sola vez');
+	assert.deepEqual(segundo.phrases, [], 'la segunda vez, sin sesgo');
+	assert.equal(voz.sesgoAplicado, false);
 });

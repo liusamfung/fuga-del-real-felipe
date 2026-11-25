@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { CONFIG, ESCENAS, MODOS_DE_DELETREO } from '../config.js';
+import { NOMBRES_PARA_SESGAR } from '../datos/nombresDeLetras.js';
 import { Deletreo } from '../sistemas/Deletreo.js';
 import { ReconocedorDeVoz } from '../sistemas/ReconocedorDeVoz.js';
 import {
@@ -150,6 +151,9 @@ export class EscenaDeletreo extends Phaser.Scene {
 		this.voz = new ReconocedorDeVoz({
 			idioma: VOZ.IDIOMA,
 			retenerUltima: VOZ.RETENER_ULTIMA,
+			sesgo: VOZ.SESGAR_A_LAS_LETRAS ? NOMBRES_PARA_SESGAR : [],
+			impulsoDelSesgo: VOZ.IMPULSO_DEL_SESGO,
+			procesarLocal: VOZ.PROCESAR_EN_EL_EQUIPO,
 			alLetras: (letras) => letras.forEach((candidatas) => this.recibirLetra(candidatas)),
 			alTexto: ({ texto }) => {
 				this.ultimoTextoOido = texto;
@@ -262,7 +266,7 @@ export class EscenaDeletreo extends Phaser.Scene {
 
 		const estado = this.estadoDeLaVoz === 'escuchando' ? 'escuchando' : 'conectando…';
 		const oido = this.ultimoTextoOido ? ` · oí: «${this.ultimoTextoOido.slice(-40)}»` : '';
-		return `Micrófono: ${estado}${oido}`;
+		return `Micrófono: ${estado} · di cada letra con una pausa${oido}`;
 	}
 
 	#textoDeArriba() {

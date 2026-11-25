@@ -162,6 +162,10 @@ Se guardan en `src/datos/palabras.js`. La palabra **no cambia** mientras la barr
   teclado!»). El juego nunca se queda sin forma de deletrear.
 - Chrome corta el reconocimiento tras un silencio: se **reinicia solo** mientras se deletrea.
 - Abajo del panel se ve lo último que oyó el navegador, para saber si te está entendiendo.
+- **Hay que decir las letras con una pequeña pausa.** Si se dicen seguidas, Chrome las junta en una
+  palabra («calllao») y no cuentan; decir la palabra entera tampoco la completa (no se puede hacer
+  trampa). Hay dos ayudas opcionales en `CONFIG.DELETREO.VOZ` (`SESGAR_A_LAS_LETRAS` y
+  `PROCESAR_EN_EL_EQUIPO`) que se prueban en la [prueba de voz](prueba-de-voz.md).
 - Todo lo que no depende del micrófono tiene pruebas con `npm test` (se usa un reconocimiento falso).
   Lo que sí depende de él se mide con la [prueba de voz](prueba-de-voz.md).
 

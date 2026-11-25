@@ -79,6 +79,12 @@ export const CONFIG = Object.freeze({
 			FACTOR_DE_TIEMPO: 1.5, // la voz es más lenta que el teclado: se da 50 % más de tiempo
 			// Guardar la última letra de un resultado provisional hasta que el navegador la confirme.
 			RETENER_ULTIMA: true,
+			// Dos ayudas contra el reconocedor que junta las letras en palabras. Se prueban con `?voz`
+			// (teclas P y L) y se activan aquí si ayudan. Ver docs/prueba-de-voz.md. El sesgo solo
+			// funciona junto con PROCESAR_EN_EL_EQUIPO: con el servidor, Chrome lo rechaza.
+			SESGAR_A_LAS_LETRAS: false, // inclinar el reconocimiento hacia los nombres de las letras
+			IMPULSO_DEL_SESGO: 5, // de 0 a 10: cuánto se inclina
+			PROCESAR_EN_EL_EQUIPO: false, // reconocer sin servidor (hay que descargar el idioma)
 		}),
 		ERRORES_PERMITIDOS: 2, // letras equivocadas que se perdonan; una más y se falla
 		TIEMPO_DEL_RESULTADO: 900, // ms que se ve el resultado antes de cerrar la pantalla

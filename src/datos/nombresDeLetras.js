@@ -91,6 +91,38 @@ export const NOMBRES_DE_LETRAS = Object.freeze({
 	uve: ['V'],
 });
 
+// Un nombre por letra, el más común: son las palabras hacia las que se inclina el reconocimiento
+// (`ReconocedorDeVoz`, opción `sesgo`) para que oiga "ere" y no una palabra parecida.
+export const NOMBRES_PARA_SESGAR = Object.freeze([
+	'a',
+	'be',
+	'ce',
+	'de',
+	'e',
+	'efe',
+	'ge',
+	'hache',
+	'i',
+	'jota',
+	'ka',
+	'ele',
+	'eme',
+	'ene',
+	'eñe',
+	'o',
+	'pe',
+	'cu',
+	'ere',
+	'ese',
+	'te',
+	'u',
+	'uve',
+	'doble ve',
+	'equis',
+	'i griega',
+	'zeta',
+]);
+
 /** El máximo de palabras que tiene un nombre de letra (por ejemplo, "doble ve" tiene 2). */
 export const MAX_PALABRAS_POR_NOMBRE = Math.max(
 	...Object.keys(NOMBRES_DE_LETRAS).map((nombre) => nombre.split(' ').length),

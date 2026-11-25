@@ -23,9 +23,12 @@ const ERRORES_IGNORADOS = new Set(['no-speech', 'aborted']);
  *     alTexto: ({ numero, texto, esFinal, alternativas }) => ...,   // lo que oyó, tal cual
  *     alEstado: (estado) => ...,   // 'escuchando' | 'detenido'
  *     alError: (codigo, grave) => ...,
+ *     sesgo: ['efe', 'ere', ...],   // opcional: palabras hacia las que inclinar el reconocimiento
+ *                                 // (Chrome solo lo admite con procesarLocal: true)
+ *     procesarLocal: false,         // opcional: reconocer en el equipo, sin mandar el audio a un servidor
  *   });
  *   voz.iniciar();   // la primera vez, el navegador pide permiso para el micrófono
- *   voz.detener();
+ *   voz.detener();   // corta ya; con { esperarLoPendiente: true } espera los resultados que faltan
  *
  * Chrome corta el reconocimiento tras un rato de silencio: mientras esté activo se reinicia solo.
  * No funciona en Firefox. En Chrome necesita conexión a internet y una página segura (https o
@@ -42,9 +45,41 @@ export class ReconocedorDeVoz {
 		return ReconocedorDeVoz.#constructorDelNavegador(ventana) !== null;
 	}
 
+	/**
+	 * ¿Se puede reconocer en el propio equipo (sin servidor) en este idioma? Devuelve lo que diga el
+	 * navegador ('available', 'downloadable', 'downloading', 'unavailable') o 'no-soportado'.
+	 */
+	static async disponibilidadLocal(idioma, ventana = globalThis) {
+		const Reconocimiento = ReconocedorDeVoz.#constructorDelNavegador(ventana);
+		if (typeof Reconocimiento?.available !== 'function') {
+			return 'no-soportado';
+		}
+		try {
+			return await Reconocimiento.available({ langs: [idioma], processLocally: true });
+		} catch {
+			return 'no-soportado';
+		}
+	}
+
+	/** Descarga el idioma para reconocer en el equipo. Hay que llamarlo tras un gesto del usuario. */
+	static async instalarLocal(idioma, ventana = globalThis) {
+		const Reconocimiento = ReconocedorDeVoz.#constructorDelNavegador(ventana);
+		if (typeof Reconocimiento?.install !== 'function') {
+			return false;
+		}
+		try {
+			return Boolean(await Reconocimiento.install({ langs: [idioma], processLocally: true }));
+		} catch {
+			return false;
+		}
+	}
+
 	constructor({
 		idioma = 'es-PE',
 		retenerUltima = true,
+		sesgo = [],
+		impulsoDelSesgo = 5,
+		procesarLocal = false,
 		ventana = globalThis,
 		esperaDeReinicio = 150,
 		alLetras,
@@ -53,6 +88,9 @@ export class ReconocedorDeVoz {
 		alError,
 	} = {}) {
 		this.idioma = idioma;
+		this.sesgo = sesgo;
+		this.impulsoDelSesgo = impulsoDelSesgo;
+		this.procesarLocal = procesarLocal;
 		this.ventana = ventana;
 		this.esperaDeReinicio = esperaDeReinicio;
 		this.alLetras = alLetras;
@@ -61,6 +99,8 @@ export class ReconocedorDeVoz {
 		this.alError = alError;
 		this.acumulador = new AcumuladorDeVoz({ retenerUltima });
 		this.activo = false;
+		this.cerrando = false; // se pidió parar, pero se esperan los últimos resultados
+		this.sesgoAplicado = false; // el navegador aceptó el sesgo (dato para la prueba de voz)
 		this.reconocimiento = null;
 		this.temporizador = null;
 	}
@@ -76,13 +116,23 @@ export class ReconocedorDeVoz {
 		return this.#arrancar();
 	}
 
-	/** Deja de escuchar y descarta lo que quedara por llegar. */
-	detener() {
+	/**
+	 * Deja de escuchar. Por defecto descarta lo que quedara por llegar; con `esperarLoPendiente` el
+	 * navegador termina de reconocer lo ya dicho y entrega esos resultados antes de cerrar.
+	 */
+	detener({ esperarLoPendiente = false } = {}) {
 		this.activo = false;
 		clearTimeout(this.temporizador);
 		this.temporizador = null;
 
 		const reconocimiento = this.reconocimiento;
+		if (reconocimiento && esperarLoPendiente) {
+			this.cerrando = true;
+			reconocimiento.stop();
+			return;
+		}
+
+		this.cerrando = false;
 		this.reconocimiento = null;
 		if (reconocimiento) {
 			reconocimiento.abort();
@@ -97,9 +147,14 @@ export class ReconocedorDeVoz {
 		reconocimiento.continuous = true; // no se corta al primer silencio
 		reconocimiento.interimResults = true; // da resultados mientras se habla, no solo al final
 		reconocimiento.maxAlternatives = 3;
+		if (this.procesarLocal) {
+			reconocimiento.processLocally = true;
+		}
+		this.#aplicarElSesgo(reconocimiento);
 
 		// Un reconocedor viejo puede mandar eventos tardíos: solo se atiende al actual.
-		const esElActual = () => this.activo && reconocimiento === this.reconocimiento;
+		const esElActual = () =>
+			(this.activo || this.cerrando) && reconocimiento === this.reconocimiento;
 
 		reconocimiento.onstart = () => {
 			if (esElActual()) {
@@ -116,6 +171,10 @@ export class ReconocedorDeVoz {
 				return;
 			}
 			const grave = ERRORES_GRAVES.has(evento.error);
+			if (evento.error === 'phrases-not-supported') {
+				// Chrome rechaza el sesgo (pasa con el reconocimiento en el servidor): al reiniciar, sin él.
+				this.sesgo = [];
+			}
 			if (grave) {
 				this.activo = false;
 			}
@@ -128,6 +187,9 @@ export class ReconocedorDeVoz {
 			this.alEstado?.('detenido');
 			if (this.activo) {
 				this.temporizador = setTimeout(() => this.#reiniciar(), this.esperaDeReinicio);
+			} else {
+				this.cerrando = false;
+				this.reconocimiento = null;
 			}
 		};
 
@@ -141,6 +203,30 @@ export class ReconocedorDeVoz {
 			this.reconocimiento = null;
 			this.alError?.(error?.name ?? 'no-se-pudo-iniciar', true);
 			return false;
+		}
+	}
+
+	// Inclina el reconocimiento hacia los nombres de las letras (Chrome: `phrases`). Sin esto, si
+	// alguien deletrea rápido, el navegador junta las letras en una palabra ("calllao"). Es opcional.
+	// Chrome solo lo admite si el reconocimiento se hace en el equipo (`procesarLocal`): con el servidor
+	// contesta el error `phrases-not-supported`. Si el navegador no lo tiene, se sigue sin sesgo.
+	#aplicarElSesgo(reconocimiento) {
+		const Frase = this.ventana.SpeechRecognitionPhrase;
+		this.sesgoAplicado = false;
+		if (
+			this.sesgo.length === 0 ||
+			!this.procesarLocal ||
+			typeof Frase !== 'function' ||
+			!('phrases' in reconocimiento)
+		) {
+			return;
+		}
+
+		try {
+			reconocimiento.phrases = this.sesgo.map((texto) => new Frase(texto, this.impulsoDelSesgo));
+			this.sesgoAplicado = true;
+		} catch {
+			// El navegador no aceptó el sesgo: se sigue sin él.
 		}
 	}
 
