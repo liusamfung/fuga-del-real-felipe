@@ -13,6 +13,7 @@ en el resto de la asignatura. Los nombres propios de la API de Phaser se quedan 
 - `npm run dev`: servidor de desarrollo
 - `npm run build`: compilación para publicar
 - `npm run lint` y `npm run format`: calidad del código
+- `npm test`: pruebas automáticas (carpeta `pruebas/`, con el probador que trae Node)
 
 ## Convenciones
 
@@ -27,8 +28,8 @@ en el resto de la asignatura. Los nombres propios de la API de Phaser se quedan 
 - Los dibujos finales están en `public/assets/img/` como hojas de sprites (32×48 px por cuadro). Los
   originales, ampliados ×5, están en `arte/originales/`. Los nombres van en minúsculas, con guiones
   y en español (`quién-dirección-acción-número`).
-- La lógica del deletreo (`src/utilidades/deletreo.js`) debe ser pura, sin Phaser ni micrófono, para
-  poder probarla con tests.
+- La lógica que no necesita Phaser (generador de nivel, paredes, deletreo en `src/utilidades/deletreo.js`)
+  se escribe como funciones puras, sin Phaser ni micrófono, y lleva pruebas en `pruebas/`.
 - Phaser 4: el tiempo de la palabra a deletrear debe medirse en tiempo real, no con
   `time.timeScale` (el mundo va en cámara lenta, la barra no).
 - El modo multijugador que pide la tarea está **aplazado**: no se programa nada de red ni de varios

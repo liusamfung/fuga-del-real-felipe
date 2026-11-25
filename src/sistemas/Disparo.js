@@ -46,12 +46,16 @@ export class Disparo {
 		return true;
 	}
 
-	/** Apaga las balas que salieron de la sala. Llamar en cada `update()`. */
-	actualizar() {
-		const { ANCHO, ALTO } = CONFIG.SALA;
+	/**
+	 * Apaga las balas que salieron de la sala. Llamar en cada `update()`.
+	 * `limites` es el rectángulo de la sala actual en el mundo: { x, y, ancho, alto }.
+	 */
+	actualizar(limites) {
+		const { x, y, ancho, alto } = limites;
 
 		for (const bala of this.balas.getChildren()) {
-			if (bala.active && (bala.x < 0 || bala.x > ANCHO || bala.y < 0 || bala.y > ALTO)) {
+			const afuera = bala.x < x || bala.x > x + ancho || bala.y < y || bala.y > y + alto;
+			if (bala.active && afuera) {
 				bala.desactivar();
 			}
 		}

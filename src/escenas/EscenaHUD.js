@@ -20,6 +20,7 @@ export class EscenaHUD extends Phaser.Scene {
 		this.add.rectangle(0, 0, CONFIG.ANCHO, CONFIG.SALA.CASILLA, 0x000000, 0.6).setOrigin(0, 0);
 
 		this.corazones = [];
+		this.iconoDeLlave = null;
 		this.textoEstadisticas = this.add
 			.text(CONFIG.ANCHO - MARGEN, Y, '', {
 				fontFamily: 'monospace',
@@ -48,6 +49,14 @@ export class EscenaHUD extends Phaser.Scene {
 			const clave = i < vida ? 'corazon-lleno' : 'corazon-vacio';
 			const x = MARGEN + i * SEPARACION_CORAZONES;
 			this.corazones.push(this.add.image(x, Y, clave).setOrigin(0, 0.5));
+		}
+
+		// La llave aparece justo después de los corazones.
+		this.iconoDeLlave?.destroy();
+		this.iconoDeLlave = null;
+		if (this.jugador.tieneLlave) {
+			const x = MARGEN + vidaMaxima * SEPARACION_CORAZONES + 8;
+			this.iconoDeLlave = this.add.image(x, Y, 'llave').setOrigin(0, 0.5);
 		}
 
 		// `Number(...toFixed(1))` muestra 1.5 en vez de 1.500000001 por los decimales de la suma.

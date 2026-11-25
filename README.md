@@ -47,6 +47,7 @@ El juego se abre en http://localhost:5173.
 | `npm run dev`     | Servidor de desarrollo con recarga automática |
 | `npm run build`   | Genera la versión para publicar en `dist/`    |
 | `npm run preview` | Prueba la versión generada                    |
+| `npm test`        | Ejecuta las pruebas automáticas               |
 | `npm run lint`    | Revisa el código con ESLint                   |
 | `npm run format`  | Da formato a los archivos con Prettier        |
 
@@ -83,6 +84,7 @@ versión que funciona.
    ```bash
    npm run format
    npm run lint
+   npm test
    npm run build
    ```
 

@@ -18,8 +18,8 @@ export default [
 		},
 	},
 	{
-		// Archivos de configuración: se ejecutan en Node, no en el navegador.
-		files: ['*.js'],
+		// Archivos de configuración y pruebas: se ejecutan en Node, no en el navegador.
+		files: ['*.js', 'pruebas/**/*.js'],
 		languageOptions: {
 			ecmaVersion: 'latest',
 			sourceType: 'module',
