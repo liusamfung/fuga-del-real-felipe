@@ -18,6 +18,10 @@ export const CONFIG = Object.freeze({
 		ANCHO: 800,
 		ALTO: 640,
 		CASILLA: 32, // tamaño de una casilla; también es el grosor de las paredes
+		ANCHO_PUERTA: 96, // hueco de cada puerta, centrado en la pared
+		// Distancia al borde de la sala que el jugador debe pasar para que empiece el combate y se
+		// cierren las puertas. Es mayor que el grosor de la pared para no atraparlo en el hueco.
+		MARGEN_DE_ENTRADA: 48,
 	}),
 
 	JUGADOR: Object.freeze({

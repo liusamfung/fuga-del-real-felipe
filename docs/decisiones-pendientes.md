@@ -26,7 +26,7 @@ Elegir entre Juran, Deming o Crosby y confirmar el nombre "Joseph Durand" con el
 
 - ¿Dónde aparecen los **cofres especiales** (Revivir, PasaPalabra, DobleDash)? Por ejemplo, al
   vencer al jefe, en una sala secreta o con una probabilidad baja en cofres comunes.
-- ¿El cofre con la llave da **también** una mejora o solo la llave?
+- ¿El cofre con la llave da **también** una mejora o solo la llave? _(Provisional: da las dos cosas.)_
 - **PasaPalabra:** "1 uso cada 4 palabras", ¿se acumulan los usos? ¿qué pasa si se activa por error?
 - **Revivir:** ¿se puede tener más de uno?
 

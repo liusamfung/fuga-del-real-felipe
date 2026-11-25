@@ -13,6 +13,34 @@
 //
 // Cómo se arman y nombran las hojas: docs/guia-de-recursos.md.
 
+// Dibujo provisional de una puerta de reja. Una puerta horizontal (arriba o abajo de la sala) tiene
+// barras verticales; una vertical (a los lados), barras horizontales. Con cerradura es la puerta
+// que se abre con la llave.
+function puertaDeRejas(ancho, alto, conCerradura) {
+	const horizontal = ancho > alto;
+	const formas = [{ x: 0, y: 0, ancho, alto, color: 0x1d1d21 }];
+
+	for (let i = 0; i < 5; i += 1) {
+		const posicion = 8 + i * 18;
+		formas.push(
+			horizontal
+				? { x: posicion, y: 3, ancho: 8, alto: 26, color: 0x6b6e75 }
+				: { x: 3, y: posicion, ancho: 26, alto: 8, color: 0x6b6e75 },
+		);
+	}
+
+	if (conCerradura) {
+		const x = horizontal ? 40 : 8;
+		const y = horizontal ? 8 : 40;
+		formas.push(
+			{ x, y, ancho: 16, alto: 16, color: 0xd9b84a }, // placa dorada
+			{ x: x + 6, y: y + 5, ancho: 4, alto: 6, color: 0x5a4310 }, // agujero de la llave
+		);
+	}
+
+	return { tipo: 'generado', ancho, alto, formas };
+}
+
 export const RECURSOS = Object.freeze({
 	// --- Dibujos finales (hojas de sprites de 32 x 48 px por cuadro) ---
 
@@ -42,6 +70,24 @@ export const RECURSOS = Object.freeze({
 	},
 
 	// --- Dibujos provisionales (generados por código) ---
+	'puerta-h': puertaDeRejas(96, 32, false),
+	'puerta-v': puertaDeRejas(32, 96, false),
+	'puerta-llave-h': puertaDeRejas(96, 32, true),
+	'puerta-llave-v': puertaDeRejas(32, 96, true),
+
+	llave: {
+		tipo: 'generado',
+		ancho: 16,
+		alto: 16,
+		formas: [
+			{ x: 1, y: 3, ancho: 7, alto: 7, color: 0xd9b84a }, // argolla
+			{ x: 3, y: 5, ancho: 3, alto: 3, color: 0x1a1612 }, // hueco de la argolla
+			{ x: 8, y: 5, ancho: 7, alto: 3, color: 0xd9b84a }, // caña
+			{ x: 11, y: 8, ancho: 2, alto: 3, color: 0xd9b84a }, // dientes
+			{ x: 14, y: 8, ancho: 2, alto: 2, color: 0xd9b84a },
+		],
+	},
+
 	caja: {
 		tipo: 'generado',
 		ancho: 64,

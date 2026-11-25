@@ -26,6 +26,7 @@ export class Jugador extends Phaser.Physics.Arcade.Sprite {
 		};
 		this.inmuneHasta = 0; // instante (en ms del reloj de la escena) hasta el que no recibe daño
 		this.direccionMirada = 'abajo'; // 'abajo', 'derecha', 'izquierda' o 'arriba'
+		this.tieneLlave = false; // la llave de la sala del jefe
 
 		// El cuerpo de choque son solo los pies: centrado a lo ancho y pegado al borde de abajo.
 		this.body.setSize(CUERPO_ANCHO, CUERPO_ALTO);
@@ -101,6 +102,12 @@ export class Jugador extends Phaser.Physics.Arcade.Sprite {
 		if (estadistica === 'vidaMaxima') {
 			this.estadisticas.vida += cantidad;
 		}
+		this.emit('estadisticas-cambiadas');
+	}
+
+	/** Guarda la llave del jefe. La llave no se gasta: abre las puertas para siempre. */
+	recogerLlave() {
+		this.tieneLlave = true;
 		this.emit('estadisticas-cambiadas');
 	}
 
