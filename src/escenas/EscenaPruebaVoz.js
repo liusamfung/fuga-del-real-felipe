@@ -20,7 +20,7 @@ const { VOZ } = CONFIG.DELETREO;
 // reproducirlo después con otras reglas sin volver a hablar.
 //
 // Teclas: ENTER escuchar/parar · ESPACIO otra palabra · BACKSPACE repetir · R al revés · C copiar
-//         P sesgar hacia las letras · L reconocer en el equipo
+//         P sesgar hacia las letras · L reconocer en el equipo · 0 volver a la primera palabra
 export class EscenaPruebaVoz extends Phaser.Scene {
 	constructor() {
 		super(ESCENAS.PRUEBA_VOZ);
@@ -54,6 +54,12 @@ export class EscenaPruebaVoz extends Phaser.Scene {
 		teclado.on('keydown-BACKSPACE', () => this.#cambiarDeIntento());
 		teclado.on('keydown-R', () => this.#cambiarDeIntento(() => (this.invertida = !this.invertida)));
 		teclado.on('keydown-C', () => this.#copiarRegistro());
+		teclado.on('keydown-ZERO', () =>
+			this.#cambiarDeIntento(() => {
+				this.numeroDePalabra = 0;
+				this.invertida = false;
+			}),
+		);
 		teclado.on('keydown-P', () => this.#alternarElSesgo());
 		teclado.on('keydown-L', () => this.#alternarLocal());
 		this.events.once('shutdown', () => this.voz.detener());
@@ -312,7 +318,7 @@ export class EscenaPruebaVoz extends Phaser.Scene {
 			'',
 			'Di cada letra con una pequeña pausa. Al terminar pulsa ENTER y espera a ver «Parado».',
 			'ENTER escuchar/parar · ESPACIO otra palabra · BACKSPACE repetir · R al revés · C copiar',
-			'P sesgar hacia las letras · L reconocer en el equipo',
+			'P sesgar hacia las letras · L reconocer en el equipo · 0 volver a la primera palabra',
 		].join('\n');
 	}
 }

@@ -41,6 +41,7 @@ puede hacerla por ti.
 | BACKSPACE | Repetir la palabra (anota el intento)                                    |
 | R         | Cambiar entre al derecho y al revés                                      |
 | C         | Copiar los intentos al portapapeles                                      |
+| 0         | Volver a la primera palabra (al derecho); no borra los intentos anotados |
 | P         | Sesgar el reconocimiento hacia los nombres de las letras (solo con L)    |
 | L         | Reconocer en el equipo, sin servidor (descarga el idioma la primera vez) |
 
