@@ -12,7 +12,7 @@ iniciales**: se ajustan jugando y viven en `src/config.js` o en `src/datos/`.
 | Apuntar      | Ratón (el personaje mira hacia el cursor)                    | Definido            |
 | Disparar     | Clic, varios clics o mantener pulsado el clic                | Definido            |
 | Disparo auto | Opción para que dispare solo mientras apuntas                | Por decidir         |
-| Dash         | Barra espaciadora (propuesta)                                | Tecla por confirmar |
+| Dash         | Barra espaciadora (una pulsación por dash)                   | Hecho (provisional) |
 | Voz          | El micrófono se activa solo cuando hay una palabra que decir | Definido            |
 
 ## 2. Movimiento y disparo
@@ -25,10 +25,18 @@ iniciales**: se ajustan jugando y viven en `src/config.js` o en `src/datos/`.
 
 ## 3. Dash
 
-- Un impulso corto en la dirección en que se mueve el jugador, con **tiempo de recarga**.
-- Durante el dash el jugador es **inmune** un instante (propuesta, por confirmar).
+- Un impulso corto en la dirección en que se mueve el jugador. Si está quieto, va hacia donde mira.
+  Mientras dura no se puede cambiar de rumbo, y deja una estela azul.
+- Valores iniciales (en `src/config.js`, sección `DASH`): dura **150 ms** (unos 100 px) y se
+  recarga en **1,2 s**.
+- Durante el dash el jugador es **inmune** (200 ms, un poco más que el impulso). Provisional.
 - **DobleDash:** el dash se puede usar 2 veces seguidas y las dos usan **el mismo tiempo de
-  recarga** (una sola barra de recarga, dos cargas).
+  recarga** (una sola barra de recarga, dos cargas). Se interpreta así: hay **un solo
+  temporizador**, que empieza con el primer uso. El segundo uso no lo reinicia: cuando se cumple
+  la recarga contada desde el primer uso, vuelven las dos cargas.
+- El HUD muestra una pastilla por carga y una barra que se llena al recargar.
+- La lógica está en `src/sistemas/Dash.js` (pura, con pruebas en `pruebas/dash.test.js`).
+  Todavía no hay forma de conseguir el DobleDash jugando: llega con los cofres especiales.
 
 ## 4. Estadísticas del jugador
 

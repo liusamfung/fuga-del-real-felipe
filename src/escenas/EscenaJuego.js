@@ -59,6 +59,9 @@ export class EscenaJuego extends Phaser.Scene {
 
 		const direccion = this.entrada.direccionDeMovimiento();
 		const puntoDeApuntado = this.entrada.puntoDeApuntado();
+		if (this.entrada.dashPulsado()) {
+			this.jugador.intentarDash(direccion);
+		}
 		this.jugador.mover(direccion);
 		this.jugador.actualizarAnimacion(direccion, puntoDeApuntado);
 

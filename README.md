@@ -39,6 +39,7 @@ El juego se abre en http://localhost:5173.
 | Moverse  | Flechas o W A S D                                     |
 | Apuntar  | Mover el ratón (el cursor es la mira)                 |
 | Disparar | Clic izquierdo; se puede mantener pulsado para seguir |
+| Dash     | Barra espaciadora (una pulsación por dash)            |
 
 ## Comandos
 
