@@ -167,6 +167,19 @@ export const CONFIG = Object.freeze({
 		PROFUNDIDAD_BALAS: 1000, // las balas se dibujan por encima de todo lo demás
 	}),
 
+	// El nido de ratas: ocupa el lugar de una caja de cada sala. Mientras esté en pie, suelta ratas grises
+	// cada cierto tiempo y la sala no se limpia: hay que romperlo a balazos (o con la granada). Provisional.
+	NIDO: Object.freeze({
+		ANCHO: 64, // igual que una caja
+		ALTO: 64,
+		VIDA: 10, // balas que aguanta (la granada le quita 3)
+		TIPO: 'rata-gris', // qué rata suelta (una de src/datos/enemigos.js)
+		INTERVALO: 4500, // ms entre una rata y la siguiente (la cámara lenta también lo estira)
+		MAX_VIVAS: 6, // ratas suyas vivas a la vez: si ya hay tantas, espera
+		DISTANCIA_AL_JUGADOR: 100, // px: no suelta una rata si el jugador está así de cerca de donde saldría
+		DESTELLO: 80, // ms que se ve blanco al recibir un golpe
+	}),
+
 	// Cámara lenta: mientras se responde el reto de un poder, el mundo (enemigos, balas, animaciones y
 	// temporizadores) va más lento, para que el objetivo no se haya ido cuando se acierta. Entra y sale
 	// con una rampa suave. El tiempo del reto no se estira: se mide en tiempo real. Provisional.

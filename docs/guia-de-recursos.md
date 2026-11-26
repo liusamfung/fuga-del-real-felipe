@@ -138,6 +138,7 @@ armándolas). Los números de cuadro también están en `FOTOGRAMAS_TILESET`, en
 | Suelo y paredes del piso 1   | **Parcial** | Hay tileset; falta decidir cómo se arma la sala (sección 7)                  |
 | Bala                         | Provisional | Una imagen pequeña                                                           |
 | Granada                      | Provisional | Una imagen pequeña (12×12 px); la explosión se dibuja por código             |
+| Nido de ratas                | Provisional | 64×64 px, dibujado por código; mide lo mismo que una caja                    |
 | Cofre                        | Provisional | Cerrado y abierto                                                            |
 | Cajas (obstáculos)           | Provisional | 64×64 px                                                                     |
 | Corazones del HUD            | Provisional | Lleno y vacío                                                                |

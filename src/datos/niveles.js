@@ -15,6 +15,14 @@ const LADO_DE_CAJA = 64;
 const cajas = (...posiciones) =>
 	posiciones.map(([x, y]) => ({ x, y, ancho: LADO_DE_CAJA, alto: LADO_DE_CAJA }));
 
+// El nido de ratas de una sala (ver src/entidades/Nido.js): ocupa el lugar de una de sus cajas. Devuelve los
+// obstáculos SIN esa caja y el nido en su lugar; si la sala no tiene una caja ahí (la sala vacía), el nido
+// es un obstáculo más. Se escribe con `...conNido(OBSTACULOS.esquinas, 96, 480)` dentro de la sala.
+const conNido = (obstaculos, x, y) => ({
+	obstaculos: obstaculos.filter((caja) => !(caja.x === x && caja.y === y)),
+	nido: { x, y, ancho: LADO_DE_CAJA, alto: LADO_DE_CAJA },
+});
+
 // Un enemigo de un tipo (ver src/datos/enemigos.js) que nace en (x, y) de la sala.
 const enemigo = (tipo, x, y) => ({ tipo, x, y });
 
@@ -38,16 +46,16 @@ export const NIVEL_1 = Object.freeze({
 	posicionInicialDelJugador: { x: ANCHO / 2, y: ALTO / 2 },
 	posicionDelCofre: { x: ANCHO / 2, y: ALTO / 2 },
 
-	// Las 8 salas de alrededor: cada una tiene un cofre y SU PROPIA mezcla de enemigos, para que ninguna se
+	// Las 8 salas de alrededor: cada una tiene un cofre, un nido (en lugar de una de sus cajas) y SU PROPIA mezcla de enemigos, para que ninguna se
 	// juegue igual que otra (los tipos están en src/datos/enemigos.js). La sala del jefe (la del centro) no
 	// se describe aquí porque no tiene obstáculos, enemigos ni cofre. La sala inicial es la más suave.
 	// Los enemigos nacen lejos de las puertas para no aparecer encima del jugador.
 	salas: Object.freeze([
 		{
-			// Inicial: tres ratas grises, para empezar sin sustos.
+			// Inicial: tres ratas grises (cada mordida quita 2 corazones) y su nido: la más suave, pero ya exige romper el nido.
 			columna: 0,
 			fila: 0,
-			obstaculos: OBSTACULOS.esquinas,
+			...conNido(OBSTACULOS.esquinas, 96, 480),
 			enemigos: [
 				enemigo('rata-gris', 112, 200),
 				enemigo('rata-gris', 600, 488),
@@ -55,10 +63,10 @@ export const NIVEL_1 = Object.freeze({
 			],
 		},
 		{
-			// Tres ratas blancas: muy rápidas y frágiles. Hay que apuntar rápido.
+			// Tres ratas blancas: muy rápidas (aguantan 2 balas). Hay que apuntar rápido.
 			columna: 1,
 			fila: 0,
-			obstaculos: OBSTACULOS.diagonal,
+			...conNido(OBSTACULOS.diagonal, 544, 448),
 			enemigos: [
 				enemigo('rata-blanca', 656, 104),
 				enemigo('rata-blanca', 656, 536),
@@ -69,7 +77,7 @@ export const NIVEL_1 = Object.freeze({
 			// Una rata azul (lenta y resistente) con dos grises que se adelantan.
 			columna: 2,
 			fila: 0,
-			obstaculos: OBSTACULOS.pilares,
+			...conNido(OBSTACULOS.pilares, 224, 416),
 			enemigos: [
 				enemigo('rata-azul', 680, 528),
 				enemigo('rata-gris', 672, 144),
@@ -80,7 +88,7 @@ export const NIVEL_1 = Object.freeze({
 			// La plaga: seis ratas grises a la vez.
 			columna: 0,
 			fila: 1,
-			obstaculos: OBSTACULOS.laterales,
+			...conNido(OBSTACULOS.laterales, 624, 384),
 			enemigos: [
 				enemigo('rata-gris', 128, 120),
 				enemigo('rata-gris', 104, 536),
@@ -91,21 +99,21 @@ export const NIVEL_1 = Object.freeze({
 			],
 		},
 		{
-			// Dos ratas negras (su mordida quita 2) y una blanca que llega antes.
+			// Una rata negra (10 vidas y mata de un toque) acompañada de dos blancas veloces.
 			columna: 2,
 			fila: 1,
-			obstaculos: OBSTACULOS.esquinas,
+			...conNido(OBSTACULOS.esquinas, 96, 480),
 			enemigos: [
 				enemigo('rata-negra', 696, 424),
-				enemigo('rata-negra', 192, 136),
+				enemigo('rata-blanca', 192, 136),
 				enemigo('rata-blanca', 608, 136),
 			],
 		},
 		{
-			// Dos ratas azules que estorban y dos blancas que atacan: hay que decidir a quién disparar primero.
+			// Dos ratas azules que estorban y dos blancas (2 vidas, veloces): hay que decidir a quién disparar primero.
 			columna: 0,
 			fila: 2,
-			obstaculos: OBSTACULOS.diagonal,
+			...conNido(OBSTACULOS.diagonal, 192, 128),
 			enemigos: [
 				enemigo('rata-azul', 104, 480),
 				enemigo('rata-azul', 632, 112),
@@ -114,10 +122,10 @@ export const NIVEL_1 = Object.freeze({
 			],
 		},
 		{
-			// Un enemigo débil de los de siempre, una rata negra y dos grises.
+			// Un enemigo débil de los de siempre, una rata negra (la cazadora) y dos grises.
 			columna: 1,
 			fila: 2,
-			obstaculos: OBSTACULOS.vacia,
+			...conNido(OBSTACULOS.vacia, 256, 176),
 			enemigos: [
 				enemigo('debil', 104, 536),
 				enemigo('rata-negra', 664, 104),
@@ -129,7 +137,7 @@ export const NIVEL_1 = Object.freeze({
 			// La más difícil: una de cada rata.
 			columna: 2,
 			fila: 2,
-			obstaculos: OBSTACULOS.pilares,
+			...conNido(OBSTACULOS.pilares, 512, 416),
 			enemigos: [
 				enemigo('rata-gris', 688, 536),
 				enemigo('rata-azul', 144, 528),

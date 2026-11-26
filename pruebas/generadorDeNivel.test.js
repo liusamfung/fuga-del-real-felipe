@@ -4,6 +4,7 @@ import { CONFIG } from '../src/config.js';
 import { TIPOS_DE_ENEMIGO } from '../src/datos/enemigos.js';
 import { NIVEL_1 } from '../src/datos/niveles.js';
 import { buscarSala, generarNivel } from '../src/sistemas/GeneradorDeNivel.js';
+import { puntoDeSalidaDelNido } from '../src/utilidades/nido.js';
 import { ladoOpuesto, rectanguloDePuerta } from '../src/utilidades/paredes.js';
 
 const { ANCHO, ALTO, CASILLA, ANCHO_PUERTA } = CONFIG.SALA;
@@ -160,8 +161,9 @@ test('ningún enemigo ni cofre toca un obstáculo o una pared, y los enemigos na
 		const nombre = `sala ${clave(sala)}`;
 		const cuerpoDelCofre = { x: sala.cofre.x - 16, y: sala.cofre.y - 16, ancho: 32, alto: 32 };
 		assert.ok(dentro(cuerpoDelCofre), `${nombre}: el cofre sale dentro de una pared`);
-		for (const obstaculo of sala.obstaculos) {
-			assert.ok(dentro(obstaculo), `${nombre}: un obstáculo toca una pared`);
+		const solidos = [...sala.obstaculos, sala.nido]; // el nido es tan sólido como una caja
+		for (const obstaculo of solidos) {
+			assert.ok(dentro(obstaculo), `${nombre}: un obstáculo o el nido toca una pared`);
 			assert.ok(!solapan(obstaculo, cuerpoDelCofre), `${nombre}: el cofre sale en un obstáculo`);
 		}
 
@@ -171,8 +173,8 @@ test('ningún enemigo ni cofre toca un obstáculo o una pared, y los enemigos na
 
 			assert.ok(dentro(cuerpo), `${quien}: nace dentro de una pared`);
 			assert.ok(!solapan(cuerpoDelCofre, cuerpo), `${quien}: nace encima del cofre`);
-			for (const obstaculo of sala.obstaculos) {
-				assert.ok(!solapan(obstaculo, cuerpo), `${quien}: nace en un obstáculo`);
+			for (const obstaculo of solidos) {
+				assert.ok(!solapan(obstaculo, cuerpo), `${quien}: nace en un obstáculo o en el nido`);
 			}
 
 			// El jugador entra por una puerta: ningún enemigo debe nacer cerca de ninguna.
@@ -245,7 +247,7 @@ test('los obstáculos dejan libres las cruces por donde se va de una puerta a ot
 	];
 
 	for (const sala of NIVEL_1.salas) {
-		for (const obstaculo of sala.obstaculos) {
+		for (const obstaculo of [...sala.obstaculos, sala.nido]) {
 			for (const cruz of crucesLibres) {
 				assert.ok(
 					!solapan(obstaculo, cruz),
@@ -260,4 +262,55 @@ test('una descripción a la que le falta una sala da un error que dice cuál', (
 	const incompleta = { ...NIVEL_1, salas: NIVEL_1.salas.slice(1) };
 
 	assert.throws(() => generarNivel(incompleta), /Falta describir la sala 0,0/);
+});
+
+// --- El nido de ratas ---
+
+test('cada sala de combate tiene un nido; la del jefe no', () => {
+	const nivel = generarNivel(NIVEL_1);
+	for (const sala of nivel.salas) {
+		if (sala.tipo === 'jefe') {
+			assert.equal(sala.nido, null);
+		} else {
+			assert.ok(sala.nido, `sala ${clave(sala)}: no tiene nido`);
+			assert.equal(sala.nido.ancho, CONFIG.NIDO.ANCHO);
+			assert.equal(sala.nido.alto, CONFIG.NIDO.ALTO);
+		}
+	}
+});
+
+test('el nido ocupa el lugar de una caja: no se monta sobre ninguna otra', () => {
+	const nivel = generarNivel(NIVEL_1);
+	for (const sala of nivel.salas.filter((s) => s.tipo === 'combate')) {
+		for (const caja of sala.obstaculos) {
+			assert.ok(!solapan(caja, sala.nido), `sala ${clave(sala)}: el nido pisa una caja`);
+		}
+	}
+});
+
+test('de cada nido puede salir una rata: siempre hay un lado libre, y la rata no pisa nada', () => {
+	const nivel = generarNivel(NIVEL_1);
+	const sala = { ancho: ANCHO, alto: ALTO, grosor: CASILLA };
+	const cuerpo = { ancho: CONFIG.ENEMIGO.ANCHO, alto: CONFIG.ENEMIGO.ALTO };
+
+	for (const s of nivel.salas.filter((x) => x.tipo === 'combate')) {
+		const punto = puntoDeSalidaDelNido(s.nido, s.obstaculos, sala, cuerpo);
+		assert.ok(punto, `sala ${clave(s)}: de su nido no puede salir ninguna rata`);
+
+		const rata = { x: punto.x - 16, y: punto.y - 24, ancho: 32, alto: 48 };
+		assert.ok(!solapan(rata, s.nido), `sala ${clave(s)}: la rata sale dentro del nido`);
+		for (const caja of s.obstaculos) {
+			assert.ok(!solapan(rata, caja), `sala ${clave(s)}: la rata sale dentro de una caja`);
+		}
+	}
+});
+
+test('el tipo de rata del nido existe, y el nido tiene vida y suelta ratas con cierto ritmo', () => {
+	assert.ok(
+		Object.hasOwn(TIPOS_DE_ENEMIGO, CONFIG.NIDO.TIPO),
+		`no existe el tipo ${CONFIG.NIDO.TIPO}`,
+	);
+	assert.ok(Number.isInteger(CONFIG.NIDO.VIDA) && CONFIG.NIDO.VIDA > 0);
+	assert.ok(CONFIG.NIDO.INTERVALO >= 1000, 'una rata por segundo o más sería una avalancha');
+	assert.ok(CONFIG.NIDO.MAX_VIVAS >= 1);
 });

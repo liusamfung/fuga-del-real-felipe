@@ -107,7 +107,7 @@ Elegir entre Juran, Deming o Crosby y confirmar el nombre "Joseph Durand" con el
   ¿Se confirma? ¿El DobleDash recarga las dos cargas a la vez (como está) o una por una?
 - **Enemigos (26/11/2026):** hoy hay 5 tipos (el débil y 4 ratas de Jorge) y todos **caminan en línea recta
   hacia el jugador**; lo que cambia es la vida, la velocidad, el daño y cuántos hay por sala (ver
-  [`enemigos.md`](enemigos.md)). Los valores son provisionales. **Abierto:** ¿alguno debería comportarse
+  [`enemigos.md`](enemigos.md)). Cada sala tiene un **nido** que suelta ratas grises hasta que se rompe (10 de vida, una rata cada 4,5 s, máximo 6 vivas); la rata negra tiene 10 vidas y mata de un toque. Los valores son provisionales. **Abierto:** ¿alguno debería comportarse
   distinto (que dispare, que dé vueltas, que huya al estar herido)? ¿Las salas están bien de difícil?
 - **Jefe:** vida, ataques básicos y cuántos ataques fuertes hace por pelea.
 - **Muerte:** ¿vuelve a la portada, reinicia el nivel o la sala?

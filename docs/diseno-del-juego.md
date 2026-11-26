@@ -67,7 +67,7 @@ fila 2│  Sala 0,2     │  Sala 1,2     │  Sala 2,2     │
 ### 4.1 Cómo se recorre
 
 ```
-Entrar a una sala → vencer a sus enemigos → abrir el cofre → mejorar al personaje
+Entrar a una sala → vencer a sus enemigos y romper el nido → abrir el cofre → mejorar al personaje
         → pasar a otra sala → ... → conseguir la llave → abrir la sala central
         → vencer al jefe (deletreando) → pasar al siguiente piso
 ```
@@ -139,9 +139,10 @@ Dónde y cómo aparecen los cofres especiales está pendiente de decidir
 ## 7. Enemigos y jefe
 
 - **Enemigos de las salas de alrededor** (de 3 a 6 por sala): el enemigo débil de siempre y **cuatro ratas**
-  (gris, blanca, azul y negra), cada una con su carácter: la plaga, la veloz, la acorazada y la mordedora.
-  Todos caminan hacia el jugador; lo que cambia es su vida, su velocidad, su daño y cuántos hay. Cada sala
-  tiene una mezcla distinta. Detalle y valores en [`enemigos.md`](enemigos.md).
+  (gris, blanca, azul y negra), cada una con su carácter: la plaga, la veloz, la acorazada y la cazadora
+  (que mata de un toque). Todos caminan hacia el jugador; lo que cambia es su vida, su velocidad, su daño y
+  cuántos hay. Cada sala tiene una mezcla distinta **y un nido** (una de sus cajas) que suelta ratas grises
+  hasta que se rompe; la sala no se limpia mientras el nido siga en pie. Detalle y valores en [`enemigos.md`](enemigos.md).
 - **Jefe del nivel** (sala central): tiene ataques básicos que se pueden esquivar moviéndose y
   **ataques fuertes que no se pueden esquivar con el movimiento**: para evitarlos hay que
   deletrear una palabra mientras el mundo va en cámara lenta (ver

@@ -23,7 +23,10 @@ export class Enemigo extends Phaser.Physics.Arcade.Sprite {
 		this.tipo = tipo;
 		this.vida = datos.vida;
 		this.velocidad = datos.velocidad;
-		this.dano = datos.dano; // lo que le quita al jugador al tocarlo
+		// Lo que le quita al jugador al tocarlo. Un enemigo letal le quita infinito: el jugador resta
+		// `vida - daño` y no baja de 0, así que muere con las vidas que tenga (aunque mejore su vida máxima).
+		this.dano = datos.letal ? Infinity : datos.dano;
+		this.letal = datos.letal === true;
 
 		// El cuerpo está centrado a lo ancho y pegado al borde de abajo, pero es alto (ver config.js).
 		this.body.setSize(CUERPO_ANCHO, CUERPO_ALTO);

@@ -1,5 +1,6 @@
 import { CONFIG } from '../config.js';
 import { FOTOGRAMAS_TILESET } from '../datos/recursos.js';
+import { Nido } from '../entidades/Nido.js';
 import { Puerta } from '../entidades/Puerta.js';
 import { buscarSala } from './GeneradorDeNivel.js';
 import { rectanguloDePuerta, segmentosDeParedes } from '../utilidades/paredes.js';
@@ -19,6 +20,8 @@ export class Nivel {
 		this.bloques = escena.physics.add.staticGroup(); // paredes y obstáculos
 		this.puertas = escena.physics.add.staticGroup();
 		this.puertasPorSala = new Map(); // 'columna,fila' -> lista de puertas de esa sala
+		this.nidos = escena.physics.add.staticGroup(); // los nidos de ratas (ver entidades/Nido.js)
+		this.nidoPorSala = new Map(); // 'columna,fila' -> el nido de esa sala
 
 		for (const sala of modelo.salas) {
 			this.#construirSala(sala);
@@ -39,6 +42,12 @@ export class Nivel {
 	/** La sala (columna y fila) que contiene el punto (x, y) del mundo. */
 	salaEn(x, y) {
 		return { columna: Math.floor(x / ANCHO), fila: Math.floor(y / ALTO) };
+	}
+
+	/** El nido de ratas de la sala, o undefined si no tiene o ya se rompió. */
+	nidoDe(columna, fila) {
+		const nido = this.nidoPorSala.get(`${columna},${fila}`);
+		return nido?.active ? nido : undefined;
 	}
 
 	/** Los datos de la sala (enemigos, cofre, puertas…), o undefined si no existe. */
@@ -122,6 +131,14 @@ export class Nivel {
 				.setOrigin(0, 0);
 			caja.setDepth(origen.y + y + alto);
 			this.bloques.add(caja);
+		}
+
+		if (sala.nido) {
+			const { x, y, ancho, alto } = sala.nido;
+			const nido = new Nido(escena, origen.x + x + ancho / 2, origen.y + y + alto / 2);
+			nido.sala = { columna: sala.columna, fila: sala.fila };
+			this.nidos.add(nido); // el grupo estático le da su cuerpo
+			this.nidoPorSala.set(`${sala.columna},${sala.fila}`, nido);
 		}
 
 		const puertas = [];
