@@ -29,6 +29,7 @@ public/assets/
   img/                   Lo que carga el juego: hojas de sprites a tamaño real
     jugador/jugador.png
     enemigos/enemigo-debil.png
+    enemigos/jefe-2.png
     escenario/tileset-prision.png
   audio/                 Sonidos y música
 ```
@@ -72,6 +73,21 @@ animación de esa dirección.
 | 0      | Caminar, cuadro 1 |
 | 1      | Caminar, cuadro 2 |
 
+### Jefe 2 — `jefe-2.png` (96×32, 3 cuadros)
+
+Un fantasma con corona. Los cuadros miden **32×32**, no 32×48 como los demás personajes.
+
+| Cuadro | Qué es                                    |
+| ------ | ----------------------------------------- |
+| 0      | Flotar: manos abajo, a los lados          |
+| 1      | Flotar: manos más cerca del cuerpo        |
+| 2      | Flotar: manos arriba y la barba más corta |
+
+La animación de flotar es **0, 1, 2, 1** (`jefe-2-flotar`), a 4 cuadros por segundo. En el juego se
+muestra **ampliado ×3** (96×96 px). Hoy solo se ve, flotando en la sala del centro; **provisional:** se
+usa en el piso 1 hasta que exista el dibujo del jefe del primer piso (`CONFIG.JEFE.CLAVE`).
+Lo dibujó `CSebastianFO` (PR #14, que lo llamó `boss-p2.png`; se renombró según la guía de nombres).
+
 ### Tileset de la prisión — `tileset-prision.png` (256×144, 22 piezas en 8×3)
 
 Los **nombres describen lo que se ve** en cada pieza y son provisionales hasta confirmar con quien
@@ -107,21 +123,22 @@ armándolas). Los números de cuadro también están en `FOTOGRAMAS_TILESET`, en
 
 ## 6. Qué recursos hacen falta
 
-| Recurso                    | Estado      | Detalle                                                       |
-| -------------------------- | ----------- | ------------------------------------------------------------- |
-| Jugador                    | **Hecho**   | 4 direcciones, quieto y caminar. Faltan: recibir daño, morir  |
-| Enemigo débil              | **Parcial** | Solo 2 cuadros de caminar. Faltan: recibir daño, morir        |
-| Suelo y paredes del piso 1 | **Parcial** | Hay tileset; falta decidir cómo se arma la sala (sección 7)   |
-| Bala                       | Provisional | Una imagen pequeña                                            |
-| Cofre                      | Provisional | Cerrado y abierto                                             |
-| Cajas (obstáculos)         | Provisional | 64×64 px                                                      |
-| Corazones del HUD          | Provisional | Lleno y vacío                                                 |
-| Puerta                     | Pendiente   | Abierta, cerrada y con llave                                  |
-| Jefe                       | Pendiente   | Quieto, ataque básico, ataque fuerte                          |
-| Llave y mejoras            | Pendiente   | Iconos para el HUD                                            |
-| Portada                    | Pendiente   | Imagen de título                                              |
-| Piso 2                     | Pendiente   | Por definir                                                   |
-| Sonidos y música           | Pendiente   | Disparo, golpe, cofre, puerta, acierto, fallo, aviso del jefe |
+| Recurso                      | Estado      | Detalle                                                                      |
+| ---------------------------- | ----------- | ---------------------------------------------------------------------------- |
+| Jugador                      | **Hecho**   | 4 direcciones, quieto y caminar. Faltan: recibir daño, morir                 |
+| Enemigo débil                | **Parcial** | Solo 2 cuadros de caminar. Faltan: recibir daño, morir                       |
+| Suelo y paredes del piso 1   | **Parcial** | Hay tileset; falta decidir cómo se arma la sala (sección 7)                  |
+| Bala                         | Provisional | Una imagen pequeña                                                           |
+| Cofre                        | Provisional | Cerrado y abierto                                                            |
+| Cajas (obstáculos)           | Provisional | 64×64 px                                                                     |
+| Corazones del HUD            | Provisional | Lleno y vacío                                                                |
+| Puerta                       | Pendiente   | Abierta, cerrada y con llave                                                 |
+| Jefe 2 (el del segundo piso) | **Parcial** | Solo 3 cuadros de flotar. Faltan: ataque básico, ataque fuerte, recibir daño |
+| Jefe 1 (el del primer piso)  | Pendiente   | Todo: flotar o quieto, ataque básico, ataque fuerte                          |
+| Llave y mejoras              | Pendiente   | Iconos para el HUD                                                           |
+| Portada                      | Pendiente   | Imagen de título                                                             |
+| Piso 2                       | Pendiente   | Por definir                                                                  |
+| Sonidos y música             | Pendiente   | Disparo, golpe, cofre, puerta, acierto, fallo, aviso del jefe                |
 
 "Provisional" quiere decir que el código dibuja un rectángulo de colores mientras no exista el
 dibujo final (ver `src/datos/recursos.js`).

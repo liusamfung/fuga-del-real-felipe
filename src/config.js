@@ -86,6 +86,15 @@ export const CONFIG = Object.freeze({
 	// Los mensajes en pantalla se dibujan por encima de todo, incluso de las balas.
 	PROFUNDIDAD_MENSAJES: 2000,
 
+	// El jefe. Por ahora solo se ve (ver src/entidades/Jefe.js): su vida y sus ataques se deciden en el
+	// paso 10 de la hoja de ruta.
+	JEFE: Object.freeze({
+		// Provisional: el dibujo del jefe del piso 1 todavía no existe, así que se usa el del segundo
+		// (`jefe-2`) en la sala del centro. Se cambia aquí cuando haya uno por piso.
+		CLAVE: 'jefe-2',
+		ESCALA: 3, // los cuadros miden 32 x 32; ampliados ×3 son 96 x 96 px, más grandes que el jugador
+	}),
+
 	// Enemigo débil de las salas de alrededor. Su comportamiento (por ahora solo camina hacia
 	// el jugador) está por definir; ver docs/decisiones-pendientes.md.
 	ENEMIGO_DEBIL: Object.freeze({
