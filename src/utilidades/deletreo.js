@@ -41,11 +41,12 @@ export function letrasEsperadas(palabra, invertida = false) {
 
 /**
  * Cuánto tiempo (en ms) se da para deletrear una palabra: una base más un tiempo por cada letra.
- * Al revés es más difícil y se multiplica por `factorInvertida`.
+ * Al revés es más difícil y se multiplica por `factorInvertida`. `factor` es un multiplicador
+ * general (por ejemplo, más tiempo para la voz, que es más lenta que el teclado).
  */
 export function tiempoParaLaPalabra(cantidadDeLetras, tiempos, invertida = false) {
-	const { base, porLetra, factorInvertida = 1 } = tiempos;
-	const tiempo = base + cantidadDeLetras * porLetra;
+	const { base, porLetra, factorInvertida = 1, factor = 1 } = tiempos;
+	const tiempo = (base + cantidadDeLetras * porLetra) * factor;
 	return Math.round(invertida ? tiempo * factorInvertida : tiempo);
 }
 
@@ -66,10 +67,22 @@ export function tiempoDeLectura(cantidadDeLetras, { base, porLetra }) {
  * `orden` es el lugar de esa letra en el orden en que hay que escribirlas (0 la primera) e `indice`
  * cuántas van acertadas. Mientras se lee, y al terminar, la palabra se ve entera en todos los modos:
  * al fallar sirve para aprenderla. Solo durante el deletreo (estado 'activo') se esconde.
+ *
+ * El dictado es distinto: la palabra NO se ve mientras se oye (estado 'mostrando'), porque entonces
+ * no habría nada que oír. Solo se ven los huecos y las letras acertadas, y al terminar la palabra
+ * entera (así se aprende cómo se escribe).
  */
 export function visibilidadDeLaLetra({ modo, estado, orden, indice }) {
 	if (!Object.values(MODOS_DE_DELETREO).includes(modo)) {
 		throw new Error(`Modo de deletreo desconocido: "${modo}"`);
+	}
+
+	if (modo === MODOS_DE_DELETREO.DICTADO) {
+		const terminado = estado === 'acertada' || estado === 'fallada' || estado === 'tiempo-agotado';
+		if (terminado) {
+			return 'letra';
+		}
+		return orden < indice ? 'letra' : 'hueco';
 	}
 
 	if (modo === MODOS_DE_DELETREO.VISIBLE || estado !== 'activo') {

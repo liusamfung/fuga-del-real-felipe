@@ -317,8 +317,8 @@ test('con lectura también se acierta y se falla como siempre, al revés incluid
 	assert.equal(fallada.estado, 'fallada');
 });
 
-test('los modos son tres y se piden por su nombre', () => {
-	assert.deepEqual(Object.values(MODOS_DE_DELETREO), ['visible', 'huecos', 'memoria']);
+test('los modos son cuatro y se piden por su nombre', () => {
+	assert.deepEqual(Object.values(MODOS_DE_DELETREO), ['visible', 'huecos', 'memoria', 'dictado']);
 });
 
 // --- Qué se ve en cada modo ---
@@ -360,4 +360,70 @@ test('al terminar, la palabra se descubre entera en todos los modos, también al
 
 test('un modo desconocido es un error claro', () => {
 	assert.throws(() => verLetra('imposible', 'activo'), /Modo de deletreo desconocido/);
+});
+
+// --- Dictado (nivel 3 de los retos de inglés) ---
+
+test('en el dictado la palabra NO se ve mientras se oye: todo son huecos', () => {
+	for (const estado of ['esperando', 'mostrando']) {
+		for (const orden of [0, 2, 5]) {
+			assert.equal(verLetra('dictado', estado, orden, 0), 'hueco', `${estado} letra ${orden}`);
+		}
+	}
+});
+
+test('en el dictado solo se descubren las letras que el jugador acertó', () => {
+	assert.equal(verLetra('dictado', 'activo', 0, 3), 'letra');
+	assert.equal(verLetra('dictado', 'activo', 2, 3), 'letra');
+	assert.equal(verLetra('dictado', 'activo', 3, 3), 'hueco', 'la que toca todavía es hueco');
+	assert.equal(verLetra('dictado', 'activo', 5, 3), 'hueco');
+});
+
+test('al terminar, el dictado muestra la palabra entera, también al fallar (así se aprende)', () => {
+	for (const estado of ['acertada', 'fallada', 'tiempo-agotado']) {
+		assert.equal(verLetra('dictado', estado, 5, 0), 'letra', estado);
+	}
+});
+
+test('dictado con el reloj de siempre: mientras se oye no cuenta nada, luego se escribe la palabra', () => {
+	// Escucha de 1500 ms y 6000 ms para escribir, desde el instante 1000.
+	const dictado = new Deletreo({
+		palabra: 'window',
+		tiempoTotal: 6000,
+		lectura: 1500,
+		erroresPermitidos: 2,
+	});
+	dictado.empezar(1000);
+
+	assert.equal(dictado.escribir('w', 1200), 'ignorada', 'mientras se oye, las letras no cuentan');
+	assert.equal(dictado.estado, 'mostrando');
+	assert.equal(dictado.tiempoRestante(2000), 6000, 'la barra no corre mientras se oye');
+
+	assert.deepEqual(
+		['w', 'I', 'n', 'd', 'O', 'w'].map((letra) => dictado.escribir(letra, 3000)),
+		['acierto', 'acierto', 'acierto', 'acierto', 'acierto', 'acierto'],
+	);
+	assert.equal(dictado.estado, 'acertada');
+});
+
+test('en el dictado la barra espaciadora (repetir la palabra) no cuenta como letra ni como error', () => {
+	const dictado = new Deletreo({ palabra: 'bone', tiempoTotal: 6000, erroresPermitidos: 0 });
+	dictado.empezar(0);
+
+	assert.equal(dictado.escribir(' ', 100), 'ignorada');
+	assert.equal(dictado.escribir('Enter', 100), 'ignorada');
+	assert.equal(dictado.errores, 0);
+	assert.equal(dictado.estado, 'activo', 'repetir la palabra no hace fallar');
+});
+
+test('en el dictado la palabra se escribe en el orden de siempre y un error no avanza', () => {
+	const dictado = new Deletreo({ palabra: 'cat', tiempoTotal: 6000, erroresPermitidos: 1 });
+	dictado.empezar(0);
+
+	assert.equal(dictado.escribir('c', 10), 'acierto');
+	assert.equal(dictado.escribir('o', 20), 'error'); // se esperaba la A
+	assert.equal(dictado.indice, 1, 'sigue esperando la A');
+	assert.equal(dictado.escribir('a', 30), 'acierto');
+	assert.equal(dictado.escribir('t', 40), 'acierto');
+	assert.equal(dictado.estado, 'acertada');
 });

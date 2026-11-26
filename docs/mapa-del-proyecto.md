@@ -107,6 +107,10 @@ principio porque es lo más riesgoso.
 
 ### Spike de voz (en paralelo, desde ya)
 
+> **Hecho el código (paso 8):** la pantalla de prueba existe (`?voz`) y el procedimiento está en
+> [`prueba-de-voz.md`](prueba-de-voz.md). **Falta hacer la prueba con personas** y ajustar con los
+> resultados.
+
 Un **spike** es una prueba corta para resolver una duda técnica antes de construir encima. Hay que
 averiguar **cuanto antes** qué tan bien reconoce el navegador a alguien deletreando en español:
 

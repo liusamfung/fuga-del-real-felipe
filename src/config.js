@@ -8,6 +8,9 @@ export const ESCENAS = Object.freeze({
 	JUEGO: 'EscenaJuego',
 	HUD: 'EscenaHUD',
 	DELETREO: 'EscenaDeletreo',
+	PRUEBA_VOZ: 'EscenaPruebaVoz',
+	PRUEBA_INGLES: 'EscenaPruebaIngles',
+	OPCIONES: 'EscenaOpciones',
 });
 
 // Cómo se muestra la palabra que hay que deletrear (de menos a más difícil).
@@ -15,11 +18,13 @@ export const ESCENAS = Object.freeze({
 //   huecos   se ve una sola vez; luego solo quedan los huecos, como en el Ahorcado
 //            (las letras que se aciertan van apareciendo)
 //   memoria  se ve una sola vez; luego no queda nada en pantalla: hay que recordarla
-// Más adelante habrá un cuarto modo, en que una voz dice la palabra y no se muestra nunca.
+//   dictado  nunca se ve: una voz (la del navegador) dice la palabra en inglés y el jugador la escribe;
+//            solo se ven los huecos y las letras que va acertando (nivel 3 de los retos de inglés)
 export const MODOS_DE_DELETREO = Object.freeze({
 	VISIBLE: 'visible',
 	HUECOS: 'huecos',
 	MEMORIA: 'memoria',
+	DICTADO: 'dictado',
 });
 
 export const CONFIG = Object.freeze({
@@ -71,6 +76,21 @@ export const CONFIG = Object.freeze({
 		// el tiempo de deletrear ni se aceptan letras.
 		LECTURA: Object.freeze({ BASE: 800, POR_LETRA: 120 }),
 		FACTOR_INVERTIDA: 1.5, // al revés se da 1,5 veces el tiempo
+		// Deletrear con la voz (Web Speech API del navegador). Valores iniciales: salen de la prueba de
+		// voz (docs/prueba-de-voz.md) y se ajustan con ella.
+		VOZ: Object.freeze({
+			IDIOMA: 'es-PE', // o 'es-ES'; ver docs/decisiones-pendientes.md
+			FACTOR_DE_TIEMPO: 2, // la voz es más lenta que el teclado (con pausas, 0,7–0,85 s por letra): el doble
+			// Guardar la última letra de un resultado provisional hasta que el navegador la confirme.
+			// Apagado: en la prueba de voz retenerla costaba ~1,3 s por palabra y casi no evitaba errores.
+			RETENER_ULTIMA: false,
+			// Dos ayudas contra el reconocedor que junta las letras en palabras. Se prueban con `?voz`
+			// (teclas P y L) y se activan aquí si ayudan. Ver docs/prueba-de-voz.md. El sesgo solo
+			// funciona junto con PROCESAR_EN_EL_EQUIPO: con el servidor, Chrome lo rechaza.
+			SESGAR_A_LAS_LETRAS: false, // inclinar el reconocimiento hacia los nombres de las letras
+			IMPULSO_DEL_SESGO: 5, // de 0 a 10: cuánto se inclina
+			PROCESAR_EN_EL_EQUIPO: false, // reconocer sin servidor (hay que descargar el idioma)
+		}),
 		ERRORES_PERMITIDOS: 2, // letras equivocadas que se perdonan; una más y se falla
 		TIEMPO_DEL_RESULTADO: 900, // ms que se ve el resultado antes de cerrar la pantalla
 		DESTELLO_DE_ERROR: 150, // ms que el marco se pone rojo al equivocarse
@@ -80,6 +100,33 @@ export const CONFIG = Object.freeze({
 			ALTO: 150,
 			ANCHO_BARRA: 520,
 			SEPARACION_LETRAS: 36,
+		}),
+	}),
+
+	// Retos de inglés: decir en voz alta la opción correcta (Web Speech API). Valores iniciales: salen
+	// de la prueba de voz en inglés (docs/prueba-de-voz-ingles.md) y se ajustan con ella.
+	INGLES: Object.freeze({
+		IDIOMA: 'en-US', // inglés americano
+		LETRAS_POR_ERROR: 3, // se perdona una edición por cada 3 letras de la opción (mínimo una)
+		VELOCIDAD_DE_LA_VOZ: 0.9, // la voz del juego habla un poco más despacio (1 es lo normal)
+		NO_REPETIR: 10, // cuántas de las últimas palabras no se vuelven a pedir
+		// Nivel 3: el juego dice la palabra y el jugador la escribe. Valores iniciales: se ajustan jugando.
+		DICTADO: Object.freeze({
+			// ms que se da para oír la palabra la primera vez; durante ese tiempo no corre la barra.
+			ESCUCHA: 1500,
+			// Multiplica el tiempo del teclado (DELETREO.TECLADO): hay que oír, recordar y escribir.
+			// Repetir la palabra (ESPACIO) no detiene la barra: cada repetición cuesta tiempo.
+			FACTOR_DE_TIEMPO: 2,
+		}),
+		// Niveles 1 y 2: se ve una ficha (una palabra en español o una definición en inglés) y se dice la
+		// opción correcta entre tres. Valores iniciales: se ajustan jugando.
+		OPCIONES: Object.freeze({
+			// Tiempo (ms) para responder: BASE más POR_PALABRA por cada palabra del enunciado (hay que leerlo).
+			// En la prueba de voz en inglés las respuestas rápidas tardaron ~2,4 s y las lentas 7–9 s.
+			BASE: 6000,
+			POR_PALABRA: 500,
+			TIEMPO_DEL_RESULTADO: 1100, // ms que se ve el resultado antes de cerrar la pantalla
+			PANEL: Object.freeze({ Y: 50, ANCHO: 700, ALTO: 230, ANCHO_BARRA: 620 }),
 		}),
 	}),
 
@@ -122,11 +169,37 @@ export const CONFIG = Object.freeze({
 		PROFUNDIDAD_BALAS: 1000, // las balas se dibujan por encima de todo lo demás
 	}),
 
+	// Cámara lenta: mientras se responde el reto de un poder, el mundo (enemigos, balas, animaciones y
+	// temporizadores) va más lento, para que el objetivo no se haya ido cuando se acierta. Entra y sale
+	// con una rampa suave. El tiempo del reto no se estira: se mide en tiempo real. Provisional.
+	CAMARA_LENTA: Object.freeze({
+		FACTOR: 0.2, // la velocidad del mundo en plena cámara lenta: 0,2 = una quinta parte
+		ENTRADA: 120, // ms que tarda en bajar a ese factor
+		SALIDA: 200, // ms que tarda en volver a la velocidad normal
+	}),
+
+	// Poderes especiales del jugador: cada uno se activa superando un reto de inglés. Valores iniciales
+	// (provisionales): se ajustan jugando. Ver docs/mecanicas.md, sección 5.11.
+	PODERES: Object.freeze({
+		GRANADA: Object.freeze({
+			NIVEL_DE_INGLES: 1, // el reto: 1 es el de traducción (el más fácil), ver NIVELES_DE_INGLES
+			DANO: 3, // lo que le quita a cada enemigo alcanzado (un enemigo débil tiene 3 de vida)
+			RADIO: 96, // px: todo lo que quede a esta distancia del centro de la explosión recibe el daño
+			VELOCIDAD: 420, // px/s: lo que tarda en volar hasta donde apuntaba el cursor
+			VUELO_MINIMO: 150, // ms: lanzada a los pies también se ve volar un instante
+			DURACION_DE_LA_EXPLOSION: 280, // ms que se ve la onda de la explosión
+			// Recarga (ms) desde que TERMINA el reto: mayor si se acertó (se lanzó la granada).
+			RECARGA_TRAS_ACIERTO: 6000,
+			RECARGA_TRAS_FALLO: 2500,
+		}),
+	}),
+
 	// Interfaz que se dibuja sobre la pared de arriba.
 	HUD: Object.freeze({
 		MARGEN: 48,
 		Y: 16,
 		SEPARACION_CORAZONES: 20,
 		DASH_X: 372, // donde empiezan las cargas del dash, en el centro de la franja
+		GRANADA_X: 482, // donde empieza el indicador de la granada, después del dash
 	}),
 });

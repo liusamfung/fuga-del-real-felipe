@@ -2,16 +2,23 @@ import Phaser from 'phaser';
 import { CONFIG, ESCENAS, MODOS_DE_DELETREO } from '../config.js';
 import { NIVEL_1 } from '../datos/niveles.js';
 import { DIFICULTADES, elegirPalabra } from '../datos/palabras.js';
+import { VOCABULARIO } from '../datos/vocabulario.js';
 import { Cofre } from '../entidades/Cofre.js';
 import { EnemigoDebil } from '../entidades/EnemigoDebil.js';
+import { Granada } from '../entidades/Granada.js';
 import { Jefe } from '../entidades/Jefe.js';
 import { Jugador } from '../entidades/Jugador.js';
+import { ReconocedorDeVoz } from '../sistemas/ReconocedorDeVoz.js';
 import { Disparo } from '../sistemas/Disparo.js';
 import { Entrada } from '../sistemas/Entrada.js';
 import { generarNivel } from '../sistemas/GeneradorDeNivel.js';
 import { Nivel } from '../sistemas/Nivel.js';
+import { PoderConRecarga } from '../sistemas/PoderConRecarga.js';
+import { RampaDeTiempo } from '../sistemas/RampaDeTiempo.js';
 import { aplicarMejora, elegirMejoraComun } from '../sistemas/Recompensas.js';
 import { elegirAlAzar } from '../utilidades/azar.js';
+import { alcanzadosPorLaExplosion, limitarAlRectangulo } from '../utilidades/explosion.js';
+import { armarFicha, elegirEntrada, NIVELES_DE_INGLES } from '../utilidades/fichas.js';
 
 // Un nivel: una cuadrícula de salas con el jugador dentro. La cámara muestra una sala a la vez.
 //
@@ -28,6 +35,23 @@ export class EscenaJuego extends Phaser.Scene {
 		this.jugadorMuerto = false;
 		this.proximoAvisoDeLlave = 0;
 		this.deletreoActivo = false;
+		this.deletreoRecienTerminado = false; // el reto acabó en este fotograma (ver update)
+		this.usarVoz = false; // provisional: la tecla V activa deletrear con el micrófono
+		this.ultimasPalabrasDeIngles = []; // las últimas del dictado, para no repetirlas enseguida
+		const { GRANADA } = CONFIG.PODERES;
+		this.poderes = {
+			granada: new PoderConRecarga({
+				recargaTrasAcierto: GRANADA.RECARGA_TRAS_ACIERTO,
+				recargaTrasFallo: GRANADA.RECARGA_TRAS_FALLO,
+			}),
+		};
+		this.poderEnCurso = null; // el poder cuyo reto está en pantalla ('granada'), o null
+		const { CAMARA_LENTA } = CONFIG;
+		this.rampa = new RampaDeTiempo({
+			factor: CAMARA_LENTA.FACTOR,
+			entrada: CAMARA_LENTA.ENTRADA,
+			salida: CAMARA_LENTA.SALIDA,
+		});
 		this.estadoDeSalas = new Map(); // 'columna,fila' -> { combateIniciado, limpia, enemigosVivos, ... }
 		this.entrada = new Entrada(this);
 
@@ -53,22 +77,43 @@ export class EscenaJuego extends Phaser.Scene {
 		this.#entrarEnSala(inicio);
 
 		// La interfaz es otra escena que se dibuja encima.
-		this.scene.launch(ESCENAS.HUD, { jugador: this.jugador });
+		this.scene.launch(ESCENAS.HUD, { jugador: this.jugador, poderes: this.poderes });
 		this.events.once('shutdown', () => {
 			this.scene.stop(ESCENAS.HUD);
 			this.scene.stop(ESCENAS.DELETREO);
+			this.scene.stop(ESCENAS.OPCIONES);
+			this.#restablecerLaEscalaDelTiempo();
 		});
 	}
 
 	update() {
+		this.#actualizarLaVelocidadDelMundo();
 		if (this.jugadorMuerto) {
 			return;
 		}
 
-		const pedido = this.entrada.deletreoPedido(); // se consulta siempre, aunque no se use
-		if (pedido && !this.deletreoActivo) {
-			this.#empezarElDeletreo(pedido);
+		const alternarVoz = this.entrada.vozAlternada(); // se consulta siempre, aunque no se use
+		if (alternarVoz && !this.deletreoActivo) {
+			this.#alternarLaVoz();
 		}
+
+		// Se consultan todas las teclas de retos en cada fotograma, aunque no se usen (JustDown "gasta"
+		// la pulsación).
+		const pedido = this.entrada.deletreoPedido();
+		const nivelPedido = this.entrada.retoDeOpcionesPedido();
+		const granadaPedida = this.entrada.granadaPedida();
+		// La letra que completa una palabra puede ser también la tecla que pide otro reto (E, T, Y, I, R, G):
+		// esa pulsación ya se gastó en el reto que acaba de terminar y no debe empezar uno nuevo.
+		if (!this.deletreoActivo && !this.deletreoRecienTerminado) {
+			if (pedido) {
+				this.#empezarElDeletreo(pedido);
+			} else if (nivelPedido) {
+				this.#empezarElRetoDeOpciones(nivelPedido);
+			} else if (granadaPedida) {
+				this.#empezarLaGranada();
+			}
+		}
+		this.deletreoRecienTerminado = false;
 
 		const direccion = this.entrada.direccionDeMovimiento();
 		const puntoDeApuntado = this.entrada.puntoDeApuntado();
@@ -98,29 +143,188 @@ export class EscenaJuego extends Phaser.Scene {
 		);
 	}
 
+	// La cámara lenta: mientras un poder espera su reto, el mundo (enemigos, balas, animaciones y
+	// temporizadores) va a una quinta parte, para que el objetivo no se haya ido cuando se acierta. Entra y
+	// sale suave (RampaDeTiempo). El jugador no se mueve durante el reto, y el tiempo del reto es real: no
+	// se estira. Se decide cada fotograma según el estado, así no se queda lenta por ninguna salida rara.
+	#actualizarLaVelocidadDelMundo() {
+		const ahora = performance.now();
+		this.rampa.fijar(this.poderEnCurso !== null && !this.jugadorMuerto, ahora);
+		this.#aplicarLaEscalaDelTiempo(this.rampa.escala(ahora));
+	}
+
+	// Al cerrarse la escena (por ejemplo, en el reinicio después de morir) algunos sistemas de Phaser ya no
+	// existen, y tocarlos da error: solo se restablecen los que siguen ahí. La escala de las animaciones es
+	// global (la comparten todas las escenas), así que es la que no debe quedar lenta; las demás se crean de
+	// nuevo con la escena.
+	#restablecerLaEscalaDelTiempo() {
+		if (this.anims) {
+			this.anims.globalTimeScale = 1;
+		}
+		if (this.physics?.world) {
+			this.physics.world.timeScale = 1;
+		}
+		if (this.time) {
+			this.time.timeScale = 1;
+		}
+		if (this.tweens) {
+			this.tweens.timeScale = 1;
+		}
+	}
+
+	// `escala` 1 es normal y 0,2 es una quinta parte. La física usa la convención contraria (más grande es
+	// más lento), por eso se divide.
+	#aplicarLaEscalaDelTiempo(escala) {
+		this.physics.world.timeScale = 1 / escala;
+		this.time.timeScale = escala;
+		this.tweens.timeScale = escala;
+		this.anims.globalTimeScale = escala;
+	}
+
 	// Provisional hasta el paso 9 (poderes por voz): E, T e Y piden una palabra al azar (visible, con
-	// huecos, de memoria), con Mayúsculas al revés, y R una fácil al revés. Mientras se deletrea el
-	// jugador no puede moverse (las letras W, A, S y D son las teclas de caminar), pero el juego sigue:
-	// los enemigos no esperan.
+	// huecos, de memoria), con Mayúsculas al revés, y R una fácil al revés. I pide un dictado en inglés
+	// (el juego dice la palabra y se escribe). Mientras se deletrea el jugador no puede moverse (las
+	// letras W, A, S y D son las teclas de caminar), pero el juego sigue: los enemigos no esperan.
 	#empezarElDeletreo({ modo, invertida }) {
 		this.deletreoActivo = true;
 		this.entrada.bloquearMovimiento(true);
 
+		const esDictado = modo === MODOS_DE_DELETREO.DICTADO;
 		const esLaFacilAlReves = invertida && modo === MODOS_DE_DELETREO.VISIBLE;
 		const dificultad = esLaFacilAlReves ? 'facil' : elegirAlAzar(DIFICULTADES);
 		this.scene.launch(ESCENAS.DELETREO, {
-			palabra: elegirPalabra(dificultad),
-			invertida,
+			palabra: esDictado ? this.#palabraParaDictar() : elegirPalabra(dificultad),
+			invertida: esDictado ? false : invertida,
 			modo,
+			usaVoz: this.usarVoz,
 			alTerminar: (resultado) => this.#alTerminarElDeletreo(resultado),
 		});
+	}
+
+	// Provisional hasta el paso 9: O pide un reto de traducción (nivel 1) y P uno de definición
+	// (nivel 2). Se dice la opción correcta con el micrófono; si falla, se responde con 1, 2 o 3. Como el
+	// deletreo, bloquea el movimiento y le avisa al juego con `deletreo-terminado`.
+	// Devuelve verdadero si el reto empezó.
+	#empezarElRetoDeOpciones(nivel) {
+		const ficha = armarFicha(this.#entradaDeIngles(), nivel, VOCABULARIO);
+		if (!ficha) {
+			return false; // el banco no alcanzó para armar las opciones (con 60 palabras no pasa)
+		}
+
+		this.deletreoActivo = true;
+		this.entrada.bloquearMovimiento(true);
+		this.scene.launch(ESCENAS.OPCIONES, {
+			ficha,
+			alTerminar: (resultado) => this.#alTerminarElDeletreo(resultado),
+		});
+		return true;
+	}
+
+	// G: la granada. Si está lista, se abre un reto de inglés (nivel 1); al acertarlo se lanza hacia donde
+	// apunta el cursor. Mientras se responde, el juego sigue a velocidad normal (la cámara lenta es solo
+	// para los ataques fuertes del jefe). Si no está lista (recargando), no pasa nada.
+	#empezarLaGranada() {
+		const ahora = this.time.now;
+		if (!this.poderes.granada.intentarUsar(ahora)) {
+			return;
+		}
+
+		this.poderEnCurso = 'granada';
+		if (!this.#empezarElRetoDeOpciones(CONFIG.PODERES.GRANADA.NIVEL_DE_INGLES)) {
+			this.poderEnCurso = null;
+			this.poderes.granada.terminar(false, ahora); // no hubo reto: que no quede esperando para siempre
+		}
+	}
+
+	// El reto de la granada terminó: si se acertó, se lanza; si no, no hay granada y la recarga es corta.
+	#alTerminarLaGranada(resultado) {
+		const acerto = resultado === 'acertada';
+		this.poderes.granada.terminar(acerto, this.time.now);
+		if (acerto) {
+			this.#lanzarLaGranada();
+		} else {
+			this.#mostrarMensaje('Falló la granada', { tamano: 20 });
+		}
+	}
+
+	// Sale del jugador hacia donde apunta el cursor en este momento (sin salir de la sala). Si el ratón
+	// todavía no se ha movido, cae un poco a la derecha del jugador.
+	#lanzarLaGranada() {
+		const origen = this.jugador.body.center;
+		const apuntado = this.entrada.puntoDeApuntado() ?? { x: origen.x + 160, y: origen.y };
+		const limites = this.nivel.limitesDeSala(this.salaActual.columna, this.salaActual.fila);
+		const destino = limitarAlRectangulo(apuntado, limites);
+
+		new Granada(this, origen.x, origen.y).lanzar(destino, (punto) =>
+			this.#explotarLaGranada(punto),
+		);
+	}
+
+	// La explosión: daño a todos los enemigos dentro del radio y una onda naranja que se desvanece.
+	#explotarLaGranada(punto) {
+		const { RADIO, DANO, DURACION_DE_LA_EXPLOSION } = CONFIG.PODERES.GRANADA;
+
+		const enemigos = this.enemigos.getChildren().filter((enemigo) => enemigo.active);
+		const centros = enemigos.map((enemigo) => ({
+			enemigo,
+			x: enemigo.body.center.x,
+			y: enemigo.body.center.y,
+		}));
+		for (const { enemigo } of alcanzadosPorLaExplosion(punto, RADIO, centros)) {
+			enemigo.recibirDano(DANO);
+		}
+
+		const onda = this.add
+			.circle(punto.x, punto.y, RADIO, 0xff9a3c, 0.5)
+			.setStrokeStyle(3, 0xfff1b8)
+			.setDepth(CONFIG.DISPARO.PROFUNDIDAD_BALAS)
+			.setScale(0.3);
+		this.tweens.add({
+			targets: onda,
+			scale: 1,
+			alpha: 0,
+			duration: DURACION_DE_LA_EXPLOSION,
+			onComplete: () => onda.destroy(),
+		});
+	}
+
+	// Una palabra del banco de vocabulario en inglés, que no sea de las últimas que salieron.
+	#entradaDeIngles() {
+		const entrada = elegirEntrada(VOCABULARIO, { evitar: this.ultimasPalabrasDeIngles });
+		this.ultimasPalabrasDeIngles = [...this.ultimasPalabrasDeIngles, entrada.palabra].slice(
+			-CONFIG.INGLES.NO_REPETIR,
+		);
+		return entrada;
+	}
+
+	#palabraParaDictar() {
+		return armarFicha(this.#entradaDeIngles(), NIVELES_DE_INGLES.DICTADO, VOCABULARIO).palabra;
+	}
+
+	// Provisional hasta el paso 9: la tecla V cambia entre deletrear con el teclado y con la voz. La
+	// primera vez que se deletrea con la voz, el navegador pide permiso para el micrófono.
+	#alternarLaVoz() {
+		if (!ReconocedorDeVoz.disponible()) {
+			this.#mostrarMensaje('Este navegador no tiene voz: usa Chrome', { tamano: 20 });
+			return;
+		}
+
+		this.usarVoz = !this.usarVoz;
+		this.#mostrarMensaje(this.usarVoz ? 'Deletreo: VOZ' : 'Deletreo: TECLADO', { tamano: 24 });
 	}
 
 	/** `resultado` es 'acertada', 'fallada' o 'tiempo-agotado'. */
 	#alTerminarElDeletreo(resultado) {
 		this.deletreoActivo = false;
+		this.deletreoRecienTerminado = true;
 		this.entrada.bloquearMovimiento(false);
-		this.events.emit('deletreo-terminado', resultado); // aquí se enganchará el poder (paso 9)
+		this.events.emit('deletreo-terminado', resultado);
+
+		// Si el reto era el de un poder, se resuelve ahora (el evento de arriba es para quien más lo necesite).
+		if (this.poderEnCurso === 'granada') {
+			this.poderEnCurso = null;
+			this.#alTerminarLaGranada(resultado);
+		}
 	}
 
 	// Provisional: el jefe solo se ve, flotando en el centro de su sala (ver entidades/Jefe.js). Cuando se

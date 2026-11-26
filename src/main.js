@@ -4,6 +4,9 @@ import { EscenaArranque } from './escenas/EscenaArranque.js';
 import { EscenaDeletreo } from './escenas/EscenaDeletreo.js';
 import { EscenaHUD } from './escenas/EscenaHUD.js';
 import { EscenaJuego } from './escenas/EscenaJuego.js';
+import { EscenaOpciones } from './escenas/EscenaOpciones.js';
+import { EscenaPruebaIngles } from './escenas/EscenaPruebaIngles.js';
+import { EscenaPruebaVoz } from './escenas/EscenaPruebaVoz.js';
 
 // Agregar ?debug a la dirección (http://localhost:5173/?debug) activa el modo de depuración:
 // muestra los cuerpos de choque y deja el juego accesible desde la consola como `window.juego`.
@@ -26,7 +29,15 @@ const juego = new Phaser.Game({
 		default: 'arcade',
 		arcade: { debug: modoDebug },
 	},
-	scene: [EscenaArranque, EscenaJuego, EscenaHUD, EscenaDeletreo],
+	scene: [
+		EscenaArranque,
+		EscenaJuego,
+		EscenaHUD,
+		EscenaDeletreo,
+		EscenaOpciones,
+		EscenaPruebaVoz,
+		EscenaPruebaIngles,
+	],
 });
 
 if (modoDebug) {

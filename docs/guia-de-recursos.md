@@ -14,7 +14,7 @@ organizan los archivos, qué dibujos ya tenemos y cuáles faltan.
 | Cuadro del enemigo | 32×48 px     | Confirmado                                     |
 | Pieza del tileset  | 32×48 px     | Ver las preguntas pendientes (sección 7)       |
 
-> **Los dibujos se entregan "ampliados ×5".** El editor de pixel art exportó cada cuadro de
+> **Los sprites se dibujan y pintan en ibisPaint X**, y se entregan "ampliados ×5". El editor exportó cada cuadro de
 > 32×48 como una imagen de 160×240 (cada píxel dibujado es un cuadro de 5×5). Está bien para
 > trabajar, pero el juego usa el tamaño real de 32×48. Se comprobó que la reducción es **exacta**,
 > sin pérdida. Cómo se hace: [`arte/README.md`](../arte/README.md).
@@ -129,6 +129,7 @@ armándolas). Los números de cuadro también están en `FOTOGRAMAS_TILESET`, en
 | Enemigo débil                | **Parcial** | Solo 2 cuadros de caminar. Faltan: recibir daño, morir                       |
 | Suelo y paredes del piso 1   | **Parcial** | Hay tileset; falta decidir cómo se arma la sala (sección 7)                  |
 | Bala                         | Provisional | Una imagen pequeña                                                           |
+| Granada                      | Provisional | Una imagen pequeña (12×12 px); la explosión se dibuja por código             |
 | Cofre                        | Provisional | Cerrado y abierto                                                            |
 | Cajas (obstáculos)           | Provisional | 64×64 px                                                                     |
 | Corazones del HUD            | Provisional | Lleno y vacío                                                                |
