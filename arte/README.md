@@ -6,7 +6,7 @@ las hojas de sprites de `public/assets/img/`, que se arman a partir de estos arc
 ## `originales/`
 
 Lo que entregó quien dibuja, con nombres estándar. Cada imagen mide **160×240 px**, que es un
-cuadro de **32×48 px ampliado 5 veces** (así lo exporta el editor de pixel art). Está organizado
+cuadro de **32×48 px ampliado 5 veces** (así lo exporta ibisPaint X, la aplicación con la que se dibujan y pintan los sprites). Está organizado
 por tema:
 
 - `jugador/`: 12 cuadros (4 direcciones × quieto, paso 1, paso 2).
