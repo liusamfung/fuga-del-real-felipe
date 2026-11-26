@@ -13,6 +13,7 @@ import { Entrada } from '../sistemas/Entrada.js';
 import { generarNivel } from '../sistemas/GeneradorDeNivel.js';
 import { Nivel } from '../sistemas/Nivel.js';
 import { PoderConRecarga } from '../sistemas/PoderConRecarga.js';
+import { RampaDeTiempo } from '../sistemas/RampaDeTiempo.js';
 import { aplicarMejora, elegirMejoraComun } from '../sistemas/Recompensas.js';
 import { elegirAlAzar } from '../utilidades/azar.js';
 import { alcanzadosPorLaExplosion, limitarAlRectangulo } from '../utilidades/explosion.js';
@@ -44,6 +45,12 @@ export class EscenaJuego extends Phaser.Scene {
 			}),
 		};
 		this.poderEnCurso = null; // el poder cuyo reto está en pantalla ('granada'), o null
+		const { CAMARA_LENTA } = CONFIG;
+		this.rampa = new RampaDeTiempo({
+			factor: CAMARA_LENTA.FACTOR,
+			entrada: CAMARA_LENTA.ENTRADA,
+			salida: CAMARA_LENTA.SALIDA,
+		});
 		this.estadoDeSalas = new Map(); // 'columna,fila' -> { combateIniciado, limpia, enemigosVivos, ... }
 		this.entrada = new Entrada(this);
 
@@ -73,10 +80,12 @@ export class EscenaJuego extends Phaser.Scene {
 			this.scene.stop(ESCENAS.HUD);
 			this.scene.stop(ESCENAS.DELETREO);
 			this.scene.stop(ESCENAS.OPCIONES);
+			this.#aplicarLaEscalaDelTiempo(1); // la escala de las animaciones es global: que no quede lenta
 		});
 	}
 
 	update() {
+		this.#actualizarLaVelocidadDelMundo();
 		if (this.jugadorMuerto) {
 			return;
 		}
@@ -130,6 +139,25 @@ export class EscenaJuego extends Phaser.Scene {
 		this.disparo.actualizar(
 			this.nivel.limitesDeSala(this.salaActual.columna, this.salaActual.fila),
 		);
+	}
+
+	// La cámara lenta: mientras un poder espera su reto, el mundo (enemigos, balas, animaciones y
+	// temporizadores) va a una quinta parte, para que el objetivo no se haya ido cuando se acierta. Entra y
+	// sale suave (RampaDeTiempo). El jugador no se mueve durante el reto, y el tiempo del reto es real: no
+	// se estira. Se decide cada fotograma según el estado, así no se queda lenta por ninguna salida rara.
+	#actualizarLaVelocidadDelMundo() {
+		const ahora = performance.now();
+		this.rampa.fijar(this.poderEnCurso !== null && !this.jugadorMuerto, ahora);
+		this.#aplicarLaEscalaDelTiempo(this.rampa.escala(ahora));
+	}
+
+	// `escala` 1 es normal y 0,2 es una quinta parte. La física usa la convención contraria (más grande es
+	// más lento), por eso se divide.
+	#aplicarLaEscalaDelTiempo(escala) {
+		this.physics.world.timeScale = 1 / escala;
+		this.time.timeScale = escala;
+		this.tweens.timeScale = escala;
+		this.anims.globalTimeScale = escala;
 	}
 
 	// Provisional hasta el paso 9 (poderes por voz): E, T e Y piden una palabra al azar (visible, con

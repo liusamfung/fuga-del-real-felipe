@@ -79,8 +79,9 @@ Elegir entre Juran, Deming o Crosby y confirmar el nombre "Joseph Durand" con el
   El de voz se define con el _spike_ de voz.
 - Modo de **teclado** como respaldo: hecho. ¿Cuántos errores se perdonan? Hoy son 2 _(provisional)_.
 - Mientras se deletrea, el jugador no se mueve pero los enemigos siguen. **Confirmado.** La cámara
-  lenta es solo para los ataques fuertes del jefe y dura lo que la cuenta regresiva; si el jugador
-  falla o se le acaba el tiempo, el ataque le cae sí o sí.
+  lenta es para los ataques fuertes del jefe **y, desde el 26/11/2026, para el reto de los poderes**
+  (la granada); dura lo que la cuenta regresiva. En el ataque fuerte, si el jugador falla o se le
+  acaba el tiempo, el golpe le cae sí o sí.
 - **Modos de deletreo** (`visible`, `huecos`, `memoria`; ver `mecanicas.md` 5.8): ¿dónde se usa cada
   uno? Por ejemplo, por nivel (más difícil en el nivel 2), por tipo de palabra o por quién ataca.
   Falta decidir cuál va con el ataque fuerte del jefe y cuál con los poderes.

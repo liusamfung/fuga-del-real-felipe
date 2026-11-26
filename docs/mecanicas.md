@@ -251,8 +251,8 @@ niveles; el paso 9 los conectará al jefe).
 reto de inglés. Todos los números son **provisionales** (están en `CONFIG.PODERES.GRANADA`).
 
 1. Si está **lista**, se abre un **reto de nivel 1** (una palabra en español; se dice su traducción;
-   ver 5.10). El juego **sigue a velocidad normal** mientras se responde: la cámara lenta es solo para
-   los ataques fuertes del jefe (6.1). El jugador no se mueve, pero los enemigos no esperan.
+   ver 5.10). El mundo va en **cámara lenta** (6.1) mientras se responde, para que el enemigo al que
+   quieres darle no se haya ido cuando aciertes. El jugador no se mueve.
 2. Si se **acierta**, la granada sale del jugador **hacia donde apunta el cursor en ese momento** (sin
    salir de la sala), vuela a 420 px/s y explota al llegar.
 3. La explosión le quita **3** de vida a **todo enemigo a 96 px o menos** del centro (un enemigo débil
@@ -292,13 +292,21 @@ flowchart TD
 
 ### 6.1 Cámara lenta
 
-- La cámara lenta ocurre **solo durante los ataques fuertes del jefe** y dura **lo mismo que la
-  cuenta regresiva** para deletrear. Termina cuando el jugador acierta, falla o se le acaba el tiempo.
-  Si falla o se acaba el tiempo, el ataque le cae **sí o sí**. _(Confirmado.)_
-- Los poderes normales del jugador (como la granada) **no** ponen el mundo en cámara lenta: el juego
-  sigue a velocidad normal mientras se deletrea.
-- El mundo (enemigos, balas, animaciones) baja a **0.2x** con una rampa suave de entrada de
-  100–150 ms.
+- La cámara lenta ocurre durante los **ataques fuertes del jefe** y durante el **reto de un poder del
+  jugador** (la granada, **decidido el 26/11/2026**: si el mundo siguiera a velocidad normal, el enemigo
+  ya no estaría ahí cuando se acierta). Dura **lo mismo que la cuenta regresiva** del reto y termina
+  cuando el jugador acierta, falla o se le acaba el tiempo. En el ataque fuerte, si falla o se acaba el
+  tiempo, el golpe le cae **sí o sí**. _(Confirmado.)_
+- El mundo (enemigos, balas, animaciones y temporizadores) baja a **0,2×** con una rampa suave de
+  entrada de **120 ms** y de salida de **200 ms** _(provisional: `CONFIG.CAMARA_LENTA`)_.
+- Código: `RampaDeTiempo` (`src/sistemas/RampaDeTiempo.js`, lógica pura con pruebas) calcula la escala en
+  cada instante, y `EscenaJuego` la aplica a la física, las animaciones, los temporizadores y los tweens.
+  Se decide en cada fotograma según el estado (¿hay un poder esperando su reto?), así no se queda lenta
+  por una salida rara.
+- **Limitación conocida:** la física de Phaser en cámara lenta no estira cada paso, solo da menos pasos
+  por segundo (a 0,2×, unos **12 por segundo** en vez de 60). A un enemigo lento no se le nota (saltos de
+  ~1 px), pero un proyectil rápido (520 px/s) saltaría ~9 px por paso. Si el jefe tiene proyectiles
+  rápidos habrá que escalar las velocidades en vez del paso de la física.
 - La **barra de tiempo corre en tiempo real**, no en tiempo de juego: el mundo se estira, el tiempo
   del jugador no. En Phaser esto significa que la barra **no puede usar** `time.timeScale`; se mide
   con el reloj real del navegador (`performance.now()`).

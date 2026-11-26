@@ -160,6 +160,15 @@ export const CONFIG = Object.freeze({
 		PROFUNDIDAD_BALAS: 1000, // las balas se dibujan por encima de todo lo demás
 	}),
 
+	// Cámara lenta: mientras se responde el reto de un poder, el mundo (enemigos, balas, animaciones y
+	// temporizadores) va más lento, para que el objetivo no se haya ido cuando se acierta. Entra y sale
+	// con una rampa suave. El tiempo del reto no se estira: se mide en tiempo real. Provisional.
+	CAMARA_LENTA: Object.freeze({
+		FACTOR: 0.2, // la velocidad del mundo en plena cámara lenta: 0,2 = una quinta parte
+		ENTRADA: 120, // ms que tarda en bajar a ese factor
+		SALIDA: 200, // ms que tarda en volver a la velocidad normal
+	}),
+
 	// Poderes especiales del jugador: cada uno se activa superando un reto de inglés. Valores iniciales
 	// (provisionales): se ajustan jugando. Ver docs/mecanicas.md, sección 5.11.
 	PODERES: Object.freeze({
