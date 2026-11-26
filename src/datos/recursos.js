@@ -60,6 +60,12 @@ export const RECURSOS = Object.freeze({
 		alto: 48,
 	},
 
+	// Las 4 ratas (dibujos de Jorge): cada una, 2 cuadros de caminar en una fila, como el enemigo débil.
+	'rata-azul': { tipo: 'hoja', ruta: 'assets/img/enemigos/rata-azul.png', ancho: 32, alto: 48 },
+	'rata-gris': { tipo: 'hoja', ruta: 'assets/img/enemigos/rata-gris.png', ancho: 32, alto: 48 },
+	'rata-blanca': { tipo: 'hoja', ruta: 'assets/img/enemigos/rata-blanca.png', ancho: 32, alto: 48 },
+	'rata-negra': { tipo: 'hoja', ruta: 'assets/img/enemigos/rata-negra.png', ancho: 32, alto: 48 },
+
 	// El segundo jefe: un fantasma con corona. 3 cuadros de flotar en una fila (las manos y la barba
 	// cambian de posición). Ojo: los cuadros miden 32 x 32, no 32 x 48 como los de los demás personajes.
 	'jefe-2': {
@@ -106,6 +112,26 @@ export const RECURSOS = Object.freeze({
 			{ x: 4, y: 4, ancho: 56, alto: 56, color: 0x7a5a3a },
 			{ x: 30, y: 4, ancho: 4, alto: 56, color: 0x5e4630 },
 			{ x: 4, y: 30, ancho: 56, alto: 4, color: 0x5e4630 },
+		],
+	},
+
+	// El nido de ratas (provisional): un montón de paja y barro con agujeros oscuros y ojos rojos. Mide lo
+	// mismo que una caja (64×64), pero no se confunde con ella.
+	nido: {
+		tipo: 'generado',
+		ancho: 64,
+		alto: 64,
+		formas: [
+			{ x: 0, y: 10, ancho: 64, alto: 54, color: 0x3b2a22 }, // base de barro
+			{ x: 6, y: 16, ancho: 52, alto: 44, color: 0x55392c },
+			{ x: 4, y: 2, ancho: 14, alto: 14, color: 0x9c7a43 }, // paja
+			{ x: 26, y: 0, ancho: 14, alto: 12, color: 0xb08a4a },
+			{ x: 46, y: 4, ancho: 14, alto: 12, color: 0x9c7a43 },
+			{ x: 20, y: 28, ancho: 24, alto: 22, color: 0x120d0b }, // la boca del nido
+			{ x: 8, y: 46, ancho: 10, alto: 8, color: 0x120d0b },
+			{ x: 46, y: 22, ancho: 10, alto: 8, color: 0x120d0b },
+			{ x: 25, y: 36, ancho: 4, alto: 4, color: 0xc0392b }, // ojos
+			{ x: 35, y: 36, ancho: 4, alto: 4, color: 0xc0392b },
 		],
 	},
 

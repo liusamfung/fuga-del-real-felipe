@@ -31,6 +31,12 @@ export const ANIMACIONES = Object.freeze([
 		repetir: true,
 	},
 
+	// Las ratas: 2 cuadros de caminar cada una. El ritmo acompaña a su velocidad (src/datos/enemigos.js).
+	{ clave: 'rata-gris-caminar', textura: 'rata-gris', cuadros: [0, 1], fps: 5, repetir: true },
+	{ clave: 'rata-blanca-caminar', textura: 'rata-blanca', cuadros: [0, 1], fps: 10, repetir: true },
+	{ clave: 'rata-azul-caminar', textura: 'rata-azul', cuadros: [0, 1], fps: 3, repetir: true },
+	{ clave: 'rata-negra-caminar', textura: 'rata-negra', cuadros: [0, 1], fps: 7, repetir: true },
+
 	// El fantasma flota: va del cuadro 0 al 2 y vuelve por el 1, así el movimiento no da saltos.
 	{
 		clave: 'jefe-2-flotar',

@@ -13,6 +13,7 @@
 | [Decisiones pendientes](decisiones-pendientes.md)   | Lo que falta decidir, con recomendaciones                                   |
 | [Prueba de voz](prueba-de-voz.md)                   | Cómo medir qué tan bien reconoce el navegador a quien deletrea              |
 | [Prueba de voz en inglés](prueba-de-voz-ingles.md)  | Cómo medir si entiende una palabra en inglés dicha en voz alta              |
+| [Enemigos](enemigos.md)                             | Los 5 tipos de enemigo, qué hay en cada sala y cómo cambiarlos              |
 | [Vocabulario](vocabulario.md)                       | El banco de palabras en inglés, cómo se arman las fichas y cómo agregar más |
 
 ## Referencias

@@ -4,7 +4,7 @@ import { NIVEL_1 } from '../datos/niveles.js';
 import { DIFICULTADES, elegirPalabra } from '../datos/palabras.js';
 import { VOCABULARIO } from '../datos/vocabulario.js';
 import { Cofre } from '../entidades/Cofre.js';
-import { EnemigoDebil } from '../entidades/EnemigoDebil.js';
+import { Enemigo } from '../entidades/Enemigo.js';
 import { Granada } from '../entidades/Granada.js';
 import { Jefe } from '../entidades/Jefe.js';
 import { Jugador } from '../entidades/Jugador.js';
@@ -18,6 +18,7 @@ import { RampaDeTiempo } from '../sistemas/RampaDeTiempo.js';
 import { aplicarMejora, elegirMejoraComun } from '../sistemas/Recompensas.js';
 import { elegirAlAzar } from '../utilidades/azar.js';
 import { alcanzadosPorLaExplosion, limitarAlRectangulo } from '../utilidades/explosion.js';
+import { puntoDeSalidaDelNido } from '../utilidades/nido.js';
 import { armarFicha, elegirEntrada, NIVELES_DE_INGLES } from '../utilidades/fichas.js';
 
 // Un nivel: una cuadrícula de salas con el jugador dentro. La cámara muestra una sala a la vez.
@@ -274,6 +275,15 @@ export class EscenaJuego extends Phaser.Scene {
 			enemigo.recibirDano(DANO);
 		}
 
+		// La explosión también daña los nidos que alcance (cuentan por su centro).
+		const nidos = this.nivel.nidos
+			.getChildren()
+			.filter((nido) => nido.active)
+			.map((nido) => ({ nido, x: nido.x, y: nido.y }));
+		for (const { nido } of alcanzadosPorLaExplosion(punto, RADIO, nidos)) {
+			nido.recibirDano(DANO);
+		}
+
 		const onda = this.add
 			.circle(punto.x, punto.y, RADIO, 0xff9a3c, 0.5)
 			.setStrokeStyle(3, 0xfff1b8)
@@ -341,7 +351,7 @@ export class EscenaJuego extends Phaser.Scene {
 	}
 
 	#crearColisiones() {
-		const { bloques, puertas } = this.nivel;
+		const { bloques, puertas, nidos } = this.nivel;
 
 		// Debe ser un grupo de física (no `this.add.group()`): con un grupo normal Phaser entrega
 		// los objetos de un choque en orden invertido (enemigo, bala) y el callback falla.
@@ -349,10 +359,12 @@ export class EscenaJuego extends Phaser.Scene {
 		this.enemigos = this.physics.add.group();
 
 		this.physics.add.collider(this.jugador, bloques);
+		this.physics.add.collider(this.jugador, nidos);
 		this.physics.add.collider(this.jugador, puertas, (_jugador, puerta) =>
 			this.#alTocarUnaPuerta(puerta),
 		);
 		this.physics.add.collider(this.enemigos, bloques);
+		this.physics.add.collider(this.enemigos, nidos);
 		this.physics.add.collider(this.enemigos, puertas);
 		this.physics.add.collider(this.enemigos, this.enemigos);
 		this.physics.add.collider(this.jugador, this.enemigos, (_jugador, enemigo) =>
@@ -362,6 +374,13 @@ export class EscenaJuego extends Phaser.Scene {
 		this.physics.add.overlap(this.disparo.balas, this.enemigos, (bala, enemigo) =>
 			this.#alImpactarUnaBala(bala, enemigo),
 		);
+		// Las balas no atraviesan un nido: lo dañan y desaparecen. Se rompe a balazos.
+		this.physics.add.overlap(this.disparo.balas, nidos, (bala, nido) =>
+			this.#alImpactarUnaBalaEnUnNido(bala, nido),
+		);
+		for (const nido of nidos.getChildren()) {
+			nido.once('roto', () => this.#alRomperseUnNido(nido));
+		}
 	}
 
 	/** El estado de una sala (si ya empezó el combate, si está limpia…). Se crea al pedirlo. */
@@ -372,6 +391,8 @@ export class EscenaJuego extends Phaser.Scene {
 				combateIniciado: false,
 				limpia: false,
 				enemigosVivos: 0,
+				nidoVivo: false, // verdadero mientras el nido de la sala siga en pie (desde que empieza el combate)
+				temporizadorDelNido: null,
 				avisoDelJefe: false,
 			});
 		}
@@ -410,9 +431,20 @@ export class EscenaJuego extends Phaser.Scene {
 		estado.enemigosVivos = datos.enemigos.length;
 		this.nivel.cerrarPuertas(columna, fila);
 
+		// Si la sala tiene su nido en pie, empieza a soltar ratas y la sala no se limpia hasta romperlo.
+		const nido = this.nivel.nidoDe(columna, fila);
+		estado.nidoVivo = nido !== undefined;
+		if (nido) {
+			estado.temporizadorDelNido = this.time.addEvent({
+				delay: CONFIG.NIDO.INTERVALO,
+				loop: true,
+				callback: () => this.#soltarUnaRata(datos, nido, estado),
+			});
+		}
+
 		const origen = this.nivel.origenDeSala(columna, fila);
-		for (const { x, y } of datos.enemigos) {
-			const enemigo = new EnemigoDebil(this, origen.x + x, origen.y + y);
+		for (const { tipo, x, y } of datos.enemigos) {
+			const enemigo = new Enemigo(this, origen.x + x, origen.y + y, tipo);
 			enemigo.once('muerto', () => this.#alMorirUnEnemigo(datos));
 			this.enemigos.add(enemigo);
 		}
@@ -429,7 +461,87 @@ export class EscenaJuego extends Phaser.Scene {
 	#alMorirUnEnemigo(datos) {
 		const estado = this.#estadoDe(datos.columna, datos.fila);
 		estado.enemigosVivos -= 1;
-		if (estado.enemigosVivos > 0) {
+		this.#revisarSiLaSalaQuedoLimpia(datos);
+	}
+
+	// Una bala que da en un nido: lo daña con el ataque del jugador y desaparece.
+	#alImpactarUnaBalaEnUnNido(bala, nido) {
+		if (!bala.active || !nido.active) {
+			return;
+		}
+		nido.recibirDano(bala.dano);
+		bala.desactivar();
+	}
+
+	// Cada cierto tiempo, el nido en pie suelta una rata junto a él (hacia el interior de la sala), salvo que
+	// ya haya demasiadas ratas suyas vivas, que no quepa ninguna o que el jugador esté justo ahí.
+	#soltarUnaRata(datos, nido, estado) {
+		const { MAX_VIVAS, TIPO, DISTANCIA_AL_JUGADOR } = CONFIG.NIDO;
+		const suyas = this.enemigos.getChildren().filter((e) => e.active && e.delNido === nido);
+		if (!nido.active || suyas.length >= MAX_VIVAS) {
+			return;
+		}
+
+		const origen = this.nivel.origenDeSala(datos.columna, datos.fila);
+		const rectangulo = {
+			x: nido.x - origen.x - CONFIG.NIDO.ANCHO / 2,
+			y: nido.y - origen.y - CONFIG.NIDO.ALTO / 2,
+			ancho: CONFIG.NIDO.ANCHO,
+			alto: CONFIG.NIDO.ALTO,
+		};
+		const { ANCHO, ALTO, CASILLA } = CONFIG.SALA;
+		const punto = puntoDeSalidaDelNido(
+			rectangulo,
+			datos.obstaculos,
+			{ ancho: ANCHO, alto: ALTO, grosor: CASILLA },
+			{ ancho: CONFIG.ENEMIGO.ANCHO, alto: CONFIG.ENEMIGO.ALTO },
+		);
+		if (!punto) {
+			return;
+		}
+
+		const centro = this.jugador.body.center;
+		const x = origen.x + punto.x;
+		const y = origen.y + punto.y;
+		if (Math.hypot(centro.x - x, centro.y - y) < DISTANCIA_AL_JUGADOR) {
+			return; // el jugador está justo ahí: esta vez no sale, para no aparecer encima de él
+		}
+
+		const rata = new Enemigo(this, x, y, TIPO);
+		rata.delNido = nido;
+		estado.enemigosVivos += 1;
+		rata.once('muerto', () => this.#alMorirUnEnemigo(datos));
+		this.enemigos.add(rata);
+	}
+
+	// El nido se rompió: no salen más ratas. Si no queda ninguna viva, la sala queda limpia.
+	#alRomperseUnNido(nido) {
+		const { columna, fila } = nido.sala;
+		const estado = this.#estadoDe(columna, fila);
+		estado.nidoVivo = false;
+		estado.temporizadorDelNido?.remove();
+
+		this.#mostrarMensaje('¡Nido destruido!', { x: nido.x, y: nido.y - 50, tamano: 18, sube: true });
+		const onda = this.add
+			.circle(nido.x, nido.y, 40, 0xc0392b, 0.5)
+			.setStrokeStyle(3, 0xfff1b8)
+			.setDepth(CONFIG.DISPARO.PROFUNDIDAD_BALAS)
+			.setScale(0.3);
+		this.tweens.add({
+			targets: onda,
+			scale: 1.6,
+			alpha: 0,
+			duration: 300,
+			onComplete: () => onda.destroy(),
+		});
+
+		this.#revisarSiLaSalaQuedoLimpia(this.nivel.buscarSala(columna, fila));
+	}
+
+	// La sala queda limpia cuando ya empezó el combate, no quedan enemigos vivos y el nido está roto.
+	#revisarSiLaSalaQuedoLimpia(datos) {
+		const estado = this.#estadoDe(datos.columna, datos.fila);
+		if (estado.limpia || !estado.combateIniciado || estado.enemigosVivos > 0 || estado.nidoVivo) {
 			return;
 		}
 

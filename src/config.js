@@ -142,18 +142,16 @@ export const CONFIG = Object.freeze({
 		ESCALA: 3, // los cuadros miden 32 x 32; ampliados ×3 son 96 x 96 px, más grandes que el jugador
 	}),
 
-	// Enemigo débil de las salas de alrededor. Su comportamiento (por ahora solo camina hacia
-	// el jugador) está por definir; ver docs/decisiones-pendientes.md.
-	ENEMIGO_DEBIL: Object.freeze({
+	// Lo que tienen en común todos los enemigos (el débil y las ratas): el tamaño del dibujo y del cuerpo.
+	// Lo que los distingue (vida, velocidad, daño) está en src/datos/enemigos.js. Todos caminan en línea
+	// recta hacia el jugador; si se les da otro comportamiento, ver docs/decisiones-pendientes.md.
+	ENEMIGO: Object.freeze({
 		ANCHO: 32, // tamaño del sprite
 		ALTO: 48,
 		// A diferencia del jugador, su cuerpo cubre casi todo el dibujo: a los enemigos se les apunta
 		// al cuerpo o a la cabeza, y si el cuerpo fuera solo los pies las balas pasarían por encima.
 		CUERPO_ANCHO: 24,
 		CUERPO_ALTO: 40,
-		VIDA: 3,
-		VELOCIDAD: 70,
-		DANO: 1, // daño al jugador al tocarlo
 		DESTELLO: 80, // ms que se ve blanco al recibir un golpe
 	}),
 
@@ -167,6 +165,19 @@ export const CONFIG = Object.freeze({
 		VELOCIDAD_BALA: 520,
 		MAX_BALAS: 30, // balas reservadas; se reciclan, nunca se crean más
 		PROFUNDIDAD_BALAS: 1000, // las balas se dibujan por encima de todo lo demás
+	}),
+
+	// El nido de ratas: ocupa el lugar de una caja de cada sala. Mientras esté en pie, suelta ratas grises
+	// cada cierto tiempo y la sala no se limpia: hay que romperlo a balazos (o con la granada). Provisional.
+	NIDO: Object.freeze({
+		ANCHO: 64, // igual que una caja
+		ALTO: 64,
+		VIDA: 10, // balas que aguanta (la granada le quita 3)
+		TIPO: 'rata-gris', // qué rata suelta (una de src/datos/enemigos.js)
+		INTERVALO: 4500, // ms entre una rata y la siguiente (la cámara lenta también lo estira)
+		MAX_VIVAS: 6, // ratas suyas vivas a la vez: si ya hay tantas, espera
+		DISTANCIA_AL_JUGADOR: 100, // px: no suelta una rata si el jugador está así de cerca de donde saldría
+		DESTELLO: 80, // ms que se ve blanco al recibir un golpe
 	}),
 
 	// Cámara lenta: mientras se responde el reto de un poder, el mundo (enemigos, balas, animaciones y
@@ -183,7 +194,7 @@ export const CONFIG = Object.freeze({
 	PODERES: Object.freeze({
 		GRANADA: Object.freeze({
 			NIVEL_DE_INGLES: 1, // el reto: 1 es el de traducción (el más fácil), ver NIVELES_DE_INGLES
-			DANO: 3, // lo que le quita a cada enemigo alcanzado (un enemigo débil tiene 3 de vida)
+			DANO: 3, // lo que le quita a cada enemigo alcanzado: mata a todos menos a la rata azul (5 de vida)
 			RADIO: 96, // px: todo lo que quede a esta distancia del centro de la explosión recibe el daño
 			VELOCIDAD: 420, // px/s: lo que tarda en volar hasta donde apuntaba el cursor
 			VUELO_MINIMO: 150, // ms: lanzada a los pies también se ve volar un instante

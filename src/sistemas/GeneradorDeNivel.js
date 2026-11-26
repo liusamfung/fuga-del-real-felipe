@@ -70,7 +70,16 @@ function armarSala(descripcion, columna, fila, esElJefe) {
 	}
 
 	if (esElJefe(columna, fila)) {
-		return { columna, fila, tipo: 'jefe', obstaculos: [], enemigos: [], cofre: null, puertas };
+		return {
+			columna,
+			fila,
+			tipo: 'jefe',
+			obstaculos: [],
+			nido: null,
+			enemigos: [],
+			cofre: null,
+			puertas,
+		};
 	}
 
 	const datos = descripcion.salas.find((sala) => sala.columna === columna && sala.fila === fila);
@@ -84,7 +93,8 @@ function armarSala(descripcion, columna, fila, esElJefe) {
 		tipo: 'combate',
 		esInicial: columna === salaInicial.columna && fila === salaInicial.fila,
 		obstaculos: datos.obstaculos,
-		enemigos: [datos.enemigo],
+		nido: datos.nido ?? null,
+		enemigos: datos.enemigos,
 		cofre: { ...posicionDelCofre, conLlave: false },
 		puertas,
 	};
