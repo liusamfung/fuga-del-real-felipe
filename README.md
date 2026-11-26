@@ -61,6 +61,13 @@ deletreando: muestra lo que oye y las letras que entiende. El procedimiento est�
 [`docs/prueba-de-voz.md`](docs/prueba-de-voz.md). Necesita **Chrome**, **internet** y permiso para el
 micrófono.
 
+### Prueba de voz en inglés
+
+Abre **http://localhost:5173/?ingles** para medir si el navegador entiende una palabra en inglés
+dicha en voz alta (10 fichas con tres opciones). El procedimiento está en
+[`docs/prueba-de-voz-ingles.md`](docs/prueba-de-voz-ingles.md). Necesita **Chrome**, **internet** y
+permiso para el micrófono.
+
 ### Modo de depuración
 
 Abre el juego con `?debug` al final de la dirección: http://localhost:5173/?debug

@@ -9,6 +9,7 @@ export const ESCENAS = Object.freeze({
 	HUD: 'EscenaHUD',
 	DELETREO: 'EscenaDeletreo',
 	PRUEBA_VOZ: 'EscenaPruebaVoz',
+	PRUEBA_INGLES: 'EscenaPruebaIngles',
 });
 
 // Cómo se muestra la palabra que hay que deletrear (de menos a más difícil).
@@ -97,6 +98,13 @@ export const CONFIG = Object.freeze({
 			ANCHO_BARRA: 520,
 			SEPARACION_LETRAS: 36,
 		}),
+	}),
+
+	// Retos de inglés: decir en voz alta la opción correcta (Web Speech API). Valores iniciales: salen
+	// de la prueba de voz en inglés (docs/prueba-de-voz-ingles.md) y se ajustan con ella.
+	INGLES: Object.freeze({
+		IDIOMA: 'en-US', // inglés americano
+		LETRAS_POR_ERROR: 3, // se perdona una edición por cada 3 letras de la opción (mínimo una)
 	}),
 
 	// Los mensajes en pantalla se dibujan por encima de todo, incluso de las balas.

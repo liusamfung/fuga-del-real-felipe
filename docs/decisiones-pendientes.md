@@ -4,6 +4,41 @@ Cosas que el equipo (o el profesor) debe decidir. Están ordenadas por **cuánto
 las primeras conviene resolverlas antes de seguir muy lejos. Cuando se decida algo, se marca aquí
 y se actualiza el documento que corresponda.
 
+## Cambio de enfoque (26/11/2026): aprender inglés jugando
+
+Deletrear en español con la voz no se pudo hacer fiable: Chrome junta las letras en palabras, pierde
+partes y oye las conversaciones (ver las tres rondas en [`prueba-de-voz.md`](prueba-de-voz.md)). Una
+palabra entera es justo lo que Chrome reconoce mejor, así que **el reto cambia de deletrear a
+vocabulario en inglés**, para hispanohablantes que quieren aprender. **El profesor lo aprobó**
+(se le consultó el 25/11/2026). La ambientación histórica (Callao, 1824–1826) se mantiene solo como
+ambientación: las palabras no tienen que ser del tema.
+
+Tres dificultades (el reto es el mismo evento hacia el resto del juego: acierto o fallo):
+
+| Nivel | Qué se ve                                              | Cómo se responde                                      |
+| ----- | ------------------------------------------------------ | ----------------------------------------------------- |
+| 1     | Una palabra en español y tres opciones en inglés       | **Con la voz**: se dice la opción correcta            |
+| 2     | Una definición en inglés y tres palabras               | **Con la voz**: se dice la palabra                    |
+| 3     | Nada: el juego **dice** la palabra (voz del navegador) | **Con el teclado**: se escribe; **ESPACIO** la repite |
+
+- **Jefe 1** alterna los niveles 1 y 2; el **jefe 2** alterna el 2 y el 3 (el 1 ya es demasiado fácil).
+- Las **tres opciones** de cada ficha deben ser **completamente distintas** (que no empiecen igual, que
+  no se contengan y que no se parezcan al enunciado); una prueba automática lo comprueba
+  (`pruebas/opciones.test.js`).
+- **Inglés americano** (`en-US`). Se confía en que quien juega practique esa pronunciación.
+- **Voz del juego** (nivel 3): se usa la del navegador. Si en algún equipo suena mal, se grabarán los
+  audios, pero **no se hace trabajo extra hasta que haga falta**.
+- Tecla para repetir la palabra en el nivel 3: **ESPACIO** (la `R` no sirve: es una letra que se escribe).
+  Durante el reto el dash se desactiva.
+- **Contenido:** las definiciones se escriben con palabras propias (no se copian de diccionarios).
+  Posible fuente de palabras: los mazos de Anki del equipo («Inglés | 1000 palabras más comunes» y otro
+  de 4000); se tomaría **la lista de palabras**, no sus definiciones ni sus audios.
+- **Anki:** la repetición espaciada (que la palabra fallada vuelva antes) queda como extra, después.
+
+Orden de trabajo: **1.** prueba corta de voz en inglés ([`prueba-de-voz-ingles.md`](prueba-de-voz-ingles.md)),
+que decide si se sigue · **2.** banco de fichas y comparación (función pura con pruebas) · **3.** nivel 3
+(voz del juego y teclado) · **4.** niveles 1 y 2 con el micrófono · **5.** conectarlo al jefe.
+
 ## 1. ¿Dos o tres niveles?
 
 La tarea pide **Nivel 1 y Nivel 2**, pero el diseño habla de **3 fondos** (uno por nivel).

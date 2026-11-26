@@ -18,8 +18,13 @@ export class EscenaArranque extends Phaser.Scene {
 		generarRecursosProvisionales(this);
 		crearAnimaciones(this);
 
-		// Con ?voz en la dirección se abre la prueba de voz (docs/prueba-de-voz.md) en vez del juego.
-		const pruebaDeVoz = new URLSearchParams(window.location.search).has('voz');
-		this.scene.start(pruebaDeVoz ? ESCENAS.PRUEBA_VOZ : ESCENAS.JUEGO);
+		// Con ?voz se abre la prueba de voz (docs/prueba-de-voz.md) y con ?ingles la prueba de voz en
+		// inglés (docs/prueba-de-voz-ingles.md), en vez del juego.
+		const parametros = new URLSearchParams(window.location.search);
+		if (parametros.has('ingles')) {
+			this.scene.start(ESCENAS.PRUEBA_INGLES);
+		} else {
+			this.scene.start(parametros.has('voz') ? ESCENAS.PRUEBA_VOZ : ESCENAS.JUEGO);
+		}
 	}
 }

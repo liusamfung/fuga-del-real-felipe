@@ -12,6 +12,7 @@
 | [Calidad total](calidad-total.md)                   | Autor elegido y cómo se aplican sus principios                    |
 | [Decisiones pendientes](decisiones-pendientes.md)   | Lo que falta decidir, con recomendaciones                         |
 | [Prueba de voz](prueba-de-voz.md)                   | Cómo medir qué tan bien reconoce el navegador a quien deletrea    |
+| [Prueba de voz en inglés](prueba-de-voz-ingles.md)  | Cómo medir si entiende una palabra en inglés dicha en voz alta    |
 
 ## Referencias
 
