@@ -160,11 +160,28 @@ export const CONFIG = Object.freeze({
 		PROFUNDIDAD_BALAS: 1000, // las balas se dibujan por encima de todo lo demás
 	}),
 
+	// Poderes especiales del jugador: cada uno se activa superando un reto de inglés. Valores iniciales
+	// (provisionales): se ajustan jugando. Ver docs/mecanicas.md, sección 5.11.
+	PODERES: Object.freeze({
+		GRANADA: Object.freeze({
+			NIVEL_DE_INGLES: 1, // el reto: 1 es el de traducción (el más fácil), ver NIVELES_DE_INGLES
+			DANO: 3, // lo que le quita a cada enemigo alcanzado (un enemigo débil tiene 3 de vida)
+			RADIO: 96, // px: todo lo que quede a esta distancia del centro de la explosión recibe el daño
+			VELOCIDAD: 420, // px/s: lo que tarda en volar hasta donde apuntaba el cursor
+			VUELO_MINIMO: 150, // ms: lanzada a los pies también se ve volar un instante
+			DURACION_DE_LA_EXPLOSION: 280, // ms que se ve la onda de la explosión
+			// Recarga (ms) desde que TERMINA el reto: mayor si se acertó (se lanzó la granada).
+			RECARGA_TRAS_ACIERTO: 6000,
+			RECARGA_TRAS_FALLO: 2500,
+		}),
+	}),
+
 	// Interfaz que se dibuja sobre la pared de arriba.
 	HUD: Object.freeze({
 		MARGEN: 48,
 		Y: 16,
 		SEPARACION_CORAZONES: 20,
 		DASH_X: 372, // donde empiezan las cargas del dash, en el centro de la franja
+		GRANADA_X: 482, // donde empieza el indicador de la granada, después del dash
 	}),
 });

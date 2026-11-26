@@ -107,21 +107,22 @@ armándolas). Los números de cuadro también están en `FOTOGRAMAS_TILESET`, en
 
 ## 6. Qué recursos hacen falta
 
-| Recurso                    | Estado      | Detalle                                                       |
-| -------------------------- | ----------- | ------------------------------------------------------------- |
-| Jugador                    | **Hecho**   | 4 direcciones, quieto y caminar. Faltan: recibir daño, morir  |
-| Enemigo débil              | **Parcial** | Solo 2 cuadros de caminar. Faltan: recibir daño, morir        |
-| Suelo y paredes del piso 1 | **Parcial** | Hay tileset; falta decidir cómo se arma la sala (sección 7)   |
-| Bala                       | Provisional | Una imagen pequeña                                            |
-| Cofre                      | Provisional | Cerrado y abierto                                             |
-| Cajas (obstáculos)         | Provisional | 64×64 px                                                      |
-| Corazones del HUD          | Provisional | Lleno y vacío                                                 |
-| Puerta                     | Pendiente   | Abierta, cerrada y con llave                                  |
-| Jefe                       | Pendiente   | Quieto, ataque básico, ataque fuerte                          |
-| Llave y mejoras            | Pendiente   | Iconos para el HUD                                            |
-| Portada                    | Pendiente   | Imagen de título                                              |
-| Piso 2                     | Pendiente   | Por definir                                                   |
-| Sonidos y música           | Pendiente   | Disparo, golpe, cofre, puerta, acierto, fallo, aviso del jefe |
+| Recurso                    | Estado      | Detalle                                                          |
+| -------------------------- | ----------- | ---------------------------------------------------------------- |
+| Jugador                    | **Hecho**   | 4 direcciones, quieto y caminar. Faltan: recibir daño, morir     |
+| Enemigo débil              | **Parcial** | Solo 2 cuadros de caminar. Faltan: recibir daño, morir           |
+| Suelo y paredes del piso 1 | **Parcial** | Hay tileset; falta decidir cómo se arma la sala (sección 7)      |
+| Bala                       | Provisional | Una imagen pequeña                                               |
+| Granada                    | Provisional | Una imagen pequeña (12×12 px); la explosión se dibuja por código |
+| Cofre                      | Provisional | Cerrado y abierto                                                |
+| Cajas (obstáculos)         | Provisional | 64×64 px                                                         |
+| Corazones del HUD          | Provisional | Lleno y vacío                                                    |
+| Puerta                     | Pendiente   | Abierta, cerrada y con llave                                     |
+| Jefe                       | Pendiente   | Quieto, ataque básico, ataque fuerte                             |
+| Llave y mejoras            | Pendiente   | Iconos para el HUD                                               |
+| Portada                    | Pendiente   | Imagen de título                                                 |
+| Piso 2                     | Pendiente   | Por definir                                                      |
+| Sonidos y música           | Pendiente   | Disparo, golpe, cofre, puerta, acierto, fallo, aviso del jefe    |
 
 "Provisional" quiere decir que el código dibuja un rectángulo de colores mientras no exista el
 dibujo final (ver `src/datos/recursos.js`).

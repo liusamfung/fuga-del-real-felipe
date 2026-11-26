@@ -53,10 +53,10 @@ el jugador dice _efe, e, ere, ere, o, ce, a, ere, ere, i, ele_.
 
 ### 5.1 Dónde se usa
 
-| Uso                                  | Qué pasa                                                                |
-| ------------------------------------ | ----------------------------------------------------------------------- |
-| Poder especial del jugador (granada) | Al deletrear la palabra se lanza el poder. _Falta definir los poderes._ |
-| Ataque fuerte del jefe               | Hay que deletrear para esquivar, cubrirse o devolver el golpe           |
+| Uso                                  | Qué pasa                                                                               |
+| ------------------------------------ | -------------------------------------------------------------------------------------- |
+| Poder especial del jugador (granada) | Al superar un reto de inglés se lanza el poder (ver 5.11). _Faltan los demás poderes._ |
+| Ataque fuerte del jefe               | Hay que deletrear para esquivar, cubrirse o devolver el golpe                          |
 
 ### 5.2 Flujo de una palabra
 
@@ -244,6 +244,32 @@ niveles; el paso 9 los conectará al jefe).
 - Código: `RetoDeOpciones` (`src/sistemas/RetoDeOpciones.js`, lógica pura con pruebas),
   `elegirOpcion` (`src/utilidades/opciones.js`), `tiempoParaLaFicha` (`src/utilidades/fichas.js`) y
   la pantalla `EscenaOpciones`.
+
+### 5.11 La granada (el primer poder)
+
+**G** pide la granada. Es el primer poder especial del jugador; cada poder se activa superando un
+reto de inglés. Todos los números son **provisionales** (están en `CONFIG.PODERES.GRANADA`).
+
+1. Si está **lista**, se abre un **reto de nivel 1** (una palabra en español; se dice su traducción;
+   ver 5.10). El juego **sigue a velocidad normal** mientras se responde: la cámara lenta es solo para
+   los ataques fuertes del jefe (6.1). El jugador no se mueve, pero los enemigos no esperan.
+2. Si se **acierta**, la granada sale del jugador **hacia donde apunta el cursor en ese momento** (sin
+   salir de la sala), vuela a 420 px/s y explota al llegar.
+3. La explosión le quita **3** de vida a **todo enemigo a 96 px o menos** del centro (un enemigo débil
+   tiene 3 de vida: muere). Se ve una onda naranja que se desvanece en 0,28 s.
+4. Si se **falla** o se acaba el tiempo, **no hay granada** y aparece «Falló la granada».
+5. **Recarga**, contada desde que **termina** el reto (lo que se tarda en responder no cuenta): **6 s**
+   si se acertó y **2,5 s** si se falló. Mientras recarga, o mientras se responde un reto, **G no hace
+   nada**.
+6. El **HUD** muestra la tecla **G**, una pastilla (naranja si está lista) y una barra que se llena
+   mientras recarga, junto al dash.
+
+- Código: `PoderConRecarga` (`src/sistemas/PoderConRecarga.js`) y `alcanzadosPorLaExplosion`,
+  `tiempoDeVuelo` y `limitarAlRectangulo` (`src/utilidades/explosion.js`), con pruebas;
+  `Granada` (`src/entidades/Granada.js`) solo vuela; el daño y el dibujo de la explosión están en
+  `EscenaJuego`.
+- Con un solo poder, el reto es siempre el nivel 1. Cuando haya más poderes, cada uno puede tener su
+  nivel (`NIVEL_DE_INGLES`).
 
 ## 6. Ataque fuerte del jefe
 

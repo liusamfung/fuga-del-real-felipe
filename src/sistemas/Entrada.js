@@ -25,6 +25,7 @@ export class Entrada {
 		this.teclaDeDeletreoInvertido = teclado.addKey('R');
 		this.teclaMayuscula = teclado.addKey('SHIFT');
 		this.teclaDeVoz = teclado.addKey('V');
+		this.teclaDeGranada = teclado.addKey('G');
 		this.movimientoBloqueado = false;
 	}
 
@@ -71,6 +72,15 @@ export class Entrada {
 			Phaser.Input.Keyboard.JustDown(tecla),
 		);
 		return pulsadas.length > 0 ? pulsadas[0].nivel : null;
+	}
+
+	/**
+	 * G pide la granada (el poder especial): para lanzarla hay que superar un reto de inglés. Devuelve
+	 * verdadero en el fotograma en que se pulsa. Se debe consultar en cada fotograma (JustDown
+	 * "gasta" la pulsación).
+	 */
+	granadaPedida() {
+		return Phaser.Input.Keyboard.JustDown(this.teclaDeGranada);
 	}
 
 	/**

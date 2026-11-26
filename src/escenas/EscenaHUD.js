@@ -3,14 +3,16 @@ import { CONFIG, ESCENAS } from '../config.js';
 
 // La interfaz: los corazones de vida y las estadísticas. Es una escena aparte que se dibuja
 // encima del juego, así los efectos de la cámara del juego (temblor, cámara lenta) no la afectan.
-// La lanza `EscenaJuego`, que le pasa el jugador: `scene.launch(ESCENAS.HUD, { jugador })`.
+// La lanza `EscenaJuego`, que le pasa el jugador y los poderes (la granada):
+// `scene.launch(ESCENAS.HUD, { jugador, poderes })`.
 export class EscenaHUD extends Phaser.Scene {
 	constructor() {
 		super(ESCENAS.HUD);
 	}
 
-	init({ jugador }) {
+	init({ jugador, poderes }) {
 		this.jugador = jugador;
+		this.poderes = poderes;
 	}
 
 	create() {
@@ -39,6 +41,16 @@ export class EscenaHUD extends Phaser.Scene {
 			.setOrigin(1, 0.5);
 		this.graficoDelDash = this.add.graphics();
 
+		// La granada: la tecla que la pide, una pastilla (naranja si está lista) y una barra de recarga.
+		this.add
+			.text(CONFIG.HUD.GRANADA_X - 8, Y, 'G', {
+				fontFamily: 'monospace',
+				fontSize: '12px',
+				color: '#c9b79c',
+			})
+			.setOrigin(1, 0.5);
+		this.graficoDeLaGranada = this.add.graphics();
+
 		this.jugador.on('estadisticas-cambiadas', this.#actualizar, this);
 		this.events.once('shutdown', () => {
 			this.jugador.off('estadisticas-cambiadas', this.#actualizar, this);
@@ -49,6 +61,23 @@ export class EscenaHUD extends Phaser.Scene {
 
 	update() {
 		this.#dibujarElDash();
+		this.#dibujarLaGranada();
+	}
+
+	/** La granada: la pastilla es naranja si se puede usar y la barra se llena mientras recarga. */
+	#dibujarLaGranada() {
+		const { Y, GRANADA_X } = CONFIG.HUD;
+		const { granada } = this.poderes;
+		const ahora = this.jugador.scene.time.now; // igual que el dash: el reloj de la escena del juego
+		const grafico = this.graficoDeLaGranada;
+
+		grafico.clear();
+		grafico.fillStyle(granada.estaLista(ahora) ? 0xff9a3c : 0x34384a, 1);
+		grafico.fillRect(GRANADA_X, Y - 6, 12, 12);
+		grafico.fillStyle(0x34384a, 1);
+		grafico.fillRect(GRANADA_X + 16, Y - 3, 36, 6);
+		grafico.fillStyle(0xff9a3c, 1);
+		grafico.fillRect(GRANADA_X + 16, Y - 3, 36 * granada.progresoDeLaRecarga(ahora), 6);
 	}
 
 	/** Las cargas y la recarga del dash cambian con el tiempo, así que se dibujan en cada fotograma. */

@@ -170,6 +170,19 @@ export const RECURSOS = Object.freeze({
 			{ x: 2, y: 2, ancho: 4, alto: 4, color: 0xfff1b8 },
 		],
 	},
+
+	// La granada del jugador (poder especial): una bola oscura con la mecha encendida.
+	granada: {
+		tipo: 'generado',
+		ancho: 12,
+		alto: 12,
+		formas: [
+			{ x: 5, y: 0, ancho: 2, alto: 3, color: 0xff9a3c }, // mecha
+			{ x: 3, y: 3, ancho: 6, alto: 8, color: 0x3a3d45 }, // cuerpo
+			{ x: 1, y: 5, ancho: 10, alto: 4, color: 0x3a3d45 },
+			{ x: 3, y: 5, ancho: 2, alto: 2, color: 0x7d818c }, // brillo
+		],
+	},
 });
 
 // Número de cada cuadro de la hoja `tileset` (cuenta de izquierda a derecha y de arriba abajo,

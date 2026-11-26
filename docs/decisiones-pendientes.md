@@ -53,7 +53,10 @@ Elegir entre Juran, Deming o Crosby y confirmar el nombre "Joseph Durand" con el
 
 ## 3. Voz: poderes, idioma y tiempo
 
-- ¿Qué poderes hay además de la **granada**? (nombre, palabra, efecto, recarga).
+- **Granada** (hecha el 26/11/2026, tecla `G`, ver [`mecanicas.md`](mecanicas.md) 5.11): reto de nivel 1,
+  daño 3 en un radio de 96 px, recarga 6 s si se acierta y 2,5 s si se falla _(todo provisional)_.
+  **Confirmar o ajustar:** ¿el daño y el radio, la recarga, y si el reto debe ser de otro nivel?
+- ¿Qué poderes hay además de la **granada**? (nombre, efecto, recarga y de qué nivel de inglés es su reto).
 - Idioma del reconocimiento: `es-PE` o `es-ES`. Hoy `es-PE` _(provisional; aceptado por ahora el 25/11/2026)_; se decide con la
   [prueba de voz](prueba-de-voz.md).
 - **Prueba de voz con personas:** falta hacerla (5 personas, 5 palabras). Sus resultados deciden el
