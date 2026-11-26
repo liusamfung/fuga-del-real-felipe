@@ -17,11 +17,13 @@ export const ESCENAS = Object.freeze({
 //   huecos   se ve una sola vez; luego solo quedan los huecos, como en el Ahorcado
 //            (las letras que se aciertan van apareciendo)
 //   memoria  se ve una sola vez; luego no queda nada en pantalla: hay que recordarla
-// Más adelante habrá un cuarto modo, en que una voz dice la palabra y no se muestra nunca.
+//   dictado  nunca se ve: una voz (la del navegador) dice la palabra en inglés y el jugador la escribe;
+//            solo se ven los huecos y las letras que va acertando (nivel 3 de los retos de inglés)
 export const MODOS_DE_DELETREO = Object.freeze({
 	VISIBLE: 'visible',
 	HUECOS: 'huecos',
 	MEMORIA: 'memoria',
+	DICTADO: 'dictado',
 });
 
 export const CONFIG = Object.freeze({
@@ -105,6 +107,16 @@ export const CONFIG = Object.freeze({
 	INGLES: Object.freeze({
 		IDIOMA: 'en-US', // inglés americano
 		LETRAS_POR_ERROR: 3, // se perdona una edición por cada 3 letras de la opción (mínimo una)
+		VELOCIDAD_DE_LA_VOZ: 0.9, // la voz del juego habla un poco más despacio (1 es lo normal)
+		NO_REPETIR: 10, // cuántas de las últimas palabras no se vuelven a pedir
+		// Nivel 3: el juego dice la palabra y el jugador la escribe. Valores iniciales: se ajustan jugando.
+		DICTADO: Object.freeze({
+			// ms que se da para oír la palabra la primera vez; durante ese tiempo no corre la barra.
+			ESCUCHA: 1500,
+			// Multiplica el tiempo del teclado (DELETREO.TECLADO): hay que oír, recordar y escribir.
+			// Repetir la palabra (ESPACIO) no detiene la barra: cada repetición cuesta tiempo.
+			FACTOR_DE_TIEMPO: 2,
+		}),
 	}),
 
 	// Los mensajes en pantalla se dibujan por encima de todo, incluso de las balas.

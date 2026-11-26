@@ -125,8 +125,8 @@ Se guardan en `src/datos/palabras.js`. La palabra **no cambia** mientras la barr
 
 - **Provisional:** la tecla **E** pide una palabra al azar con la palabra siempre visible, **T** con
   huecos e **Y** de memoria (ver 5.8). Con **Mayúsculas** pulsada se pide **al revés**. **R** pide una
-  palabra fácil al revés, siempre visible. Cuando el deletreo sea un poder (paso 9) se activará
-  desde el juego.
+  palabra fácil al revés, siempre visible. **I** pide un **dictado en inglés** (ver 5.8). Cuando el
+  deletreo sea un poder (paso 9) se activará desde el juego.
 - Aparece una pantalla encima del juego con la palabra, las letras acertadas en verde, la que toca
   subrayada y una **barra de tiempo**. La barra mide el **tiempo real** (`performance.now()`), no el
   del juego, para que la cámara lenta del jefe no la estire.
@@ -174,14 +174,15 @@ Se guardan en `src/datos/palabras.js`. La palabra **no cambia** mientras la barr
 
 ### 5.8 Modos de deletreo (dificultad)
 
-Hay tres formas de mostrar la palabra, de menos a más difícil. Los tiempos y los errores perdonados
-son los mismos en todas; lo que cambia es **qué ve el jugador**.
+Hay cuatro formas de mostrar la palabra, de menos a más difícil. Los errores perdonados son los mismos
+en todas; lo que cambia es **qué ve el jugador** (y, en el dictado, que una voz dice la palabra).
 
-| Modo      | Qué se ve                                                                                              |
-| --------- | ------------------------------------------------------------------------------------------------------ |
-| `visible` | La palabra se ve todo el tiempo.                                                                       |
-| `huecos`  | Se ve **una sola vez**; luego solo los huecos (`_ _ _`), como en el **Ahorcado**.                      |
-| `memoria` | Se ve **una sola vez**; luego **no queda nada**: hay que recordarla (como en un concurso de deletreo). |
+| Modo      | Qué se ve                                                                                                    |
+| --------- | ------------------------------------------------------------------------------------------------------------ |
+| `visible` | La palabra se ve todo el tiempo.                                                                             |
+| `huecos`  | Se ve **una sola vez**; luego solo los huecos (`_ _ _`), como en el **Ahorcado**.                            |
+| `memoria` | Se ve **una sola vez**; luego **no queda nada**: hay que recordarla (como en un concurso de deletreo).       |
+| `dictado` | **Nunca se ve**: una voz la **dice en inglés** y se escribe con el teclado (nivel 3 de los retos de inglés). |
 
 - **Lectura:** en `huecos` y `memoria` la palabra se enseña primero el tiempo justo para leerla
   **una vez**: `0,8 s + 0,12 s por letra` _(provisional)_ (una palabra de 9 letras da 1,9 s).
@@ -194,8 +195,19 @@ son los mismos en todas; lo que cambia es **qué ve el jugador**.
 - **Al terminar** (acierto, fallo o tiempo agotado) la palabra se muestra **entera** en todos los
   modos; al fallar sirve para aprenderla.
 - Todos los modos se pueden pedir **al revés**.
-- **Más adelante** habrá un cuarto modo con voz: una voz **dice** la palabra y no se muestra nunca.
-  Se hará después de la voz real (paso 8).
+- **Dictado** (nivel 3 de los retos de inglés, ver [`decisiones-pendientes.md`](decisiones-pendientes.md)):
+  - La palabra sale del banco de vocabulario ([`vocabulario.md`](vocabulario.md)) y la dice el
+    navegador (`speechSynthesis`, inglés americano `en-US`, a 0,9 de velocidad) con la mejor voz en
+    inglés que tenga el equipo.
+  - Mientras se oye (1,5 s) la barra no corre, es **azul** y las letras no cuentan; todo son huecos.
+    Después se escribe, y cada letra acertada se descubre como en `huecos`.
+  - **ESPACIO repite la palabra.** No cuenta como error, pero el tiempo **sigue corriendo**: cada
+    repetición cuesta tiempo. Durante el reto no hay dash, así que ESPACIO queda libre.
+  - **Tiempo:** el del teclado por **2** _(provisional; se ajusta jugando)_: hay que oír, recordar y escribir.
+  - No se usa el micrófono (se oiría a la propia voz del juego) y no se pide al revés.
+  - **Plan B:** si el navegador no sabe hablar, se muestra la palabra (modo `visible`) y se avisa.
+  - Código: `VozDelJuego` (`src/sistemas/VozDelJuego.js`), `elegirVoz` (`src/utilidades/voces.js`) y
+    el modo `dictado` de `visibilidadDeLaLetra`, con pruebas.
 - Código: `visibilidadDeLaLetra` y `tiempoDeLectura` (`src/utilidades/deletreo.js`) y la fase
   `mostrando` de `Deletreo`, todo con pruebas; `EscenaDeletreo` solo dibuja lo que esas funciones dicen.
 

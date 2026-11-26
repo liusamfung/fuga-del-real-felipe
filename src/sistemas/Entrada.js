@@ -15,6 +15,7 @@ export class Entrada {
 			{ tecla: teclado.addKey('E'), modo: MODOS_DE_DELETREO.VISIBLE },
 			{ tecla: teclado.addKey('T'), modo: MODOS_DE_DELETREO.HUECOS },
 			{ tecla: teclado.addKey('Y'), modo: MODOS_DE_DELETREO.MEMORIA },
+			{ tecla: teclado.addKey('I'), modo: MODOS_DE_DELETREO.DICTADO },
 		];
 		this.teclaDeDeletreoInvertido = teclado.addKey('R');
 		this.teclaMayuscula = teclado.addKey('SHIFT');
@@ -33,7 +34,8 @@ export class Entrada {
 	/**
 	 * Provisional (hasta que el deletreo sea un poder, paso 9): E pide una palabra al azar con la
 	 * palabra siempre visible, T con huecos (Ahorcado) e Y de memoria. Con Mayúsculas pulsada se pide
-	 * al revés. R pide una palabra fácil al revés, siempre visible.
+	 * al revés. R pide una palabra fácil al revés, siempre visible. I pide un dictado en inglés (el
+	 * juego dice la palabra y se escribe; no se pide al revés).
 	 * Devuelve `{ modo, invertida }` en el fotograma en que se pulsa, o null.
 	 * Se debe consultar en cada fotograma, para que una pulsación vieja no quede esperando.
 	 */

@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { CONFIG, ESCENAS, MODOS_DE_DELETREO } from '../config.js';
 import { NIVEL_1 } from '../datos/niveles.js';
 import { DIFICULTADES, elegirPalabra } from '../datos/palabras.js';
+import { VOCABULARIO } from '../datos/vocabulario.js';
 import { Cofre } from '../entidades/Cofre.js';
 import { EnemigoDebil } from '../entidades/EnemigoDebil.js';
 import { Jugador } from '../entidades/Jugador.js';
@@ -12,6 +13,7 @@ import { generarNivel } from '../sistemas/GeneradorDeNivel.js';
 import { Nivel } from '../sistemas/Nivel.js';
 import { aplicarMejora, elegirMejoraComun } from '../sistemas/Recompensas.js';
 import { elegirAlAzar } from '../utilidades/azar.js';
+import { armarFicha, elegirEntrada, NIVELES_DE_INGLES } from '../utilidades/fichas.js';
 
 // Un nivel: una cuadrícula de salas con el jugador dentro. La cámara muestra una sala a la vez.
 //
@@ -28,7 +30,9 @@ export class EscenaJuego extends Phaser.Scene {
 		this.jugadorMuerto = false;
 		this.proximoAvisoDeLlave = 0;
 		this.deletreoActivo = false;
+		this.deletreoRecienTerminado = false; // el reto acabó en este fotograma (ver update)
 		this.usarVoz = false; // provisional: la tecla V activa deletrear con el micrófono
+		this.ultimasPalabrasDeIngles = []; // las últimas del dictado, para no repetirlas enseguida
 		this.estadoDeSalas = new Map(); // 'columna,fila' -> { combateIniciado, limpia, enemigosVivos, ... }
 		this.entrada = new Entrada(this);
 
@@ -71,9 +75,12 @@ export class EscenaJuego extends Phaser.Scene {
 		}
 
 		const pedido = this.entrada.deletreoPedido(); // se consulta siempre, aunque no se use
-		if (pedido && !this.deletreoActivo) {
+		// La letra que completa una palabra puede ser también la tecla que pide otra (E, T, Y, I, R):
+		// esa pulsación ya se gastó en el reto que acaba de terminar y no debe empezar uno nuevo.
+		if (pedido && !this.deletreoActivo && !this.deletreoRecienTerminado) {
 			this.#empezarElDeletreo(pedido);
 		}
+		this.deletreoRecienTerminado = false;
 
 		const direccion = this.entrada.direccionDeMovimiento();
 		const puntoDeApuntado = this.entrada.puntoDeApuntado();
@@ -104,22 +111,32 @@ export class EscenaJuego extends Phaser.Scene {
 	}
 
 	// Provisional hasta el paso 9 (poderes por voz): E, T e Y piden una palabra al azar (visible, con
-	// huecos, de memoria), con Mayúsculas al revés, y R una fácil al revés. Mientras se deletrea el
-	// jugador no puede moverse (las letras W, A, S y D son las teclas de caminar), pero el juego sigue:
-	// los enemigos no esperan.
+	// huecos, de memoria), con Mayúsculas al revés, y R una fácil al revés. I pide un dictado en inglés
+	// (el juego dice la palabra y se escribe). Mientras se deletrea el jugador no puede moverse (las
+	// letras W, A, S y D son las teclas de caminar), pero el juego sigue: los enemigos no esperan.
 	#empezarElDeletreo({ modo, invertida }) {
 		this.deletreoActivo = true;
 		this.entrada.bloquearMovimiento(true);
 
+		const esDictado = modo === MODOS_DE_DELETREO.DICTADO;
 		const esLaFacilAlReves = invertida && modo === MODOS_DE_DELETREO.VISIBLE;
 		const dificultad = esLaFacilAlReves ? 'facil' : elegirAlAzar(DIFICULTADES);
 		this.scene.launch(ESCENAS.DELETREO, {
-			palabra: elegirPalabra(dificultad),
-			invertida,
+			palabra: esDictado ? this.#palabraParaDictar() : elegirPalabra(dificultad),
+			invertida: esDictado ? false : invertida,
 			modo,
 			usaVoz: this.usarVoz,
 			alTerminar: (resultado) => this.#alTerminarElDeletreo(resultado),
 		});
+	}
+
+	// Una palabra del banco de vocabulario en inglés, que no sea de las últimas que salieron.
+	#palabraParaDictar() {
+		const entrada = elegirEntrada(VOCABULARIO, { evitar: this.ultimasPalabrasDeIngles });
+		this.ultimasPalabrasDeIngles = [...this.ultimasPalabrasDeIngles, entrada.palabra].slice(
+			-CONFIG.INGLES.NO_REPETIR,
+		);
+		return armarFicha(entrada, NIVELES_DE_INGLES.DICTADO, VOCABULARIO).palabra;
 	}
 
 	// Provisional hasta el paso 9: la tecla V cambia entre deletrear con el teclado y con la voz. La
@@ -137,6 +154,7 @@ export class EscenaJuego extends Phaser.Scene {
 	/** `resultado` es 'acertada', 'fallada' o 'tiempo-agotado'. */
 	#alTerminarElDeletreo(resultado) {
 		this.deletreoActivo = false;
+		this.deletreoRecienTerminado = true;
 		this.entrada.bloquearMovimiento(false);
 		this.events.emit('deletreo-terminado', resultado); // aquí se enganchará el poder (paso 9)
 	}
