@@ -61,6 +61,7 @@ export class EscenaJuego extends Phaser.Scene {
 		this.events.once('shutdown', () => {
 			this.scene.stop(ESCENAS.HUD);
 			this.scene.stop(ESCENAS.DELETREO);
+			this.scene.stop(ESCENAS.OPCIONES);
 		});
 	}
 
@@ -77,8 +78,13 @@ export class EscenaJuego extends Phaser.Scene {
 		const pedido = this.entrada.deletreoPedido(); // se consulta siempre, aunque no se use
 		// La letra que completa una palabra puede ser también la tecla que pide otra (E, T, Y, I, R):
 		// esa pulsación ya se gastó en el reto que acaba de terminar y no debe empezar uno nuevo.
-		if (pedido && !this.deletreoActivo && !this.deletreoRecienTerminado) {
-			this.#empezarElDeletreo(pedido);
+		const nivelPedido = this.entrada.retoDeOpcionesPedido(); // igual: se consulta siempre
+		if (!this.deletreoActivo && !this.deletreoRecienTerminado) {
+			if (pedido) {
+				this.#empezarElDeletreo(pedido);
+			} else if (nivelPedido) {
+				this.#empezarElRetoDeOpciones(nivelPedido);
+			}
 		}
 		this.deletreoRecienTerminado = false;
 
@@ -130,13 +136,34 @@ export class EscenaJuego extends Phaser.Scene {
 		});
 	}
 
+	// Provisional hasta el paso 9: O pide un reto de traducción (nivel 1) y P uno de definición
+	// (nivel 2). Se dice la opción correcta con el micrófono; si falla, se responde con 1, 2 o 3. Como el
+	// deletreo, bloquea el movimiento y le avisa al juego con `deletreo-terminado`.
+	#empezarElRetoDeOpciones(nivel) {
+		const ficha = armarFicha(this.#entradaDeIngles(), nivel, VOCABULARIO);
+		if (!ficha) {
+			return; // el banco no alcanzó para armar las opciones (con 60 palabras no pasa)
+		}
+
+		this.deletreoActivo = true;
+		this.entrada.bloquearMovimiento(true);
+		this.scene.launch(ESCENAS.OPCIONES, {
+			ficha,
+			alTerminar: (resultado) => this.#alTerminarElDeletreo(resultado),
+		});
+	}
+
 	// Una palabra del banco de vocabulario en inglés, que no sea de las últimas que salieron.
-	#palabraParaDictar() {
+	#entradaDeIngles() {
 		const entrada = elegirEntrada(VOCABULARIO, { evitar: this.ultimasPalabrasDeIngles });
 		this.ultimasPalabrasDeIngles = [...this.ultimasPalabrasDeIngles, entrada.palabra].slice(
 			-CONFIG.INGLES.NO_REPETIR,
 		);
-		return armarFicha(entrada, NIVELES_DE_INGLES.DICTADO, VOCABULARIO).palabra;
+		return entrada;
+	}
+
+	#palabraParaDictar() {
+		return armarFicha(this.#entradaDeIngles(), NIVELES_DE_INGLES.DICTADO, VOCABULARIO).palabra;
 	}
 
 	// Provisional hasta el paso 9: la tecla V cambia entre deletrear con el teclado y con la voz. La

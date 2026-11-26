@@ -10,6 +10,7 @@ export const ESCENAS = Object.freeze({
 	DELETREO: 'EscenaDeletreo',
 	PRUEBA_VOZ: 'EscenaPruebaVoz',
 	PRUEBA_INGLES: 'EscenaPruebaIngles',
+	OPCIONES: 'EscenaOpciones',
 });
 
 // Cómo se muestra la palabra que hay que deletrear (de menos a más difícil).
@@ -116,6 +117,16 @@ export const CONFIG = Object.freeze({
 			// Multiplica el tiempo del teclado (DELETREO.TECLADO): hay que oír, recordar y escribir.
 			// Repetir la palabra (ESPACIO) no detiene la barra: cada repetición cuesta tiempo.
 			FACTOR_DE_TIEMPO: 2,
+		}),
+		// Niveles 1 y 2: se ve una ficha (una palabra en español o una definición en inglés) y se dice la
+		// opción correcta entre tres. Valores iniciales: se ajustan jugando.
+		OPCIONES: Object.freeze({
+			// Tiempo (ms) para responder: BASE más POR_PALABRA por cada palabra del enunciado (hay que leerlo).
+			// En la prueba de voz en inglés las respuestas rápidas tardaron ~2,4 s y las lentas 7–9 s.
+			BASE: 6000,
+			POR_PALABRA: 500,
+			TIEMPO_DEL_RESULTADO: 1100, // ms que se ve el resultado antes de cerrar la pantalla
+			PANEL: Object.freeze({ Y: 50, ANCHO: 700, ALTO: 230, ANCHO_BARRA: 620 }),
 		}),
 	}),
 

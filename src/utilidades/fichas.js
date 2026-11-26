@@ -83,6 +83,15 @@ export function armarFicha(entrada, nivel, vocabulario, azar = Math.random) {
 }
 
 /**
+ * Cuánto tiempo (en ms) se da para responder una ficha de opciones: una base más un tiempo por cada
+ * palabra del enunciado, porque hay que leerlo. Una definición larga da más tiempo que una palabra sola.
+ */
+export function tiempoParaLaFicha(ficha, { base, porPalabra }) {
+	const palabras = ficha.enunciado.trim().split(/\s+/).filter(Boolean).length;
+	return Math.round(base + palabras * porPalabra);
+}
+
+/**
  * Elige una palabra del banco al azar. `libros` (opcional) limita a esos libros del mazo (1 o 2 por
  * ahora); `evitar` es una lista de palabras que no deben salir (las últimas que salieron). Si `evitar`
  * deja el banco vacío, se ignora: antes repetir una palabra que quedarse sin ninguna.

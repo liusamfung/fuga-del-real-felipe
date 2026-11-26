@@ -211,6 +211,40 @@ en todas; lo que cambia es **qué ve el jugador** (y, en el dictado, que una voz
 - Código: `visibilidadDeLaLetra` y `tiempoDeLectura` (`src/utilidades/deletreo.js`) y la fase
   `mostrando` de `Deletreo`, todo con pruebas; `EscenaDeletreo` solo dibuja lo que esas funciones dicen.
 
+### 5.10 Retos de opciones: niveles 1 y 2 de inglés
+
+Se ve una **ficha** con tres opciones y el jugador **dice en voz alta la correcta**, en inglés
+americano. Provisional: **O** pide el nivel 1 y **P** el nivel 2 (con **I**, el dictado, son los tres
+niveles; el paso 9 los conectará al jefe).
+
+| Nivel | Qué se ve                                   | Qué se dice           |
+| ----- | ------------------------------------------- | --------------------- |
+| 1     | Una palabra en español (_perro_)            | Su traducción (_dog_) |
+| 2     | Una definición en inglés (_a long orange…_) | La palabra (_carrot_) |
+
+- Las fichas salen de [`vocabulario.md`](vocabulario.md): las dos opciones equivocadas se sortean de
+  otras categorías y son completamente distintas.
+- **Se decide en cuanto lo oído encaja con UNA opción**, aunque el resultado todavía sea provisional
+  (así se midió en la [prueba de voz en inglés](prueba-de-voz-ingles.md)). La regla perdona una letra
+  por cada 3 de la opción (_dancer_ vale como _danger_).
+- **No cuenta** si lo oído no se parece a ninguna opción (una conversación, ruido) o si encaja con
+  **dos** (el jugador dijo dos opciones): se sigue escuchando. **La primera elección es la que vale**:
+  una opción equivocada falla el reto.
+- Leer en voz alta lo que se ve en pantalla **no responde** (una prueba lo comprueba con las 120 fichas
+  posibles del banco).
+- **Tiempo:** `6 s + 0,5 s por cada palabra del enunciado` _(provisional)_: una palabra sola da 6,5 s y
+  una definición de 11 palabras, 11,5 s. **Empieza a correr cuando el micrófono está escuchando**: la
+  primera vez el navegador pide permiso y eso no gasta tiempo (la barra se ve azul mientras espera).
+  La barra mide tiempo **real**, como en el deletreo.
+- **Plan B:** si el micrófono falla de forma grave (sin permiso, sin conexión, sin soporte), la
+  pantalla pasa sola al **teclado** y lo avisa: se responde con **1**, **2** o **3**, y el reloj
+  **no se reinicia**. Mientras el micrófono funciona, esas teclas no hacen nada.
+- Al terminar se marca la correcta en verde (y la elegida en rojo si falló) y el juego recibe el mismo
+  evento `deletreo-terminado` con `acertada`, `fallada` o `tiempo-agotado`.
+- Código: `RetoDeOpciones` (`src/sistemas/RetoDeOpciones.js`, lógica pura con pruebas),
+  `elegirOpcion` (`src/utilidades/opciones.js`), `tiempoParaLaFicha` (`src/utilidades/fichas.js`) y
+  la pantalla `EscenaOpciones`.
+
 ## 6. Ataque fuerte del jefe
 
 El jefe tiene ataques básicos (que se esquivan moviéndose) y **ataques fuertes**. Un ataque fuerte

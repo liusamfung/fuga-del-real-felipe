@@ -4,6 +4,7 @@ import { EscenaArranque } from './escenas/EscenaArranque.js';
 import { EscenaDeletreo } from './escenas/EscenaDeletreo.js';
 import { EscenaHUD } from './escenas/EscenaHUD.js';
 import { EscenaJuego } from './escenas/EscenaJuego.js';
+import { EscenaOpciones } from './escenas/EscenaOpciones.js';
 import { EscenaPruebaIngles } from './escenas/EscenaPruebaIngles.js';
 import { EscenaPruebaVoz } from './escenas/EscenaPruebaVoz.js';
 
@@ -33,6 +34,7 @@ const juego = new Phaser.Game({
 		EscenaJuego,
 		EscenaHUD,
 		EscenaDeletreo,
+		EscenaOpciones,
 		EscenaPruebaVoz,
 		EscenaPruebaIngles,
 	],
