@@ -60,6 +60,12 @@ export const RECURSOS = Object.freeze({
 		alto: 48,
 	},
 
+	// Las 4 ratas (dibujos de Jorge): cada una, 2 cuadros de caminar en una fila, como el enemigo débil.
+	'rata-azul': { tipo: 'hoja', ruta: 'assets/img/enemigos/rata-azul.png', ancho: 32, alto: 48 },
+	'rata-gris': { tipo: 'hoja', ruta: 'assets/img/enemigos/rata-gris.png', ancho: 32, alto: 48 },
+	'rata-blanca': { tipo: 'hoja', ruta: 'assets/img/enemigos/rata-blanca.png', ancho: 32, alto: 48 },
+	'rata-negra': { tipo: 'hoja', ruta: 'assets/img/enemigos/rata-negra.png', ancho: 32, alto: 48 },
+
 	// El segundo jefe: un fantasma con corona. 3 cuadros de flotar en una fila (las manos y la barba
 	// cambian de posición). Ojo: los cuadros miden 32 x 32, no 32 x 48 como los de los demás personajes.
 	'jefe-2': {

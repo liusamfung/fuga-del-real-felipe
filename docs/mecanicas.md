@@ -255,8 +255,8 @@ reto de inglés. Todos los números son **provisionales** (están en `CONFIG.POD
    quieres darle no se haya ido cuando aciertes. El jugador no se mueve.
 2. Si se **acierta**, la granada sale del jugador **hacia donde apunta el cursor en ese momento** (sin
    salir de la sala), vuela a 420 px/s y explota al llegar.
-3. La explosión le quita **3** de vida a **todo enemigo a 96 px o menos** del centro (un enemigo débil
-   tiene 3 de vida: muere). Se ve una onda naranja que se desvanece en 0,28 s.
+3. La explosión le quita **3** de vida a **todo enemigo a 96 px o menos** del centro: mata al débil y a las
+   ratas gris, blanca y negra, pero la **rata azul** (5 de vida) aguanta. Se ve una onda naranja que se desvanece en 0,28 s.
 4. Si se **falla** o se acaba el tiempo, **no hay granada** y aparece «Falló la granada».
 5. **Recarga**, contada desde que **termina** el reto (lo que se tarda en responder no cuenta): **6 s**
    si se acertó y **2,5 s** si se falló. Mientras recarga, o mientras se responde un reto, **G no hace

@@ -84,7 +84,7 @@ function armarSala(descripcion, columna, fila, esElJefe) {
 		tipo: 'combate',
 		esInicial: columna === salaInicial.columna && fila === salaInicial.fila,
 		obstaculos: datos.obstaculos,
-		enemigos: [datos.enemigo],
+		enemigos: datos.enemigos,
 		cofre: { ...posicionDelCofre, conLlave: false },
 		puertas,
 	};

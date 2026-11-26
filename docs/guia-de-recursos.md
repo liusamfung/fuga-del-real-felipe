@@ -29,6 +29,7 @@ public/assets/
   img/                   Lo que carga el juego: hojas de sprites a tamaño real
     jugador/jugador.png
     enemigos/enemigo-debil.png
+    enemigos/rata-azul.png  rata-gris.png  rata-blanca.png  rata-negra.png
     enemigos/jefe-2.png
     escenario/tileset-prision.png
   audio/                 Sonidos y música
@@ -72,6 +73,13 @@ animación de esa dirección.
 | ------ | ----------------- |
 | 0      | Caminar, cuadro 1 |
 | 1      | Caminar, cuadro 2 |
+
+### Ratas — `rata-azul.png`, `rata-gris.png`, `rata-blanca.png` y `rata-negra.png` (64×48, 2 cuadros)
+
+Cuatro enemigos, uno por hoja, con el mismo formato que el enemigo débil: **2 cuadros de caminar** de 32×48.
+Las envió Jorge; los originales (ampliados ×5, 160×240) están en `arte/originales/enemigos/` como
+`rata-<color>-caminar-1.png` y `-2.png`. Se comprobó que la reducción ×5 es exacta. Cada hoja es
+`cuadro 1` + `cuadro 2` en una fila. Qué hace cada una en el juego: [`enemigos.md`](enemigos.md).
 
 ### Jefe 2 — `jefe-2.png` (96×32, 3 cuadros)
 
@@ -126,7 +134,7 @@ armándolas). Los números de cuadro también están en `FOTOGRAMAS_TILESET`, en
 | Recurso                      | Estado      | Detalle                                                                      |
 | ---------------------------- | ----------- | ---------------------------------------------------------------------------- |
 | Jugador                      | **Hecho**   | 4 direcciones, quieto y caminar. Faltan: recibir daño, morir                 |
-| Enemigo débil                | **Parcial** | Solo 2 cuadros de caminar. Faltan: recibir daño, morir                       |
+| Enemigos (débil y 4 ratas)   | **Parcial** | Solo 2 cuadros de caminar cada uno. Faltan: recibir daño, morir              |
 | Suelo y paredes del piso 1   | **Parcial** | Hay tileset; falta decidir cómo se arma la sala (sección 7)                  |
 | Bala                         | Provisional | Una imagen pequeña                                                           |
 | Granada                      | Provisional | Una imagen pequeña (12×12 px); la explosión se dibuja por código             |

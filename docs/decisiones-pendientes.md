@@ -105,7 +105,10 @@ Elegir entre Juran, Deming o Crosby y confirmar el nombre "Joseph Durand" con el
 - **Disparo:** ¿manual (clics), automático o ambos con una opción?
 - **Dash:** hoy es la barra espaciadora, con 0,2 s de inmunidad y 1,2 s de recarga _(provisional)_.
   ¿Se confirma? ¿El DobleDash recarga las dos cargas a la vez (como está) o una por una?
-- **Enemigo débil:** ¿camina hacia el jugador, dispara o se mueve en patrones?
+- **Enemigos (26/11/2026):** hoy hay 5 tipos (el débil y 4 ratas de Jorge) y todos **caminan en línea recta
+  hacia el jugador**; lo que cambia es la vida, la velocidad, el daño y cuántos hay por sala (ver
+  [`enemigos.md`](enemigos.md)). Los valores son provisionales. **Abierto:** ¿alguno debería comportarse
+  distinto (que dispare, que dé vueltas, que huya al estar herido)? ¿Las salas están bien de difícil?
 - **Jefe:** vida, ataques básicos y cuántos ataques fuertes hace por pelea.
 - **Muerte:** ¿vuelve a la portada, reinicia el nivel o la sala?
 

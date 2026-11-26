@@ -22,7 +22,7 @@ src/
   main.js            Crea el juego de Phaser
   config.js          Valores del juego y nombres de escenas
   escenas/           Una clase por pantalla
-  entidades/         Jugador, enemigo débil, jefe, bala, cofre, puerta
+  entidades/         Jugador, enemigo (débil y ratas), jefe, bala, cofre, puerta
   sistemas/          Lógica reutilizable (mapa, voz, cámara lenta, recompensas, efectos)
   datos/             Palabras, recompensas, niveles y recursos (sin lógica)
   utilidades/        Funciones puras sin Phaser (deletreo, azar)
@@ -61,7 +61,7 @@ docs/                Diseño, mecánicas, calidad y decisiones
 
 ## 5. Entidades (`src/entidades/`)
 
-`Jugador`, `EnemigoDebil`, `Jefe`, `Bala`, `Cofre`, `Puerta`, `Granada` (poder especial).
+`Jugador`, `Enemigo`, `Jefe`, `Bala`, `Cofre`, `Puerta`, `Granada` (poder especial).
 Todas son _pendientes_. Un archivo por clase y el nombre del archivo es el de la clase.
 
 ## 6. Datos (`src/datos/`)

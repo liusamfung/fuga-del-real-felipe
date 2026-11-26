@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { CONFIG } from '../src/config.js';
+import { TIPOS_DE_ENEMIGO } from '../src/datos/enemigos.js';
 import { NIVEL_1 } from '../src/datos/niveles.js';
 import { buscarSala, generarNivel } from '../src/sistemas/GeneradorDeNivel.js';
 import { ladoOpuesto, rectanguloDePuerta } from '../src/utilidades/paredes.js';
@@ -32,7 +33,7 @@ test('el nivel tiene 9 salas: 8 de combate alrededor y la del jefe en el centro'
 	assert.equal(buscarSala(nivel, 1, 1).tipo, 'jefe');
 });
 
-test('cada sala de alrededor tiene un enemigo y un cofre; la del jefe no tiene ninguno', () => {
+test('cada sala de alrededor tiene entre 3 y 6 enemigos y un cofre; la del jefe no tiene ninguno', () => {
 	const nivel = generarNivel(NIVEL_1);
 
 	for (const sala of nivel.salas) {
@@ -40,7 +41,10 @@ test('cada sala de alrededor tiene un enemigo y un cofre; la del jefe no tiene n
 			assert.equal(sala.enemigos.length, 0);
 			assert.equal(sala.cofre, null);
 		} else {
-			assert.equal(sala.enemigos.length, 1, `sala ${clave(sala)}`);
+			assert.ok(
+				sala.enemigos.length >= 3 && sala.enemigos.length <= 6,
+				`sala ${clave(sala)}: ${sala.enemigos.length} enemigos`,
+			);
 			assert.notEqual(sala.cofre, null, `sala ${clave(sala)}`);
 		}
 	}
@@ -142,44 +146,94 @@ test('sin la llave se llega a las 8 salas de alrededor pero no al jefe; con la l
 	assert.equal(alcanzables(true).size, 9);
 });
 
-test('ningún enemigo ni cofre toca un obstáculo o una pared, y los enemigos nacen lejos de las puertas', () => {
+test('ningún enemigo ni cofre toca un obstáculo o una pared, y los enemigos nacen lejos de las puertas y separados', () => {
 	const interior = { x: CASILLA, y: CASILLA, ancho: ANCHO - 2 * CASILLA, alto: ALTO - 2 * CASILLA };
 	const dentro = (r) =>
 		r.x >= interior.x &&
 		r.y >= interior.y &&
 		r.x + r.ancho <= interior.x + interior.ancho &&
 		r.y + r.alto <= interior.y + interior.alto;
+	const cuerpoDe = (enemigo) => ({ x: enemigo.x - 16, y: enemigo.y - 24, ancho: 32, alto: 48 });
 	const nivel = generarNivel(NIVEL_1);
 
 	for (const sala of nivel.salas.filter((s) => s.tipo === 'combate')) {
 		const nombre = `sala ${clave(sala)}`;
-		const enemigo = sala.enemigos[0];
-		const cuerpoDelEnemigo = { x: enemigo.x - 16, y: enemigo.y - 24, ancho: 32, alto: 48 };
 		const cuerpoDelCofre = { x: sala.cofre.x - 16, y: sala.cofre.y - 16, ancho: 32, alto: 32 };
-
-		assert.ok(dentro(cuerpoDelEnemigo), `${nombre}: el enemigo nace dentro de una pared`);
 		assert.ok(dentro(cuerpoDelCofre), `${nombre}: el cofre sale dentro de una pared`);
 		for (const obstaculo of sala.obstaculos) {
 			assert.ok(dentro(obstaculo), `${nombre}: un obstáculo toca una pared`);
-			assert.ok(
-				!solapan(obstaculo, cuerpoDelEnemigo),
-				`${nombre}: el enemigo nace en un obstáculo`,
-			);
 			assert.ok(!solapan(obstaculo, cuerpoDelCofre), `${nombre}: el cofre sale en un obstáculo`);
 		}
 
-		// El jugador entra por una puerta: el enemigo no debe nacer cerca de ninguna.
-		for (const { lado } of sala.puertas) {
-			const hueco = rectanguloDePuerta(lado, MEDIDAS);
-			const distancia = Math.hypot(
-				enemigo.x - (hueco.x + hueco.ancho / 2),
-				enemigo.y - (hueco.y + hueco.alto / 2),
-			);
-			assert.ok(
-				distancia >= 200,
-				`${nombre}: el enemigo nace a ${Math.round(distancia)} px de la puerta ${lado}`,
-			);
+		sala.enemigos.forEach((enemigo, i) => {
+			const cuerpo = cuerpoDe(enemigo);
+			const quien = `${nombre}, enemigo ${i + 1} (${enemigo.tipo})`;
+
+			assert.ok(dentro(cuerpo), `${quien}: nace dentro de una pared`);
+			assert.ok(!solapan(cuerpoDelCofre, cuerpo), `${quien}: nace encima del cofre`);
+			for (const obstaculo of sala.obstaculos) {
+				assert.ok(!solapan(obstaculo, cuerpo), `${quien}: nace en un obstáculo`);
+			}
+
+			// El jugador entra por una puerta: ningún enemigo debe nacer cerca de ninguna.
+			for (const { lado } of sala.puertas) {
+				const hueco = rectanguloDePuerta(lado, MEDIDAS);
+				const distancia = Math.hypot(
+					enemigo.x - (hueco.x + hueco.ancho / 2),
+					enemigo.y - (hueco.y + hueco.alto / 2),
+				);
+				assert.ok(
+					distancia >= 200,
+					`${quien}: nace a ${Math.round(distancia)} px de la puerta ${lado}`,
+				);
+			}
+
+			// Y no se montan unos sobre otros.
+			for (const otro of sala.enemigos.slice(i + 1)) {
+				assert.ok(!solapan(cuerpo, cuerpoDe(otro)), `${quien}: nace encima de otro enemigo`);
+			}
+		});
+	}
+});
+
+test('todos los enemigos de las salas son de un tipo que existe', () => {
+	const nivel = generarNivel(NIVEL_1);
+	for (const sala of nivel.salas) {
+		for (const { tipo } of sala.enemigos) {
+			assert.ok(Object.hasOwn(TIPOS_DE_ENEMIGO, tipo), `sala ${clave(sala)}: tipo "${tipo}"`);
 		}
+	}
+});
+
+test('ninguna sala se juega igual que otra: no hay dos con la misma mezcla de enemigos', () => {
+	const nivel = generarNivel(NIVEL_1);
+	const mezcla = (sala) =>
+		Object.entries(
+			sala.enemigos.reduce(
+				(cuenta, { tipo }) => ({ ...cuenta, [tipo]: (cuenta[tipo] ?? 0) + 1 }),
+				{},
+			),
+		)
+			.sort(([a], [b]) => a.localeCompare(b))
+			.join(' ');
+
+	const mezclas = nivel.salas.filter((s) => s.tipo === 'combate').map(mezcla);
+	assert.equal(new Set(mezclas).size, mezclas.length, `Mezclas repetidas: ${mezclas.join(' | ')}`);
+});
+
+test('las salas son más difíciles que cuando había un solo enemigo débil, y la inicial es la más suave', () => {
+	const nivel = generarNivel(NIVEL_1);
+	const vidaTotal = (sala) =>
+		sala.enemigos.reduce((suma, { tipo }) => suma + TIPOS_DE_ENEMIGO[tipo].vida, 0);
+	const combates = nivel.salas.filter((s) => s.tipo === 'combate');
+	const inicial = combates.find((s) => s.esInicial);
+
+	for (const sala of combates) {
+		assert.ok(sala.enemigos.length > 1, `sala ${clave(sala)}: tiene un solo enemigo, como antes`);
+		assert.ok(
+			vidaTotal(inicial) <= vidaTotal(sala),
+			`sala ${clave(sala)} es más suave que la inicial`,
+		);
 	}
 });
 

@@ -4,7 +4,7 @@ import { NIVEL_1 } from '../datos/niveles.js';
 import { DIFICULTADES, elegirPalabra } from '../datos/palabras.js';
 import { VOCABULARIO } from '../datos/vocabulario.js';
 import { Cofre } from '../entidades/Cofre.js';
-import { EnemigoDebil } from '../entidades/EnemigoDebil.js';
+import { Enemigo } from '../entidades/Enemigo.js';
 import { Granada } from '../entidades/Granada.js';
 import { Jefe } from '../entidades/Jefe.js';
 import { Jugador } from '../entidades/Jugador.js';
@@ -411,8 +411,8 @@ export class EscenaJuego extends Phaser.Scene {
 		this.nivel.cerrarPuertas(columna, fila);
 
 		const origen = this.nivel.origenDeSala(columna, fila);
-		for (const { x, y } of datos.enemigos) {
-			const enemigo = new EnemigoDebil(this, origen.x + x, origen.y + y);
+		for (const { tipo, x, y } of datos.enemigos) {
+			const enemigo = new Enemigo(this, origen.x + x, origen.y + y, tipo);
 			enemigo.once('muerto', () => this.#alMorirUnEnemigo(datos));
 			this.enemigos.add(enemigo);
 		}

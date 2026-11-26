@@ -56,7 +56,8 @@ fila 2│  Sala 0,2     │  Sala 1,2     │  Sala 2,2     │
         ★ = posible punto de partida (según el boceto; por confirmar)
 ```
 
-- Las **8 salas de alrededor** tienen cada una **un enemigo débil y un cofre**.
+- Las **8 salas de alrededor** tienen cada una **su propia mezcla de enemigos** (de 3 a 6) **y un cofre**
+  (ver [`enemigos.md`](enemigos.md)).
 - La **sala central** es la del **jefe** del nivel y empieza cerrada con llave.
 - La posición de una sala en el mundo es `x = columna × 800`, `y = fila × 640`.
 - La cámara muestra **una sala a la vez**: al cruzar una puerta salta a la sala vecina.
@@ -66,7 +67,7 @@ fila 2│  Sala 0,2     │  Sala 1,2     │  Sala 2,2     │
 ### 4.1 Cómo se recorre
 
 ```
-Entrar a una sala → vencer al enemigo débil → abrir el cofre → mejorar al personaje
+Entrar a una sala → vencer a sus enemigos → abrir el cofre → mejorar al personaje
         → pasar a otra sala → ... → conseguir la llave → abrir la sala central
         → vencer al jefe (deletreando) → pasar al siguiente piso
 ```
@@ -137,8 +138,10 @@ Dónde y cómo aparecen los cofres especiales está pendiente de decidir
 
 ## 7. Enemigos y jefe
 
-- **Enemigo débil** (uno por sala de alrededor): poca vida y un comportamiento simple. Es el
-  enemigo que se usa para aprender a moverse y disparar. Comportamiento exacto por definir.
+- **Enemigos de las salas de alrededor** (de 3 a 6 por sala): el enemigo débil de siempre y **cuatro ratas**
+  (gris, blanca, azul y negra), cada una con su carácter: la plaga, la veloz, la acorazada y la mordedora.
+  Todos caminan hacia el jugador; lo que cambia es su vida, su velocidad, su daño y cuántos hay. Cada sala
+  tiene una mezcla distinta. Detalle y valores en [`enemigos.md`](enemigos.md).
 - **Jefe del nivel** (sala central): tiene ataques básicos que se pueden esquivar moviéndose y
   **ataques fuertes que no se pueden esquivar con el movimiento**: para evitarlos hay que
   deletrear una palabra mientras el mundo va en cámara lenta (ver
