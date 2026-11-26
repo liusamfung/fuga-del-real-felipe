@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { MODOS_DE_DELETREO } from '../config.js';
+import { NIVELES_DE_INGLES } from '../utilidades/fichas.js';
 import { normalizar } from '../utilidades/vectores.js';
 
 // Traduce las teclas y el ratón en "acciones" del juego.
@@ -15,10 +16,16 @@ export class Entrada {
 			{ tecla: teclado.addKey('E'), modo: MODOS_DE_DELETREO.VISIBLE },
 			{ tecla: teclado.addKey('T'), modo: MODOS_DE_DELETREO.HUECOS },
 			{ tecla: teclado.addKey('Y'), modo: MODOS_DE_DELETREO.MEMORIA },
+			{ tecla: teclado.addKey('I'), modo: MODOS_DE_DELETREO.DICTADO },
+		];
+		this.teclasDeOpciones = [
+			{ tecla: teclado.addKey('O'), nivel: NIVELES_DE_INGLES.TRADUCCION },
+			{ tecla: teclado.addKey('P'), nivel: NIVELES_DE_INGLES.DEFINICION },
 		];
 		this.teclaDeDeletreoInvertido = teclado.addKey('R');
 		this.teclaMayuscula = teclado.addKey('SHIFT');
 		this.teclaDeVoz = teclado.addKey('V');
+		this.teclaDeGranada = teclado.addKey('G');
 		this.movimientoBloqueado = false;
 	}
 
@@ -33,7 +40,8 @@ export class Entrada {
 	/**
 	 * Provisional (hasta que el deletreo sea un poder, paso 9): E pide una palabra al azar con la
 	 * palabra siempre visible, T con huecos (Ahorcado) e Y de memoria. Con Mayúsculas pulsada se pide
-	 * al revés. R pide una palabra fácil al revés, siempre visible.
+	 * al revés. R pide una palabra fácil al revés, siempre visible. I pide un dictado en inglés (el
+	 * juego dice la palabra y se escribe; no se pide al revés).
 	 * Devuelve `{ modo, invertida }` en el fotograma en que se pulsa, o null.
 	 * Se debe consultar en cada fotograma, para que una pulsación vieja no quede esperando.
 	 */
@@ -51,6 +59,28 @@ export class Entrada {
 			return { modo: pulsadas[0].modo, invertida: this.teclaMayuscula.isDown };
 		}
 		return null;
+	}
+
+	/**
+	 * Provisional (hasta el paso 9): O pide un reto de traducción (nivel 1: se ve una palabra en español
+	 * y se dice su traducción) y P uno de definición (nivel 2: se ve una definición en inglés y se dice
+	 * la palabra). Devuelve el nivel en el fotograma en que se pulsa, o null. Se debe consultar en cada
+	 * fotograma (JustDown "gasta" la pulsación).
+	 */
+	retoDeOpcionesPedido() {
+		const pulsadas = this.teclasDeOpciones.filter(({ tecla }) =>
+			Phaser.Input.Keyboard.JustDown(tecla),
+		);
+		return pulsadas.length > 0 ? pulsadas[0].nivel : null;
+	}
+
+	/**
+	 * G pide la granada (el poder especial): para lanzarla hay que superar un reto de inglés. Devuelve
+	 * verdadero en el fotograma en que se pulsa. Se debe consultar en cada fotograma (JustDown
+	 * "gasta" la pulsación).
+	 */
+	granadaPedida() {
+		return Phaser.Input.Keyboard.JustDown(this.teclaDeGranada);
 	}
 
 	/**

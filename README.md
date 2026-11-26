@@ -34,14 +34,14 @@ El juego se abre en http://localhost:5173.
 
 ## Controles
 
-| Acción                        | Control                                                                                                                                                                |
-| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Moverse                       | Flechas o W A S D                                                                                                                                                      |
-| Apuntar                       | Mover el ratón (el cursor es la mira)                                                                                                                                  |
-| Disparar                      | Clic izquierdo; se puede mantener pulsado para seguir                                                                                                                  |
-| Dash                          | Barra espaciadora (una pulsación por dash)                                                                                                                             |
-| Deletrear con la voz (prueba) | `V`: cambia entre teclado y voz. Con la voz se usa el micrófono (Chrome) y hay el doble de tiempo                                                                      |
-| Deletrear (prueba)            | `E`: palabra visible. `T`: con huecos (Ahorcado). `Y`: de memoria. Con `Mayúsculas`: al revés. `R`: una fácil al revés. Provisional hasta que el deletreo sea un poder |
+| Acción                        | Control                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Moverse                       | Flechas o W A S D                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| Apuntar                       | Mover el ratón (el cursor es la mira)                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| Disparar                      | Clic izquierdo; se puede mantener pulsado para seguir                                                                                                                                                                                                                                                                                                                                                                                                          |
+| Dash                          | Barra espaciadora (una pulsación por dash)                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| Deletrear con la voz (prueba) | `V`: cambia entre teclado y voz. Con la voz se usa el micrófono (Chrome) y hay el doble de tiempo                                                                                                                                                                                                                                                                                                                                                              |
+| Deletrear (prueba)            | `E`: palabra visible. `T`: con huecos (Ahorcado). `Y`: de memoria. Con `Mayúsculas`: al revés. `R`: una fácil al revés. `I`: dictado en inglés (el juego dice la palabra y la escribes; `ESPACIO` la repite). `G`: la granada (superas un reto de inglés y la lanzas hacia el cursor). `O`: nivel 1 de inglés (palabra en español, dices su traducción). `P`: nivel 2 (definición en inglés, dices la palabra). Provisional hasta que el deletreo sea un poder |
 
 ## Comandos
 
@@ -60,6 +60,13 @@ Abre **http://localhost:5173/?voz** para medir qué tan bien reconoce el navegad
 deletreando: muestra lo que oye y las letras que entiende. El procedimiento está en
 [`docs/prueba-de-voz.md`](docs/prueba-de-voz.md). Necesita **Chrome**, **internet** y permiso para el
 micrófono.
+
+### Prueba de voz en inglés
+
+Abre **http://localhost:5173/?ingles** para medir si el navegador entiende una palabra en inglés
+dicha en voz alta (10 fichas con tres opciones). El procedimiento está en
+[`docs/prueba-de-voz-ingles.md`](docs/prueba-de-voz-ingles.md). Necesita **Chrome**, **internet** y
+permiso para el micrófono.
 
 ### Modo de depuración
 
