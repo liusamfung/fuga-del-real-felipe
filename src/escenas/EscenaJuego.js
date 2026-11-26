@@ -82,7 +82,7 @@ export class EscenaJuego extends Phaser.Scene {
 			this.scene.stop(ESCENAS.HUD);
 			this.scene.stop(ESCENAS.DELETREO);
 			this.scene.stop(ESCENAS.OPCIONES);
-			this.#aplicarLaEscalaDelTiempo(1); // la escala de las animaciones es global: que no quede lenta
+			this.#restablecerLaEscalaDelTiempo();
 		});
 	}
 
@@ -151,6 +151,25 @@ export class EscenaJuego extends Phaser.Scene {
 		const ahora = performance.now();
 		this.rampa.fijar(this.poderEnCurso !== null && !this.jugadorMuerto, ahora);
 		this.#aplicarLaEscalaDelTiempo(this.rampa.escala(ahora));
+	}
+
+	// Al cerrarse la escena (por ejemplo, en el reinicio después de morir) algunos sistemas de Phaser ya no
+	// existen, y tocarlos da error: solo se restablecen los que siguen ahí. La escala de las animaciones es
+	// global (la comparten todas las escenas), así que es la que no debe quedar lenta; las demás se crean de
+	// nuevo con la escena.
+	#restablecerLaEscalaDelTiempo() {
+		if (this.anims) {
+			this.anims.globalTimeScale = 1;
+		}
+		if (this.physics?.world) {
+			this.physics.world.timeScale = 1;
+		}
+		if (this.time) {
+			this.time.timeScale = 1;
+		}
+		if (this.tweens) {
+			this.tweens.timeScale = 1;
+		}
 	}
 
 	// `escala` 1 es normal y 0,2 es una quinta parte. La física usa la convención contraria (más grande es
