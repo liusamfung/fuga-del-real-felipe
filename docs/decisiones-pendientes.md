@@ -36,7 +36,9 @@ Tres dificultades (el reto es el mismo evento hacia el resto del juego: acierto 
 - **Anki:** la repetición espaciada (que la palabra fallada vuelva antes) queda como extra, después.
 
 Orden de trabajo: **1.** prueba corta de voz en inglés ([`prueba-de-voz-ingles.md`](prueba-de-voz-ingles.md)),
-que decide si se sigue · **2.** banco de fichas y comparación (función pura con pruebas) · **3.** nivel 3
+que decide si se sigue _(hecho el 26/11/2026 con una persona: 10 de 10; faltan 1 o 2 personas más)_ · **2.** banco
+de fichas y comparación ([`vocabulario.md`](vocabulario.md); función pura con pruebas) _(hecho: 60 palabras
+de los libros 1 y 2; falta que el equipo revise las traducciones y las definiciones)_ · **3.** nivel 3
 (voz del juego y teclado) · **4.** niveles 1 y 2 con el micrófono · **5.** conectarlo al jefe.
 
 ## 1. ¿Dos o tres niveles?
