@@ -206,6 +206,19 @@ export const RECURSOS = Object.freeze({
 		],
 	},
 
+	// El proyectil del jefe (provisional): una bola verdosa con un centro claro, como el fantasma.
+	'proyectil-jefe': {
+		tipo: 'generado',
+		ancho: 12,
+		alto: 12,
+		formas: [
+			{ x: 3, y: 0, ancho: 6, alto: 12, color: 0x6fae5c },
+			{ x: 0, y: 3, ancho: 12, alto: 6, color: 0x6fae5c },
+			{ x: 2, y: 2, ancho: 8, alto: 8, color: 0x9ed38a },
+			{ x: 4, y: 4, ancho: 4, alto: 4, color: 0xe8ffd9 },
+		],
+	},
+
 	// La granada del jugador (poder especial): una bola oscura con la mecha encendida.
 	granada: {
 		tipo: 'generado',

@@ -33,8 +33,9 @@ const TITULO = Object.freeze({
 //   scene.launch(ESCENAS.OPCIONES, { ficha, alTerminar })
 //
 // `ficha` sale de `armarFicha` (src/utilidades/fichas.js): { nivel, tipo, enunciado, opciones, correcta }.
-// `alTerminar(resultado)` se llama una vez, con 'acertada', 'fallada' o 'tiempo-agotado', igual que en
-// `EscenaDeletreo`: al resto del juego le da lo mismo qué reto era. La pantalla se queda un momento
+// `alTerminar(resultado, { fraccionRestante })` se llama una vez, con 'acertada', 'fallada' o 'tiempo-agotado',
+// igual que en `EscenaDeletreo`: al resto del juego le da lo mismo qué reto era. `fraccionRestante` es cuánto
+// tiempo quedaba al terminar (de 1 a 0): el ataque fuerte del jefe lo usa para premiar al que responde rápido. La pantalla se queda un momento
 // mostrando el resultado (la correcta se marca siempre) y se cierra sola.
 //
 // El tiempo corre desde que el micrófono está escuchando, no desde que se abre la pantalla: la primera
@@ -222,7 +223,7 @@ export class EscenaOpciones extends Phaser.Scene {
 		this.resultadoMostrado = true;
 		this.voz?.detener(); // ya terminó: el micrófono se apaga
 		this.fraccionFinal = this.reto.fraccionRestante(ahora);
-		this.alTerminar?.(this.reto.estado);
+		this.alTerminar?.(this.reto.estado, { fraccionRestante: this.fraccionFinal });
 		this.time.delayedCall(TIEMPO_DEL_RESULTADO, () => this.scene.stop());
 	}
 

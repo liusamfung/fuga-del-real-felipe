@@ -133,13 +133,36 @@ export const CONFIG = Object.freeze({
 	// Los mensajes en pantalla se dibujan por encima de todo, incluso de las balas.
 	PROFUNDIDAD_MENSAJES: 2000,
 
-	// El jefe. Por ahora solo se ve (ver src/entidades/Jefe.js): su vida y sus ataques se deciden en el
-	// paso 10 de la hoja de ruta.
+	// El jefe del piso y su pelea (ver src/sistemas/PeleaConElJefe.js y docs/mecanicas.md, sección 6).
+	// Los valores son los acordados el 26/11/2026; son provisionales y se ajustan jugando.
 	JEFE: Object.freeze({
 		// Provisional: el dibujo del jefe del piso 1 todavía no existe, así que se usa el del segundo
 		// (`jefe-2`) en la sala del centro. Se cambia aquí cuando haya uno por piso.
 		CLAVE: 'jefe-2',
 		ESCALA: 3, // los cuadros miden 32 x 32; ampliados ×3 son 96 x 96 px, más grandes que el jugador
+		// El cuerpo de choque, en píxeles del dibujo (se amplía junto con él): el fantasma tiene aire a los lados.
+		CUERPO_ANCHO: 22,
+		CUERPO_ALTO: 26,
+
+		VIDA: 30, // con la bala del jugador (1 de daño) son 30 aciertos; la granada quita 3
+		// Ataque básico: un proyectil hacia el jugador. Se esquiva moviéndose.
+		INTERVALO_DE_ATAQUE: 2000, // ms entre un ataque básico y el siguiente
+		PRIMER_ATAQUE: 1500, // ms desde que empieza la pelea hasta el primero
+		PROYECTIL: Object.freeze({
+			VELOCIDAD: 190, // px/s (el jugador camina a 220)
+			DANO: 1, // corazones que quita
+			MAX: 24, // proyectiles reservados; se reciclan
+			LADO: 12, // tamaño del dibujo
+		}),
+		// Ataque fuerte: no se esquiva moviéndose; hay que responder un reto de inglés con el mundo en cámara lenta.
+		UMBRALES: [0.75, 0.5, 0.25], // viene uno al bajar el jefe de estas fracciones de su vida
+		NIVELES_DE_INGLES: [1, 2, 1], // el reto de cada ataque fuerte (jefe 1: alterna los niveles 1 y 2)
+		AVISO: 800, // ms de aviso (destello y letrero) antes de que aparezca el reto
+		DANO_DEL_GOLPE: 2, // corazones que quita el golpe si se falla (le cae sí o sí, aunque se esté en inmunidad)
+		RAPIDO: 0.5, // acertar con esta fracción del tiempo o más por delante devuelve el golpe al jefe
+		DEVOLUCION: 0.1, // fracción de su vida máxima que pierde el jefe al devolverle el golpe
+		PAUSA_TRAS_EL_ATAQUE_FUERTE: 1500, // ms de respiro antes del próximo ataque
+		DANO_POR_TOCARLO: 1, // corazones que quita al jugador si lo toca
 	}),
 
 	// Lo que tienen en común todos los enemigos (el débil y las ratas): el tamaño del dibujo y del cuerpo.

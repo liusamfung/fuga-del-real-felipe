@@ -272,24 +272,54 @@ reto de inglés. Todos los números son **provisionales** (están en `CONFIG.POD
 - Con un solo poder, el reto es siempre el nivel 1. Cuando haya más poderes, cada uno puede tener su
   nivel (`NIVEL_DE_INGLES`).
 
-## 6. Ataque fuerte del jefe
+## 6. El jefe y su ataque fuerte
 
-El jefe tiene ataques básicos (que se esquivan moviéndose) y **ataques fuertes**. Un ataque fuerte
-**siempre le cae al jugador** salvo que este deletree bien la palabra. El movimiento no lo evita.
+La pelea con el jefe del piso se juega en la **sala del centro** (se abre con la llave). Los valores son los
+acordados el 26/11/2026 y son **provisionales** (`CONFIG.JEFE`); las reglas están en
+`src/sistemas/PeleaConElJefe.js` (lógica pura, con pruebas).
+
+### 6.0 La pelea
+
+- **Empieza** cuando el jugador entra bien adentro de la sala: se cierran las puertas y sale el cartel «¡El jefe!».
+  Antes de eso el jefe flota sin atacar y **no recibe daño**.
+- **Vida: 30.** Cada bala del jugador le quita 1 (la granada, 3). Se ve una **barra roja «JEFE»** abajo y al centro.
+- **Ataque básico:** un **proyectil** hacia el jugador **cada 2 s** (el primero a los 1,5 s). Va a **190 px/s**
+  (el jugador camina a 220), así que se esquiva moviéndose; quita **1 corazón** y se detiene en las paredes.
+  Tocar al jefe también quita 1 corazón.
+- **Ataque fuerte:** **3 por pelea**, uno cada vez que la vida del jefe **baja del 75 %, 50 % y 25 %** (de 22,5,
+  15 y 7,5). Si un golpe grande cruza dos umbrales de una vez, los ataques vienen **uno tras otro**, no juntos.
+  El movimiento **no** lo evita: hay que responder un **reto de inglés**. El jefe 1 alterna los niveles
+  **1, 2, 1** (ver 5.10); el jefe 2 usará 2 y 3 _(pendiente)_.
+- **Al derrotarlo:** el jefe se desvanece, se apagan sus proyectiles y se **abren las puertas**.
+  _(La pantalla de «nivel completado» y el piso 2 están pendientes: paso 12 de la hoja de ruta.)_
 
 ```mermaid
 flowchart TD
-    A[El jefe prepara un ataque fuerte] --> B[Aviso: sonido y destello]
-    B --> C[El mundo entra en camara lenta]
-    C --> D[Aparece la palabra y la barra de tiempo real]
-    D --> E{Que dice el jugador?}
-    E -->|Deletrea al derecho| F[Esquiva o se cubre]
-    E -->|Deletrea al reves| G[Devuelve el ataque al jefe]
-    E -->|Se equivoca o se acaba el tiempo| H[El ataque le da al jugador]
+    A[La vida del jefe baja de un umbral] --> B[Aviso de 0,8 s: destello y letrero]
+    B --> C[El mundo entra en camara lenta y no hay ataques basicos]
+    C --> D[Aparece el reto de ingles con su barra de tiempo real]
+    D --> E{Que pasa en el reto?}
+    E -->|Acierta con mas de la mitad del tiempo| F[Devuelve el golpe: el jefe pierde 3 de vida]
+    E -->|Acierta, pero tarde| G[Esquiva: no pasa nada]
+    E -->|Falla o se acaba el tiempo| H[El golpe le cae: 2 corazones]
     F --> I[El mundo vuelve a velocidad normal]
     G --> I
     H --> I
+    I --> J[Respiro de 1,5 s antes del proximo ataque]
 ```
+
+| Desenlace     | Cuándo                                                   | Qué pasa                                                                                                                  |
+| ------------- | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| **Devuelto**  | Se acierta con **la mitad del tiempo o más** por delante | El jefe pierde el **10 %** de su vida máxima (3 de 30). Esta regla **reemplaza** a «deletrear al revés devuelve el golpe» |
+| **Esquivado** | Se acierta, pero en la segunda mitad                     | Nada: el jugador se salva                                                                                                 |
+| **Golpe**     | Se falla o se acaba el tiempo                            | El jugador pierde **2 corazones**, **sí o sí**: aunque esté en su inmunidad (tras un golpe o un dash)                     |
+
+- **Durante el reto** el jefe no lanza ataques básicos ni otro ataque fuerte, y el jugador no se mueve (pero puede
+  disparar: si derrota al jefe en pleno reto, el reto se cierra solo y no cae ningún golpe).
+- **Si el jugador está respondiendo el reto de la granada** cuando el jefe llega a un umbral, el ataque fuerte
+  **espera** a que termine ese reto; los ataques básicos siguen.
+- **Respiro:** tras cada ataque fuerte pasa **1,5 s** antes del siguiente ataque (de cualquier tipo).
+- Si falla la preparación del reto (no pasa con el banco de vocabulario), el jugador **no paga** por eso.
 
 ### 6.1 Cámara lenta
 
@@ -311,15 +341,16 @@ flowchart TD
 - La **barra de tiempo corre en tiempo real**, no en tiempo de juego: el mundo se estira, el tiempo
   del jugador no. En Phaser esto significa que la barra **no puede usar** `time.timeScale`; se mide
   con el reloj real del navegador (`performance.now()`).
-- Al acertar, el mundo vuelve a velocidad normal en unos 200 ms y el control se devuelve de
+- Al terminar el reto, el mundo vuelve a velocidad normal en unos 200 ms y el control se devuelve de
   inmediato.
 
 ### 6.2 Reglas de justicia
 
 - El ataque fuerte nunca empieza en mitad de una transición de sala.
-- La palabra no cambia mientras corre la barra.
-- El fallo se entiende: se ve el golpe y el daño en pantalla.
-- El tiempo debe alcanzar para deletrear la palabra de forma realista.
+- La ficha del reto no cambia mientras corre la barra.
+- El fallo se entiende: se ve el golpe (la pantalla tiembla y sale «¡Te golpeó!») y el daño en los corazones.
+- El tiempo debe alcanzar para responder de forma realista (`6 s + 0,5 s por palabra del enunciado`).
+- Hay **aviso** antes del reto (0,8 s) y **respiro** después (1,5 s): el jugador nunca recibe dos cosas a la vez.
 
 ## 7. Cofres especiales
 
