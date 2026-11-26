@@ -60,6 +60,15 @@ export const RECURSOS = Object.freeze({
 		alto: 48,
 	},
 
+	// El segundo jefe: un fantasma con corona. 3 cuadros de flotar en una fila (las manos y la barba
+	// cambian de posición). Ojo: los cuadros miden 32 x 32, no 32 x 48 como los de los demás personajes.
+	'jefe-2': {
+		tipo: 'hoja',
+		ruta: 'assets/img/enemigos/jefe-2.png',
+		ancho: 32,
+		alto: 32,
+	},
+
 	// 22 piezas de suelo y pared en 8 columnas x 3 filas. Los números de cuadro están en
 	// FOTOGRAMAS_TILESET (más abajo).
 	tileset: {

@@ -30,4 +30,13 @@ export const ANIMACIONES = Object.freeze([
 		fps: 4,
 		repetir: true,
 	},
+
+	// El fantasma flota: va del cuadro 0 al 2 y vuelve por el 1, así el movimiento no da saltos.
+	{
+		clave: 'jefe-2-flotar',
+		textura: 'jefe-2',
+		cuadros: [0, 1, 2, 1],
+		fps: 4,
+		repetir: true,
+	},
 ]);

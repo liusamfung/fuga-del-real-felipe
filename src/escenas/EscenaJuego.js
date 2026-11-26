@@ -6,6 +6,7 @@ import { VOCABULARIO } from '../datos/vocabulario.js';
 import { Cofre } from '../entidades/Cofre.js';
 import { EnemigoDebil } from '../entidades/EnemigoDebil.js';
 import { Granada } from '../entidades/Granada.js';
+import { Jefe } from '../entidades/Jefe.js';
 import { Jugador } from '../entidades/Jugador.js';
 import { ReconocedorDeVoz } from '../sistemas/ReconocedorDeVoz.js';
 import { Disparo } from '../sistemas/Disparo.js';
@@ -72,6 +73,7 @@ export class EscenaJuego extends Phaser.Scene {
 		this.disparo = new Disparo(this, this.nivel.bloques);
 		this.input.setDefaultCursor('crosshair');
 		this.#crearColisiones();
+		this.#crearElJefe();
 		this.#entrarEnSala(inicio);
 
 		// La interfaz es otra escena que se dibuja encima.
@@ -304,6 +306,19 @@ export class EscenaJuego extends Phaser.Scene {
 			this.poderEnCurso = null;
 			this.#alTerminarLaGranada(resultado);
 		}
+	}
+
+	// Provisional: el jefe solo se ve, flotando en el centro de su sala (ver entidades/Jefe.js). Cuando se
+	// decida su vida y sus ataques (paso 10) se le darán cuerpo y comportamiento.
+	#crearElJefe() {
+		const { columna, fila } = this.modelo.salaDelJefe;
+		const origen = this.nivel.origenDeSala(columna, fila);
+		this.jefe = new Jefe(
+			this,
+			origen.x + CONFIG.SALA.ANCHO / 2,
+			origen.y + CONFIG.SALA.ALTO / 2,
+			CONFIG.JEFE.CLAVE,
+		);
 	}
 
 	#crearColisiones() {
