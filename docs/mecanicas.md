@@ -259,6 +259,13 @@ niveles; el paso 9 los conectará al jefe).
   | «El reconocimiento se corta solo…»                                   | Otra pestaña usa el reconocimiento a la vez                                                                                                                                              |
   | «Chrome no abre el micrófono…»                                       | Lo ocupa otra pestaña o aplicación                                                                                                                                                       |
 
+  **Palabras que Chrome no entiende (27/11/2026).** Con una sola sesión, sin silencios y sin resultados tardíos, Chrome siguió sin
+  entregar texto para algunas palabras: «leg», «boat», «tail», «wave», «duck», «wheel» y «heart» fallan siempre, y «rabbit», «carrot»,
+  «village», «black» y «expensive» funcionan (diciéndolas fuerte y claro). No es un fallo del juego (con «lag», «lex» o «lek» sí
+  se acertaría «leg», pero Chrome no entrega nada). **Decisión del usuario: quedarse solo con lo que funciona.** Los retos por voz (niveles
+  1 y 2) usan solo las palabras marcadas `probada` o `probable` (**17 palabras**, ver [`vocabulario.md`](vocabulario.md)); el dictado,
+  que se escribe, conserva las 60. Por eso ya no hay pista de «dila dos veces»: se probó y se quitó.
+
   Debajo del aviso salen **contadores** (`sesiones · silencios · tardíos · modo`): _sesiones_ = cuántas veces arrancó Chrome
   (muchas = se corta y reinicia), _silencios_ = veces que dijo «no oí nada» (`no-speech`), _tardíos_ = resultados que llegaron
   de una sesión ya reemplazada y se descartaron, y _modo_ = `continuo` o `corto`. **Prueba A/B:** abrir el juego con

@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { CONFIG, ESCENAS, MODOS_DE_DELETREO } from '../config.js';
 import { NIVELES } from '../datos/niveles.js';
 import { DIFICULTADES, elegirPalabra } from '../datos/palabras.js';
-import { VOCABULARIO } from '../datos/vocabulario.js';
+import { VOCABULARIO, VOCABULARIO_PARA_VOZ } from '../datos/vocabulario.js';
 import { BalasEnemigas } from '../entidades/BalasEnemigas.js';
 import { BalaEnemiga } from '../entidades/BalaEnemiga.js';
 import { Cofre } from '../entidades/Cofre.js';
@@ -259,7 +259,12 @@ export class EscenaJuego extends Phaser.Scene {
 	// deletreo, bloquea el movimiento y le avisa al juego con `deletreo-terminado`.
 	// Devuelve verdadero si el reto empezó.
 	#empezarElRetoDeOpciones(nivel) {
-		const ficha = armarFicha(this.#entradaDeIngles(), nivel, VOCABULARIO);
+		// Los retos por voz solo usan las palabras que Chrome reconoce bien (ver `voz` en src/datos/vocabulario.js).
+		const ficha = armarFicha(
+			this.#entradaDeIngles(VOCABULARIO_PARA_VOZ),
+			nivel,
+			VOCABULARIO_PARA_VOZ,
+		);
 		if (!ficha) {
 			return false; // el banco no alcanzó para armar las opciones (con 60 palabras no pasa)
 		}
@@ -362,9 +367,9 @@ export class EscenaJuego extends Phaser.Scene {
 		});
 	}
 
-	// Una palabra del banco de vocabulario en inglés, que no sea de las últimas que salieron.
-	#entradaDeIngles() {
-		const entrada = elegirEntrada(VOCABULARIO, { evitar: this.ultimasPalabrasDeIngles });
+	// Una palabra de `banco` (el de voz o el completo), que no sea de las últimas que salieron.
+	#entradaDeIngles(banco) {
+		const entrada = elegirEntrada(banco, { evitar: this.ultimasPalabrasDeIngles });
 		this.ultimasPalabrasDeIngles = [...this.ultimasPalabrasDeIngles, entrada.palabra].slice(
 			-CONFIG.INGLES.NO_REPETIR,
 		);
@@ -372,7 +377,9 @@ export class EscenaJuego extends Phaser.Scene {
 	}
 
 	#palabraParaDictar() {
-		return armarFicha(this.#entradaDeIngles(), NIVELES_DE_INGLES.DICTADO, VOCABULARIO).palabra;
+		// El dictado se escribe con el teclado: puede usar todas las palabras, también las que Chrome no entiende.
+		return armarFicha(this.#entradaDeIngles(VOCABULARIO), NIVELES_DE_INGLES.DICTADO, VOCABULARIO)
+			.palabra;
 	}
 
 	// Provisional hasta el paso 9: la tecla V cambia entre deletrear con el teclado y con la voz. La

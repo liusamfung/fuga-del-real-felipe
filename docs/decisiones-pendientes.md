@@ -121,6 +121,11 @@ Elegir entre Juran, Deming o Crosby y confirmar el nombre "Joseph Durand" con el
   ¿Cuál es el jefe del **nivel 1** (hoy comparte el fantasma)? ¿El jefe 2 debe usar los retos de nivel 2 y 3 (el 3,
   el dictado, es otra pantalla)? ¿Qué hace cada pieza del tileset 2 y hay más (cajas, puertas)? ¿Las cajas marrones sirven
   en la prisión azul? ¿Cómo se pasa del nivel 1 al 2 (paso 12)? Los guardias solo tienen dibujo de frente.
+- **Voz y palabras que Chrome no entiende (27/11/2026): DECIDIDO.** Chrome no entrega texto para algunas palabras («leg», «boat», «tail»,
+  «wave», «duck», «wheel», «heart»…) y funciona con otras («rabbit», «carrot», «village», «black», «expensive»). Decisión del usuario: **quedarse
+  solo con las palabras que funcionan** y no pelear con el motor de Chrome. Los retos por voz usan 17 palabras (`voz` `probada` o `probable`,
+  ver [`vocabulario.md`](vocabulario.md)); el dictado usa las 60. **Abierto:** probar las 11 `probable` y las 36 `sin-probar`, y añadir más
+  palabras de dos sílabas o más, porque 17 son pocas para jugar mucho (se repiten).
 - **Muerte:** ¿vuelve a la portada, reinicia el nivel o la sala?
 
 ## 6. Ambientación y personajes
