@@ -232,6 +232,13 @@ niveles; el paso 9 los conectará al jefe).
   una opción equivocada falla el reto.
 - Leer en voz alta lo que se ve en pantalla **no responde** (una prueba lo comprueba con las 120 fichas
   posibles del banco).
+- **El resultado se ve antes de que siga el juego** _(27/11/2026)_: al responder, el cartel muestra «¡Bien!»,
+  «¡Te equivocaste!» o «¡Se acabó el tiempo!» (y marca la correcta) durante **0,45 s**
+  (`INGLES.OPCIONES.TIEMPO_DEL_RESULTADO`). **Mientras se ve, el juego sigue en cámara lenta y el jugador quieto**;
+  recién cuando el cartel desaparece pasa lo que tenía que pasar (el dash y el rayo del jefe, o el lanzamiento de la
+  granada). Así se sabe si se acertó _antes_ de ver las consecuencias. Antes el juego seguía al instante y el cartel
+  se quedaba 1,1 s encima mientras ya se esquivaba. Solo vale para los niveles 1 y 2 (`EscenaOpciones`); el dictado
+  (nivel 3) todavía avisa al juego al instante.
 - **Tiempo:** `6 s + 0,5 s por cada palabra del enunciado` _(provisional)_: una palabra sola da 6,5 s y
   una definición de 11 palabras, 11,5 s. **Empieza a correr cuando el micrófono está escuchando**: la
   primera vez el navegador pide permiso y eso no gasta tiempo (la barra se ve azul mientras espera).
@@ -282,14 +289,31 @@ acordados el 26/11/2026 y son **provisionales** (`CONFIG.JEFE`); las reglas est�
 
 - **Empieza** cuando el jugador entra bien adentro de la sala: se cierran las puertas y sale el cartel «¡El jefe!».
   Antes de eso el jefe flota sin atacar y **no recibe daño**.
-- **Vida: 30.** Cada bala del jugador le quita 1 (la granada, 3). Se ve una **barra roja «JEFE»** abajo y al centro.
-- **Ataque básico:** un **proyectil** hacia el jugador **cada 2 s** (el primero a los 1,5 s). Va a **190 px/s**
-  (el jugador camina a 220), así que se esquiva moviéndose; quita **1 corazón** y se detiene en las paredes.
-  Tocar al jefe también quita 1 corazón.
+- **Vida: 60** _(se duplicó el 27/11/2026; eran 30)_. Cada bala del jugador le quita 1 (la granada, 3). Se ve una
+  **barra roja «JEFE»** abajo y al centro.
+- **Ataque básico:** un **proyectil** hacia el jugador **cada 0,9 s** (el primero al segundo de empezar). Va a
+  **400 px/s** (el jugador camina a 220): no se le gana corriendo, se esquiva de lado o con el dash. Quita
+  **1 corazón** y se detiene en las paredes. Tocar al jefe también quita 1 corazón. _(El 27/11/2026 se hizo
+  mucho más rápido y frecuente: antes era 190 px/s cada 2 s, y se sentía muy lento.)_
+- **Variantes del ataque básico** _(27/11/2026)_. Cada vez que toca un ataque básico se elige una al azar
+  (`elegirElPatronBasico`, lógica pura con pruebas; los números están en `CONFIG.JEFE.TRIPLE` y `.RAFAGA`):
+
+  | Variante   | Qué hace                                                                                                                                        | Cuándo sale                                                                                              |
+  | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+  | **Simple** | Un proyectil hacia el jugador                                                                                                                   | Lo que no sea de las otras dos                                                                           |
+  | **Triple** | **Tres a la vez** en abanico: uno justo hacia el jugador y uno a cada lado, a 22° de él                                                         | ~**35 %** de los ataques, con cualquier vida                                                             |
+  | **Ráfaga** | Varios disparos **seguidos** (uno cada 0,11 s), cada uno hacia donde está el jugador en ese momento: de **4** con toda la vida a **8** sin ella | **Sube a medida que el jefe pierde vida**: 0 % con toda la vida, ~20 % a la mitad y hasta ~40 % al final |
+
+  Con la mitad de la vida, por ejemplo: ~20 % ráfaga, ~35 % triple y el resto simple. El siguiente ataque espera a que
+  termine la ráfaga. Si llega un ataque fuerte a mitad de una ráfaga, **los disparos que faltaban se cancelan**.
+
 - **Ataque fuerte:** **3 por pelea**, uno cada vez que la vida del jefe **baja del 75 %, 50 % y 25 %** (de 22,5,
   15 y 7,5). Si un golpe grande cruza dos umbrales de una vez, los ataques vienen **uno tras otro**, no juntos.
   El movimiento **no** lo evita: hay que responder un **reto de inglés**. El jefe 1 alterna los niveles
-  **1, 2, 1** (ver 5.10); el jefe 2 usará 2 y 3 _(pendiente)_.
+  **1, 2, 1** (ver 5.10); el jefe 2 usará 2 y 3 _(pendiente)_. El golpe es un **rayo verde** (6.0.1).
+- **Atajo de pruebas, tecla `J`:** lleva al jugador directo a la sala del jefe, con la llave, y la pelea empieza
+  al instante. La sala donde estaba se da por terminada (sin cofre) para que no queden sus puertas cerradas.
+  Sirve para probar al jefe sin recorrer las otras ocho salas; no es parte del juego final.
 - **Al derrotarlo:** el jefe se desvanece, se apagan sus proyectiles y se **abren las puertas**.
   _(La pantalla de «nivel completado» y el piso 2 están pendientes: paso 12 de la hoja de ruta.)_
 
@@ -297,22 +321,49 @@ acordados el 26/11/2026 y son **provisionales** (`CONFIG.JEFE`); las reglas est�
 flowchart TD
     A[La vida del jefe baja de un umbral] --> B[Aviso de 0,8 s: destello y letrero]
     B --> C[El mundo entra en camara lenta y no hay ataques basicos]
-    C --> D[Aparece el reto de ingles con su barra de tiempo real]
+    C --> D[Aparece el reto de ingles; una linea verde fina avisa por donde saldra el rayo]
     D --> E{Que pasa en el reto?}
-    E -->|Acierta con mas de la mitad del tiempo| F[Devuelve el golpe: el jefe pierde 3 de vida]
-    E -->|Acierta, pero tarde| G[Esquiva: no pasa nada]
-    E -->|Falla o se acaba el tiempo| H[El golpe le cae: 2 corazones]
+    E -->|Acierta con mas de la mitad del tiempo| F[Dash automatico: el rayo pasa de largo y el jefe pierde 6 de vida]
+    E -->|Acierta, pero tarde| G[Dash automatico: el rayo pasa de largo, no pasa nada mas]
+    E -->|Falla o se acaba el tiempo| H[El rayo le cae: 2 corazones]
     F --> I[El mundo vuelve a velocidad normal]
     G --> I
     H --> I
     I --> J[Respiro de 1,5 s antes del proximo ataque]
 ```
 
-| Desenlace     | Cuándo                                                   | Qué pasa                                                                                                                  |
-| ------------- | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| **Devuelto**  | Se acierta con **la mitad del tiempo o más** por delante | El jefe pierde el **10 %** de su vida máxima (3 de 30). Esta regla **reemplaza** a «deletrear al revés devuelve el golpe» |
-| **Esquivado** | Se acierta, pero en la segunda mitad                     | Nada: el jugador se salva                                                                                                 |
-| **Golpe**     | Se falla o se acaba el tiempo                            | El jugador pierde **2 corazones**, **sí o sí**: aunque esté en su inmunidad (tras un golpe o un dash)                     |
+| Desenlace     | Cuándo                                                   | Qué pasa                                                                                                                         |
+| ------------- | -------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| **Devuelto**  | Se acierta con **la mitad del tiempo o más** por delante | Dash automático **y** el jefe pierde el **10 %** de su vida máxima (6 de 60). Reemplaza a «deletrear al revés devuelve el golpe» |
+| **Esquivado** | Se acierta, pero en la segunda mitad                     | Dash automático: el rayo pasa de largo y no pasa nada más                                                                        |
+| **Golpe**     | Se falla o se acaba el tiempo                            | El rayo le cae: el jugador pierde **2 corazones**, **sí o sí**: aunque esté en su inmunidad (tras un golpe o un dash)            |
+
+#### 6.0.1 El rayo del ataque fuerte _(27/11/2026)_
+
+El golpe del ataque fuerte se ve: un **rayo verde** (el color del jefe) que sale de él y llega **hasta el final
+de la sala** (la pared), en línea recta. Código: `RayoDelJefe` (`src/entidades/RayoDelJefe.js`, solo dibujo) y las
+cuentas en `src/utilidades/rayo.js` (lógica pura, con pruebas).
+
+1. **Aviso.** Cuando aparece el reto, la dirección del rayo **se fija**: del centro del jefe hacia donde está el
+   jugador en ese momento. Se ve una **línea fina** parpadeante hasta la pared y una **bola de energía** que late
+   en el jefe. El jugador no se mueve durante el reto, así que el rayo le va a caer encima: **no se puede
+   esquivar caminando**.
+2. **Si se falla** (o se acaba el tiempo), el rayo se abre de golpe (48 px de ancho), se queda 0,5 s y se cierra. El
+   daño (2 corazones) se aplica en ese momento, **sí o sí**.
+3. **Si se acierta**, el juego hace un **dash automático** del jugador hacia un lado, **perpendicular** al rayo y
+   hacia el lado con **más espacio** hasta la pared (así no se frena contra ella). El rayo sale **0,16 s después**,
+   cuando el jugador ya está fuera de su camino, para que se vea que **fue el dash el que lo salvó**. Con el
+   «Devuelto», además, el jefe destella y pierde 6 de vida (el 10 % de 60).
+   - El dash automático es un **regalo**: sale aunque el dash esté recargando, **no gasta carga** y da la misma
+     inmunidad de 0,2 s que uno normal (`Dash.forzar`, `Jugador.esquivarConDash`).
+   - Al acertar, la cámara lenta **se corta al instante** (`RampaDeTiempo.cortar`): con la salida suave de 200 ms la
+     física iba más lenta y el dash recorría solo 43 de sus ~96 px (medido en el juego).
+4. Los números están en `CONFIG.JEFE.RAYO`; hay una prueba que comprueba que **el dash alcanza** para salir del
+   ancho del rayo (si alguien ensancha el rayo o acorta el dash, falla).
+
+_El dibujo es provisional: dos texturas generadas por código (`rayo-jefe`, la franja que corre, y `rayo-cabeza`, la
+bola de donde sale), de la misma paleta verde que el fantasma. Cuando haya arte final se cambian en
+`src/datos/recursos.js`._
 
 - **Durante el reto** el jefe no lanza ataques básicos ni otro ataque fuerte, y el jugador no se mueve (pero puede
   disparar: si derrota al jefe en pleno reto, el reto se cierra solo y no cae ningún golpe).
@@ -341,8 +392,10 @@ flowchart TD
 - La **barra de tiempo corre en tiempo real**, no en tiempo de juego: el mundo se estira, el tiempo
   del jugador no. En Phaser esto significa que la barra **no puede usar** `time.timeScale`; se mide
   con el reloj real del navegador (`performance.now()`).
-- Al terminar el reto, el mundo vuelve a velocidad normal en unos 200 ms y el control se devuelve de
-  inmediato.
+- Al responder, **primero se ve el resultado 0,45 s con el mundo todavía en cámara lenta**, y recién al
+  desaparecer el cartel el mundo vuelve a velocidad normal en unos 200 ms y el control se devuelve.
+  **Excepción:** si el jugador acierta el ataque fuerte, la cámara lenta se corta al instante para
+  que el dash automático salga a toda velocidad (ver 6.0.1).
 
 ### 6.2 Reglas de justicia
 

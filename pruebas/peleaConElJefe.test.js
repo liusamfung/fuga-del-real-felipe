@@ -21,6 +21,9 @@ const crear = (extra = {}) =>
 		...extra,
 	});
 
+// Un ataque básico de un solo proyectil (lo que da la pelea si no se le piden otras variantes).
+const BASICO = { tipo: 'ataque-basico', patron: 'simple' };
+
 // Una pelea ya empezada en el instante 0.
 const empezada = (extra) => {
 	const pelea = crear(extra);
@@ -83,10 +86,10 @@ test('empezar solo funciona la primera vez: no reinicia el reloj de los ataques'
 test('el primer ataque básico llega a los 1,5 s y luego uno cada 2 s', () => {
 	const pelea = empezada();
 	assert.deepEqual(pelea.actualizar(1499), []);
-	assert.deepEqual(pelea.actualizar(1500), [{ tipo: 'ataque-basico' }]);
+	assert.deepEqual(pelea.actualizar(1500), [BASICO]);
 	assert.deepEqual(pelea.actualizar(3499), [], 'no antes de 2 s después');
-	assert.deepEqual(pelea.actualizar(3500), [{ tipo: 'ataque-basico' }]);
-	assert.deepEqual(pelea.actualizar(5500), [{ tipo: 'ataque-basico' }]);
+	assert.deepEqual(pelea.actualizar(3500), [BASICO]);
+	assert.deepEqual(pelea.actualizar(5500), [BASICO]);
 });
 
 test('llamar varias veces en el mismo instante no lanza dos ataques', () => {
@@ -187,7 +190,7 @@ test('un golpe grande que cruza varios umbrales de una vez da los ataques fuerte
 test('si el jugador está en otro reto (libre = false), el ataque fuerte espera; el básico no', () => {
 	const pelea = empezada();
 	pelea.recibirDano(8);
-	assert.deepEqual(pelea.actualizar(1500, { libre: false }), [{ tipo: 'ataque-basico' }]);
+	assert.deepEqual(pelea.actualizar(1500, { libre: false }), [BASICO]);
 	assert.equal(pelea.estado, 'peleando');
 	assert.deepEqual(pelea.actualizar(1600, { libre: true }), [{ tipo: 'ataque-fuerte', nivel: 1 }]);
 });
@@ -203,7 +206,7 @@ test('esquivado: el jefe no pierde vida y la pelea sigue con un respiro de 1,5 s
 	assert.equal(pelea.vida, 22);
 	assert.equal(pelea.estado, 'peleando');
 	assert.deepEqual(pelea.actualizar(11499), [], 'todavía en el respiro');
-	assert.deepEqual(pelea.actualizar(11500), [{ tipo: 'ataque-basico' }]);
+	assert.deepEqual(pelea.actualizar(11500), [BASICO]);
 });
 
 test('devuelto: el jefe pierde el 10 % de su vida máxima (3 de 30)', () => {
@@ -298,14 +301,17 @@ test('la configuración del jefe es coherente y se puede armar una pelea con ell
 			`el nivel ${nivel}: los ataques fuertes usan retos de opciones (1 o 2)`,
 		);
 	}
-	assert.ok(JEFE.INTERVALO_DE_ATAQUE >= 1000, 'un ataque por segundo o más sería una avalancha');
+	// Desde el 27/11/2026 el ataque básico es rápido y frecuente (lo pidió el usuario), pero con un tope: dos por segundo ya no se esquivarían.
+	assert.ok(JEFE.INTERVALO_DE_ATAQUE >= 500, 'más de dos ataques por segundo sería una avalancha');
 	assert.ok(JEFE.AVISO > 0 && JEFE.PAUSA_TRAS_EL_ATAQUE_FUERTE > 0);
 	assert.ok(JEFE.RAPIDO > 0 && JEFE.RAPIDO < 1);
 	assert.ok(JEFE.DEVOLUCION > 0 && JEFE.DEVOLUCION < 1);
 	// Un golpe fallado no debe matar de golpe al jugador que empieza con 3 corazones: le quita menos de su vida inicial.
 	assert.ok(JEFE.DANO_DEL_GOLPE >= 1 && JEFE.DANO_DEL_GOLPE < CONFIG.JUGADOR.VIDA_INICIAL);
-	// Los proyectiles se pueden esquivar: van más lento que el jugador.
-	assert.ok(JEFE.PROYECTIL.VELOCIDAD < CONFIG.JUGADOR.VELOCIDAD);
+	// Los proyectiles son más rápidos que el jugador (no se les gana corriendo: se esquivan de lado), pero cruzar la
+	// sala (800 px) les toma al menos un segundo.
+	assert.ok(JEFE.PROYECTIL.VELOCIDAD > CONFIG.JUGADOR.VELOCIDAD);
+	assert.ok(JEFE.PROYECTIL.VELOCIDAD <= CONFIG.SALA.ANCHO);
 
 	const pelea = new PeleaConElJefe({
 		vidaMaxima: JEFE.VIDA,
@@ -318,11 +324,15 @@ test('la configuración del jefe es coherente y se puede armar una pelea con ell
 		pausaTrasElAtaqueFuerte: JEFE.PAUSA_TRAS_EL_ATAQUE_FUERTE,
 	});
 	pelea.empezar(0);
-	assert.equal(pelea.vida, 30, 'el jefe empieza con 30 de vida (lo acordado)');
+	assert.equal(
+		pelea.vida,
+		60,
+		'el jefe empieza con 60 de vida (30 acordado el 26/11, duplicado el 27/11)',
+	);
 	assert.equal(JEFE.UMBRALES.length, 3, 'tres ataques fuertes por pelea (lo acordado)');
 });
 
-test('con la vida del jefe y los valores acordados, el 10 % que se devuelve son 3 puntos', async () => {
+test('con la vida del jefe y los valores acordados, el 10 % que se devuelve son 6 puntos', async () => {
 	const { CONFIG } = await import('../src/config.js');
-	assert.equal(Math.round(CONFIG.JEFE.VIDA * CONFIG.JEFE.DEVOLUCION), 3);
+	assert.equal(Math.round(CONFIG.JEFE.VIDA * CONFIG.JEFE.DEVOLUCION), 6);
 });

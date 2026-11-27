@@ -26,6 +26,7 @@ export class Entrada {
 		this.teclaMayuscula = teclado.addKey('SHIFT');
 		this.teclaDeVoz = teclado.addKey('V');
 		this.teclaDeGranada = teclado.addKey('G');
+		this.teclaDelJefe = teclado.addKey('J');
 		this.movimientoBloqueado = false;
 	}
 
@@ -81,6 +82,14 @@ export class Entrada {
 	 */
 	granadaPedida() {
 		return Phaser.Input.Keyboard.JustDown(this.teclaDeGranada);
+	}
+
+	/**
+	 * Atajo de pruebas: J lleva directo a la sala del jefe, sin pasar por las demás. Devuelve verdadero en el
+	 * fotograma en que se pulsa. Se debe consultar en cada fotograma (JustDown "gasta" la pulsación).
+	 */
+	irAlJefePedido() {
+		return Phaser.Input.Keyboard.JustDown(this.teclaDelJefe);
 	}
 
 	/**

@@ -111,7 +111,9 @@ Elegir entre Juran, Deming o Crosby y confirmar el nombre "Joseph Durand" con el
   distinto (que dispare, que dé vueltas, que huya al estar herido)? ¿Las salas están bien de difícil?
 - **Jefe (26/11/2026):** hecho con los valores acordados (30 de vida, ataque básico cada 2 s, 3 ataques fuertes al bajar de
   75 %, 50 % y 25 % con retos de nivel 1-2-1, acertar en la primera mitad del tiempo devuelve el golpe y quita 3). Ver
-  [`mecanicas.md`](mecanicas.md), sección 6. **Abierto:** ¿los números son justos? ¿el jefe 2 (niveles 2 y 3)?
+  [`mecanicas.md`](mecanicas.md), sección 6. **Cambios del 27/11/2026** (a pedido del usuario): ataque básico a 400 px/s
+  cada 0,9 s, a veces **triple** (tres a la vez) y **ráfagas** que aumentan con la vida perdida, vida **60**, y el
+  ataque fuerte es un **rayo verde** que se esquiva con un dash automático al acertar. **Abierto:** ¿los números son justos? ¿el jefe 2 (niveles 2 y 3)?
   ¿qué pasa al derrotar al jefe: pantalla de nivel completado, piso 2? (paso 12).
 - **Muerte:** ¿vuelve a la portada, reinicia el nivel o la sala?
 

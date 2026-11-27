@@ -78,6 +78,17 @@ export class Jugador extends Phaser.Physics.Arcade.Sprite {
 	}
 
 	/**
+	 * Un dash automático hacia `direccion` (un vector de largo 1): sale aunque el dash esté recargando, sin
+	 * gastar una carga, y da la misma inmunidad que uno normal. Lo usa el juego para salvar al jugador del
+	 * ataque fuerte del jefe cuando acierta el reto.
+	 */
+	esquivarConDash(direccion) {
+		const ahora = this.scene.time.now;
+		this.dash.forzar(direccion, ahora);
+		this.inmuneHasta = Math.max(this.inmuneHasta, ahora + CONFIG.DASH.INMUNIDAD);
+	}
+
+	/**
 	 * Elige el dibujo del jugador: mira hacia `puntoDeApuntado` y, si se mueve, camina.
 	 * `direccion` es el mismo vector que se le pasó a `mover`. Si `puntoDeApuntado` es null (el
 	 * ratón aún no se ha movido), sigue mirando hacia donde miraba.

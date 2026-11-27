@@ -13,6 +13,96 @@
 //
 // Cómo se arman y nombran las hojas: docs/guia-de-recursos.md.
 
+// Un generador de números «al azar» que siempre da la misma serie (la semilla), para que el dibujo
+// provisional del rayo salga igual en cada partida y en las pruebas.
+function azarConSemilla(semilla) {
+	let estado = semilla;
+	return () => {
+		estado = (estado + 0x6d2b79f5) | 0;
+		let t = Math.imul(estado ^ (estado >>> 15), 1 | estado);
+		t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+		return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+	};
+}
+
+// El rayo verde del ataque fuerte del jefe (provisional): una franja de energía que se repite a lo largo del rayo
+// (por eso el borde izquierdo y el derecho encajan: nada cambia de forma gradual a lo ancho). Capas de verde, de
+// oscuro en el borde a casi blanco en el centro, con el borde irregular, chispas sueltas y rayitas claras. Está
+// dibujada con la misma paleta que el fantasma y su proyectil.
+function franjaDelRayo(ancho, alto) {
+	const azar = azarConSemilla(27112026);
+	const centro = alto / 2;
+	const capas = [
+		{ color: 0x2f7a3a, mitad: 7 }, // borde
+		{ color: 0x4fd16a, mitad: 4 },
+		{ color: 0xa6f5a0, mitad: 2 },
+		{ color: 0xe8ffd9, mitad: 1 }, // centro
+	];
+	const formas = [];
+
+	for (let x = 0; x < ancho; x += 1) {
+		const irregular = Math.floor(azar() * 3) - 1; // -1, 0 o +1 px en esta columna
+		for (const { color, mitad } of capas) {
+			const m = mitad + (mitad > 1 ? irregular : 0);
+			formas.push({ x, y: centro - m, ancho: 1, alto: 2 * m, color });
+		}
+		if (azar() < 0.3) {
+			// una chispa suelta fuera del borde
+			const lado = azar() < 0.5 ? -1 : 1;
+			formas.push({
+				x,
+				y: centro + lado * (9 + Math.floor(azar() * 2)),
+				ancho: 1,
+				alto: 1,
+				color: 0x4fd16a,
+			});
+		}
+	}
+
+	// Rayitas claras a lo largo, para que al desplazar la franja se vea que la energía corre.
+	for (let i = 0; i < 6; i += 1) {
+		const largo = 5 + Math.floor(azar() * 5);
+		const x = Math.floor(azar() * (ancho - largo));
+		const y = centro + Math.floor(azar() * 7) - 3;
+		formas.push({ x, y, ancho: largo, alto: 1, color: 0xffffff });
+	}
+
+	return { tipo: 'generado', ancho, alto, formas };
+}
+
+// La bola de energía de donde sale el rayo (provisional): círculos de verde, del borde oscuro al centro casi
+// blanco, con el borde algo irregular. Se dibuja por filas de un mismo color.
+function bolaDeEnergia(lado) {
+	const azar = azarConSemilla(15101985);
+	const anillos = [
+		{ hasta: 0.3, color: 0xf4fff0 },
+		{ hasta: 0.55, color: 0xa6f5a0 },
+		{ hasta: 0.8, color: 0x4fd16a },
+		{ hasta: 1, color: 0x2f7a3a },
+	];
+	const centro = (lado - 1) / 2;
+	const formas = [];
+
+	for (let y = 0; y < lado; y += 1) {
+		let anterior = null;
+		for (let x = 0; x < lado; x += 1) {
+			const radio = Math.hypot(x - centro, y - centro) / (lado / 2) + (azar() - 0.5) * 0.12;
+			const anillo = anillos.find(({ hasta }) => radio <= hasta);
+			const color = anillo?.color ?? null;
+			if (anterior && anterior.color === color && color !== null) {
+				anterior.ancho += 1; // sigue la misma franja de color
+			} else {
+				anterior = color === null ? null : { x, y, ancho: 1, alto: 1, color };
+				if (anterior) {
+					formas.push(anterior);
+				}
+			}
+		}
+	}
+
+	return { tipo: 'generado', ancho: lado, alto: lado, formas };
+}
+
 // Dibujo provisional de una puerta de reja. Una puerta horizontal (arriba o abajo de la sala) tiene
 // barras verticales; una vertical (a los lados), barras horizontales. Con cerradura es la puerta
 // que se abre con la llave.
@@ -218,6 +308,10 @@ export const RECURSOS = Object.freeze({
 			{ x: 4, y: 4, ancho: 4, alto: 4, color: 0xe8ffd9 },
 		],
 	},
+
+	// El rayo del ataque fuerte del jefe (provisional): la franja se repite a lo largo del rayo y la bola es de donde sale.
+	'rayo-jefe': franjaDelRayo(64, 24),
+	'rayo-cabeza': bolaDeEnergia(32),
 
 	// La granada del jugador (poder especial): una bola oscura con la mecha encendida.
 	granada: {

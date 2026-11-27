@@ -7,6 +7,7 @@ import { Cofre } from '../entidades/Cofre.js';
 import { Enemigo } from '../entidades/Enemigo.js';
 import { Granada } from '../entidades/Granada.js';
 import { Jefe } from '../entidades/Jefe.js';
+import { RayoDelJefe } from '../entidades/RayoDelJefe.js';
 import { ProyectilDelJefe } from '../entidades/ProyectilDelJefe.js';
 import { Jugador } from '../entidades/Jugador.js';
 import { ReconocedorDeVoz } from '../sistemas/ReconocedorDeVoz.js';
@@ -21,6 +22,8 @@ import { aplicarMejora, elegirMejoraComun } from '../sistemas/Recompensas.js';
 import { elegirAlAzar } from '../utilidades/azar.js';
 import { alcanzadosPorLaExplosion, limitarAlRectangulo } from '../utilidades/explosion.js';
 import { puntoDeSalidaDelNido } from '../utilidades/nido.js';
+import { ladoDeEsquive, largoHastaElBorde } from '../utilidades/rayo.js';
+import { normalizar } from '../utilidades/vectores.js';
 import { armarFicha, elegirEntrada, NIVELES_DE_INGLES } from '../utilidades/fichas.js';
 
 // Un nivel: una cuadrícula de salas con el jugador dentro. La cámara muestra una sala a la vez.
@@ -49,6 +52,7 @@ export class EscenaJuego extends Phaser.Scene {
 			}),
 		};
 		this.retoEnCurso = null; // de qué es el reto en pantalla: 'granada', 'ataque-fuerte' (del jefe) o null
+		this.apuntadoDelRayo = null; // por dónde saldrá el rayo del ataque fuerte: { origen, direccion, largo }
 		const { JEFE } = CONFIG;
 		this.pelea = new PeleaConElJefe({
 			vidaMaxima: JEFE.VIDA,
@@ -59,7 +63,13 @@ export class EscenaJuego extends Phaser.Scene {
 			devolucion: JEFE.DEVOLUCION,
 			rapido: JEFE.RAPIDO,
 			pausaTrasElAtaqueFuerte: JEFE.PAUSA_TRAS_EL_ATAQUE_FUERTE,
+			probabilidadDeTriple: JEFE.TRIPLE.PROBABILIDAD,
+			probabilidadMaximaDeRafaga: JEFE.RAFAGA.PROBABILIDAD_MAXIMA,
+			disparosBaseDeLaRafaga: JEFE.RAFAGA.DISPAROS_BASE,
+			disparosExtraDeLaRafaga: JEFE.RAFAGA.DISPAROS_EXTRA,
+			msEntreDisparosDeLaRafaga: JEFE.RAFAGA.ENTRE_DISPAROS,
 		});
+		this.rafaga = null; // el temporizador de los disparos que faltan de una ráfaga
 		const { CAMARA_LENTA } = CONFIG;
 		this.rampa = new RampaDeTiempo({
 			factor: CAMARA_LENTA.FACTOR,
@@ -88,6 +98,7 @@ export class EscenaJuego extends Phaser.Scene {
 		this.input.setDefaultCursor('crosshair');
 		this.#crearColisiones();
 		this.#crearElJefe();
+		this.rayo = new RayoDelJefe(this);
 		this.#entrarEnSala(inicio);
 
 		// La interfaz es otra escena que se dibuja encima.
@@ -117,6 +128,10 @@ export class EscenaJuego extends Phaser.Scene {
 
 		// Se consultan todas las teclas de retos en cada fotograma, aunque no se usen (JustDown "gasta"
 		// la pulsación).
+		const irAlJefe = this.entrada.irAlJefePedido();
+		if (irAlJefe && !this.deletreoActivo) {
+			this.#irALaSalaDelJefe();
+		}
 		const pedido = this.entrada.deletreoPedido();
 		const nivelPedido = this.entrada.retoDeOpcionesPedido();
 		const granadaPedida = this.entrada.granadaPedida();
@@ -437,16 +452,52 @@ export class EscenaJuego extends Phaser.Scene {
 		const acciones = this.pelea.actualizar(this.time.now, { libre: !this.deletreoActivo });
 		for (const accion of acciones) {
 			if (accion.tipo === 'ataque-basico') {
-				this.jefe.lanzarUnProyectil(this.jugador);
+				this.#lanzarElAtaqueBasico(accion);
 			} else if (accion.tipo === 'ataque-fuerte') {
 				this.#avisarDelAtaqueFuerte(accion.nivel);
 			}
 		}
 	}
 
+	// Los tres ataques básicos: un proyectil, tres a la vez en abanico (uno al jugador y uno a cada lado) o una
+	// ráfaga de varios seguidos, cada uno hacia donde está el jugador en ese momento.
+	#lanzarElAtaqueBasico({ patron, disparos }) {
+		if (patron === 'triple') {
+			this.jefe.lanzarUnAbanico(this.jugador, 3, CONFIG.JEFE.TRIPLE.APERTURA);
+			return;
+		}
+		if (patron !== 'rafaga') {
+			this.jefe.lanzarUnProyectil(this.jugador);
+			return;
+		}
+
+		this.#cancelarLaRafaga();
+		this.jefe.lanzarUnProyectil(this.jugador); // el primero sale ya
+		if (disparos > 1) {
+			this.rafaga = this.time.addEvent({
+				delay: CONFIG.JEFE.RAFAGA.ENTRE_DISPAROS,
+				repeat: disparos - 2,
+				callback: () => {
+					// Si empezó un ataque fuerte o el jefe cayó, los disparos que faltaban ya no salen.
+					if (this.jefe.active && this.pelea.estado === 'peleando') {
+						this.jefe.lanzarUnProyectil(this.jugador);
+					} else {
+						this.#cancelarLaRafaga();
+					}
+				},
+			});
+		}
+	}
+
+	#cancelarLaRafaga() {
+		this.rafaga?.remove(false);
+		this.rafaga = null;
+	}
+
 	// Primero el aviso: el jefe destella y sale un letrero. Mientras tanto no se puede abrir otro reto. Cuando
 	// acaba el aviso, aparece el reto de inglés con el mundo en cámara lenta.
 	#avisarDelAtaqueFuerte(nivel) {
+		this.#cancelarLaRafaga();
 		this.deletreoActivo = true; // reservado: durante el aviso no se puede abrir otro reto
 		this.#mostrarMensaje('¡ATAQUE FUERTE!', { x: this.jefe.x, y: this.jefe.y - 100, tamano: 26 });
 		this.time.addEvent({
@@ -463,6 +514,7 @@ export class EscenaJuego extends Phaser.Scene {
 			return;
 		}
 
+		this.#apuntarElRayo();
 		this.retoEnCurso = 'ataque-fuerte';
 		if (!this.#empezarElRetoDeOpciones(nivel)) {
 			// No se pudo armar el reto (con el banco de vocabulario no pasa): que el jugador no pague por eso.
@@ -472,26 +524,69 @@ export class EscenaJuego extends Phaser.Scene {
 		}
 	}
 
-	// El reto del ataque fuerte terminó. Según cómo salió: el golpe le cae al jugador (sí o sí, aunque estuviera
-	// en su inmunidad), se esquiva, o se le devuelve al jefe (acertar en la primera mitad del tiempo).
+	// Fija por dónde saldrá el rayo del ataque fuerte: del centro del jefe hacia donde está el jugador en este
+	// momento, hasta el final de la sala. Desde que aparece el reto el jugador ya no se mueve, así que el rayo le
+	// cae encima si falla; no hay forma de esquivarlo caminando.
+	#apuntarElRayo() {
+		const origen = { x: this.jefe.body.center.x, y: this.jefe.body.center.y };
+		const objetivo = this.jugador.body.center;
+		let direccion = normalizar(objetivo.x - origen.x, objetivo.y - origen.y);
+		if (direccion.x === 0 && direccion.y === 0) {
+			direccion = { x: 0, y: 1 }; // el jugador está justo encima del centro del jefe: hacia abajo
+		}
+
+		const largo = largoHastaElBorde(origen, direccion, this.#interiorDeLaSalaDelJefe());
+		this.apuntadoDelRayo = { origen, direccion, largo };
+		this.rayo.apuntar(this.apuntadoDelRayo);
+	}
+
+	// El rectángulo de la sala del jefe por dentro de las paredes: hasta ahí llega el rayo.
+	#interiorDeLaSalaDelJefe() {
+		const { columna, fila } = this.modelo.salaDelJefe;
+		const { x, y, ancho, alto } = this.nivel.limitesDeSala(columna, fila);
+		const { CASILLA } = CONFIG.SALA;
+		return { x: x + CASILLA, y: y + CASILLA, ancho: ancho - 2 * CASILLA, alto: alto - 2 * CASILLA };
+	}
+
+	// El reto del ataque fuerte terminó y el rayo sale. Según cómo salió:
+	//   - se falló: el rayo le cae al jugador sí o sí (aunque estuviera en su inmunidad);
+	//   - se acertó: el jugador hace un dash automático hacia un lado, fuera del camino del rayo, y el rayo pasa de
+	//     largo (sale un instante después, para que se vea que el dash fue primero);
+	//   - se acertó rápido (en la primera mitad del tiempo): además, el golpe se le devuelve al jefe.
 	#alTerminarElAtaqueFuerte(resultado, fraccionRestante) {
 		const fin = this.pelea.terminarAtaqueFuerte(resultado, fraccionRestante, this.time.now);
 		if (!fin) {
-			return; // el jefe ya había sido derrotado mientras se respondía
+			this.rayo.ocultar(); // el jefe ya había sido derrotado mientras se respondía
+			return;
 		}
 
 		const { x, y } = this.jefe;
 		if (fin.desenlace === 'golpe') {
+			this.rayo.disparar(this.apuntadoDelRayo);
 			this.jugador.inmuneHasta = 0;
 			this.jugador.recibirDano(CONFIG.JEFE.DANO_DEL_GOLPE);
 			this.cameras.main.shake(260, 0.012);
 			this.#mostrarMensaje('¡Te golpeó!', { x, y: y - 100, tamano: 24 });
-		} else if (fin.desenlace === 'esquivado') {
-			this.#mostrarMensaje('¡Esquivado!', { x, y: y - 100, tamano: 24 });
 		} else {
-			this.jefe.destellar();
+			const { direccion } = this.apuntadoDelRayo;
+			const lado = ladoDeEsquive(
+				direccion,
+				this.jugador.body.center,
+				this.#interiorDeLaSalaDelJefe(),
+			);
+			// El dash va a velocidad completa: se corta la cámara lenta en vez de dejarla salir poco a poco.
+			this.rampa.cortar();
+			this.#aplicarLaEscalaDelTiempo(1);
+			this.jugador.esquivarConDash(lado);
+			this.rayo.disparar(this.apuntadoDelRayo, { retraso: CONFIG.JEFE.RAYO.RETRASO_SI_ESQUIVA });
 			this.cameras.main.shake(160, 0.006);
-			this.#mostrarMensaje('¡Devuelves el golpe!', { x, y: y - 100, tamano: 24 });
+
+			if (fin.desenlace === 'devuelto') {
+				this.jefe.destellar();
+				this.#mostrarMensaje('¡Dash y contraataque!', { x, y: y - 100, tamano: 24 });
+			} else {
+				this.#mostrarMensaje('¡Dash automático!', { x, y: y - 100, tamano: 24 });
+			}
 		}
 
 		if (fin.derrotado) {
@@ -526,6 +621,8 @@ export class EscenaJuego extends Phaser.Scene {
 		}
 
 		estado.limpia = true;
+		this.#cancelarLaRafaga();
+		this.rayo.ocultar();
 		this.jefe.apagarLosProyectiles();
 		this.jefe.body.enable = false;
 
@@ -547,6 +644,43 @@ export class EscenaJuego extends Phaser.Scene {
 		this.nivel.abrirPuertas(columna, fila);
 		this.events.emit('jefe-derrotado');
 		this.#mostrarMensaje('¡Derrotaste al jefe!');
+	}
+
+	// Atajo de pruebas (tecla J): lleva al jugador directo a la sala del jefe, para no recorrer las otras ocho. La
+	// sala donde estaba se da por terminada sin premio (para que no queden sus puertas cerradas), el jugador recibe
+	// la llave y la sala del jefe queda abierta; el jugador aparece abajo y la pelea empieza al instante.
+	#irALaSalaDelJefe() {
+		const sala = this.modelo.salaDelJefe;
+		if (this.#estadoDe(sala.columna, sala.fila).combateIniciado) {
+			this.#mostrarMensaje(
+				this.pelea.derrotado ? 'El jefe ya fue derrotado' : 'Ya estás en la pelea',
+				{ tamano: 24 },
+			);
+			return;
+		}
+
+		this.#darPorTerminadaLaSalaActual();
+		this.jugador.recogerLlave();
+		this.nivel.desbloquearSalaDelJefe();
+
+		const origen = this.nivel.origenDeSala(sala.columna, sala.fila);
+		this.jugador.body.reset(origen.x + CONFIG.SALA.ANCHO / 2, origen.y + CONFIG.SALA.ALTO - 120);
+		this.#entrarEnSala(sala);
+	}
+
+	// Si la sala donde está el jugador está en pleno combate, la da por terminada: quita sus enemigos y el
+	// temporizador de su nido y abre sus puertas. No hay cofre ni mensaje: solo es para poder irse.
+	#darPorTerminadaLaSalaActual() {
+		const { columna, fila } = this.salaActual;
+		const estado = this.#estadoDe(columna, fila);
+		if (!estado.combateIniciado || estado.limpia) {
+			return;
+		}
+
+		estado.temporizadorDelNido?.remove();
+		this.enemigos.clear(true, true);
+		Object.assign(estado, { enemigosVivos: 0, nidoVivo: false, limpia: true });
+		this.nivel.abrirPuertas(columna, fila);
 	}
 
 	#crearColisiones() {

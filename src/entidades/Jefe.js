@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { CONFIG } from '../config.js';
+import { direccionesDelAbanico } from '../utilidades/abanico.js';
 import { normalizar } from '../utilidades/vectores.js';
 import { ProyectilDelJefe } from './ProyectilDelJefe.js';
 
@@ -38,17 +39,38 @@ export class Jefe extends Phaser.Physics.Arcade.Sprite {
 
 	/** Lanza un proyectil hacia el objetivo (un objeto con cuerpo físico, como el jugador). */
 	lanzarUnProyectil(objetivo) {
+		const direccion = this.#direccionHacia(objetivo);
+		return direccion !== null && this.#lanzar(direccion);
+	}
+
+	/**
+	 * Lanza `cantidad` proyectiles a la vez en abanico: el del medio va hacia el objetivo y los demás se abren a un
+	 * lado y a otro, `apertura` grados uno de otro. Devuelve cuántos salieron.
+	 */
+	lanzarUnAbanico(objetivo, cantidad, apertura) {
+		const direccion = this.#direccionHacia(objetivo);
+		if (direccion === null) {
+			return 0;
+		}
+
+		return direccionesDelAbanico(direccion, cantidad, apertura).filter((una) => this.#lanzar(una))
+			.length;
+	}
+
+	// La dirección (de largo 1) del jefe hacia el objetivo, o null si el objetivo está justo encima.
+	#direccionHacia(objetivo) {
 		const direccion = normalizar(
 			objetivo.body.center.x - this.body.center.x,
 			objetivo.body.center.y - this.body.center.y,
 		);
-		if (direccion.x === 0 && direccion.y === 0) {
-			return false; // el objetivo está justo encima: no hay hacia dónde lanzar
-		}
+		return direccion.x === 0 && direccion.y === 0 ? null : direccion;
+	}
 
+	// Saca un proyectil del grupo y lo lanza. Falso si todos están en el aire.
+	#lanzar(direccion) {
 		const proyectil = this.proyectiles.get(this.body.center.x, this.body.center.y);
 		if (!proyectil) {
-			return false; // todos los proyectiles están en el aire
+			return false;
 		}
 
 		proyectil.lanzar(this.body.center.x, this.body.center.y, direccion);

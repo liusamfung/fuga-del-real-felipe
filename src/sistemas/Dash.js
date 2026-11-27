@@ -39,6 +39,16 @@ export class Dash {
 		return true;
 	}
 
+	/**
+	 * Un impulso que no se pide con la tecla: empieza ya, en esa dirección, aunque no queden cargas o ya haya
+	 * otro en marcha. No gasta cargas ni toca la recarga: es un regalo (por ejemplo, el dash automático que
+	 * salva al jugador del ataque fuerte del jefe).
+	 */
+	forzar(direccion, ahora) {
+		this.activoHasta = ahora + this.duracion;
+		this.direccion = direccion;
+	}
+
 	/** Verdadero mientras dura el impulso. */
 	estaActivo(ahora) {
 		return ahora < this.activoHasta;
