@@ -1,5 +1,7 @@
 import Phaser from 'phaser';
 import { CONFIG, ESCENAS, MODOS_DE_DELETREO } from '../config.js';
+import { claveDeLaMusicaDelNivel } from '../datos/audio.js';
+
 import { NIVELES } from '../datos/niveles.js';
 import { DIFICULTADES, elegirPalabra } from '../datos/palabras.js';
 import { VOCABULARIO, VOCABULARIO_PARA_VOZ } from '../datos/vocabulario.js';
@@ -19,6 +21,8 @@ import { generarNivel } from '../sistemas/GeneradorDeNivel.js';
 import { Nivel } from '../sistemas/Nivel.js';
 import { PeleaConElJefe } from '../sistemas/PeleaConElJefe.js';
 import { PoderConRecarga } from '../sistemas/PoderConRecarga.js';
+
+import { Sonido } from '../sistemas/Sonido.js';
 import { RampaDeTiempo } from '../sistemas/RampaDeTiempo.js';
 import { aplicarMejora, elegirMejoraComun } from '../sistemas/Recompensas.js';
 import { elegirAlAzar } from '../utilidades/azar.js';
@@ -51,6 +55,7 @@ export class EscenaJuego extends Phaser.Scene {
 
 	create() {
 		this.jugadorMuerto = false;
+
 		this.proximoAvisoDeLlave = 0;
 		this.deletreoActivo = false;
 		this.deletreoRecienTerminado = false; // el reto acabó en este fotograma (ver update)
@@ -90,6 +95,10 @@ export class EscenaJuego extends Phaser.Scene {
 		});
 		this.estadoDeSalas = new Map(); // 'columna,fila' -> { combateIniciado, limpia, enemigosVivos, ... }
 		this.entrada = new Entrada(this);
+		// El sonido: la música del nivel empieza (en cuanto el navegador deja sonar: con la primera tecla) y los efectos
+		// suenan desde las entidades con `escena.sonido?.efecto(...)`.
+		this.sonido = new Sonido(this);
+		this.sonido.musica(claveDeLaMusicaDelNivel(this.numeroDeNivel));
 
 		this.modelo = generarNivel(NIVELES[this.numeroDeNivel]);
 		this.nivel = new Nivel(this, this.modelo);
@@ -121,9 +130,11 @@ export class EscenaJuego extends Phaser.Scene {
 			pelea: this.pelea,
 		});
 		this.events.once('shutdown', () => {
+			this.sonido.detenerMusica();
 			this.scene.stop(ESCENAS.HUD);
 			this.scene.stop(ESCENAS.DELETREO);
 			this.scene.stop(ESCENAS.OPCIONES);
+
 			this.#restablecerLaEscalaDelTiempo();
 		});
 	}
@@ -144,6 +155,12 @@ export class EscenaJuego extends Phaser.Scene {
 		const irAlJefe = this.entrada.irAlJefePedido();
 		if (irAlJefe && !this.deletreoActivo) {
 			this.#irALaSalaDelJefe();
+		}
+		// M silencia o devuelve el sonido. Mientras se escribe una palabra (dictado) la M es una letra más: no cuenta.
+		const silencio = this.entrada.silencioPedido();
+		if (silencio && !this.deletreoActivo) {
+			const silenciado = this.sonido.alternarSilencio();
+			this.#mostrarMensaje(silenciado ? 'Sonido: NO (M)' : 'Sonido: SÍ (M)', { tamano: 24 });
 		}
 		const irAlNivel2 = this.entrada.irAlNivel2Pedido();
 		if (irAlNivel2 && !this.deletreoActivo) {
@@ -201,9 +218,21 @@ export class EscenaJuego extends Phaser.Scene {
 	// sale suave (RampaDeTiempo). El jugador no se mueve durante el reto, y el tiempo del reto es real: no
 	// se estira. Se decide cada fotograma según el estado, así no se queda lenta por ninguna salida rara.
 	#actualizarLaVelocidadDelMundo() {
+		// Mientras una voz dice la palabra del dictado, el volumen del juego baja para poder oírla bien.
+		this.sonido.atenuar(this.#hayUnDictadoAbierto());
+		this.sonido.actualizar();
 		const ahora = performance.now();
 		this.rampa.fijar(this.retoEnCurso !== null && !this.jugadorMuerto, ahora);
 		this.#aplicarLaEscalaDelTiempo(this.rampa.escala(ahora));
+	}
+
+	// ¿Está en pantalla un dictado (el reto en que el juego dice una palabra y se escribe)? Dura hasta que se cierra su
+	// cartel de resultado. Si el navegador no sabe hablar, el dictado pasa a mostrar la palabra y no cuenta.
+	#hayUnDictadoAbierto() {
+		return (
+			this.scene.isActive(ESCENAS.DELETREO) &&
+			this.scene.get(ESCENAS.DELETREO).modo === MODOS_DE_DELETREO.DICTADO
+		);
 	}
 
 	// Al cerrarse la escena (por ejemplo, en el reinicio después de morir) algunos sistemas de Phaser ya no
@@ -228,6 +257,8 @@ export class EscenaJuego extends Phaser.Scene {
 	// `escala` 1 es normal y 0,2 es una quinta parte. La física usa la convención contraria (más grande es
 	// más lento), por eso se divide.
 	#aplicarLaEscalaDelTiempo(escala) {
+		// La música baja de ritmo y de tono con el mundo, como una cinta que se frena.
+		this.sonido.ajustarLaMusicaALaEscalaDelTiempo(escala, CONFIG.CAMARA_LENTA.FACTOR);
 		this.physics.world.timeScale = 1 / escala;
 		this.time.timeScale = escala;
 		this.tweens.timeScale = escala;
@@ -487,6 +518,7 @@ export class EscenaJuego extends Phaser.Scene {
 	// Los tres ataques básicos: un proyectil, tres a la vez en abanico (uno al jugador y uno a cada lado) o una
 	// ráfaga de varios seguidos, cada uno hacia donde está el jugador en ese momento.
 	#lanzarElAtaqueBasico({ patron, disparos }) {
+		this.sonido.efecto('fantasma-ataque-basico'); // un sonido por ataque, también en la ráfaga
 		if (patron === 'triple') {
 			this.jefe.lanzarUnAbanico(this.jugador, 3, this.configDelJefe.TRIPLE.APERTURA);
 			return;
@@ -657,6 +689,7 @@ export class EscenaJuego extends Phaser.Scene {
 		if (this.retoEnCurso === 'ataque-fuerte') {
 			this.retoEnCurso = null;
 			this.scene.stop(ESCENAS.OPCIONES);
+
 			this.deletreoActivo = false;
 			this.entrada.bloquearMovimiento(false);
 		}
@@ -728,7 +761,7 @@ export class EscenaJuego extends Phaser.Scene {
 		this.physics.add.collider(this.enemigos, puertas);
 		this.physics.add.collider(this.enemigos, this.enemigos);
 		this.physics.add.collider(this.jugador, this.enemigos, (_jugador, enemigo) =>
-			this.jugador.recibirDano(enemigo.dano),
+			this.#alTocarUnEnemigo(enemigo),
 		);
 		this.physics.add.collider(this.disparo.balas, puertas, (bala) => bala.desactivar());
 
@@ -835,6 +868,15 @@ export class EscenaJuego extends Phaser.Scene {
 		}
 		enemigo.recibirDano(bala.dano);
 		bala.desactivar();
+	}
+
+	// Un enemigo toca al jugador: le quita vida y, si tiene sonido de ataque (las ratas), suena. El choque se repite en cada
+	// fotograma mientras se tocan; el catálogo de audio limita cada cuánto suena (`separacion`).
+	#alTocarUnEnemigo(enemigo) {
+		this.jugador.recibirDano(enemigo.dano);
+		if (enemigo.datos.sonidoDeAtaque) {
+			this.sonido.efecto(enemigo.datos.sonidoDeAtaque);
+		}
 	}
 
 	#alMorirUnEnemigo(datos) {
@@ -985,6 +1027,8 @@ export class EscenaJuego extends Phaser.Scene {
 	#alMorirElJugador() {
 		this.jugadorMuerto = true;
 		this.physics.pause();
+		this.sonido.detenerMusica();
+		this.sonido.efecto('jugador-muerte');
 		this.#mostrarMensaje('Has muerto');
 		this.time.delayedCall(1800, () => this.scene.restart({ nivel: this.numeroDeNivel }));
 	}

@@ -90,6 +90,8 @@ export class RayoDelJefe {
 	#abrir({ origen, direccion, largo }) {
 		const { ANCHO, CRECE, DURACION } = this.config.RAYO;
 		const angulo = Math.atan2(direccion.y, direccion.x);
+		// Suena justo cuando se abre el rayo (también si el jugador lo esquiva: el rayo sale igual).
+		this.escena.sonido?.efecto('fantasma-ataque-fuerte');
 
 		for (const animacion of this.animaciones) {
 			animacion.stop();

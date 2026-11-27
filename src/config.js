@@ -202,6 +202,16 @@ export const CONFIG = Object.freeze({
 	JEFE: JEFE_1,
 	JEFES: Object.freeze({ 1: JEFE_1, 2: JEFE_2 }),
 
+	// El audio (catálogo en src/datos/audio.js, sistema en src/sistemas/Sonido.js). Se silencia con la tecla M y se acuerda.
+	AUDIO: Object.freeze({
+		MUSICA_EN_CAMARA_LENTA: 0.55, // ritmo de la música en plena cámara lenta (1 = normal): baja como una cinta que se frena
+		// Mientras se oye la palabra del dictado (el reto más difícil del jefe 2) el volumen del juego baja a esta fracción
+		// (0,12 = 12 %): hay que oír bien la palabra. Baja y sube con suavidad en `TRANSICION_DEL_VOLUMEN` ms.
+		VOLUMEN_EN_EL_DICTADO: 0.12,
+		TRANSICION_DEL_VOLUMEN: 300,
+		CLAVE_DEL_SILENCIO: 'fuga.silencio', // dónde se guarda en el navegador si el jugador silenció el juego
+	}),
+
 	// Las balas de los enemigos que disparan (los guardias del nivel 2). Lo que las distingue (velocidad, daño, dibujo)
 	// está en el campo `disparo` de cada tipo (src/datos/enemigos.js).
 	BALA_ENEMIGA: Object.freeze({

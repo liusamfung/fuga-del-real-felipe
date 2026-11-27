@@ -28,6 +28,7 @@ export class Entrada {
 		this.teclaDeGranada = teclado.addKey('G');
 		this.teclaDelJefe = teclado.addKey('J');
 		this.teclaDelNivel2 = teclado.addKey('K');
+		this.teclaDelSilencio = teclado.addKey('M');
 		this.movimientoBloqueado = false;
 	}
 
@@ -91,6 +92,14 @@ export class Entrada {
 	 */
 	irAlJefePedido() {
 		return Phaser.Input.Keyboard.JustDown(this.teclaDelJefe);
+	}
+
+	/**
+	 * M silencia o devuelve el sonido. Devuelve verdadero en el fotograma en que se pulsa. Se debe consultar en cada
+	 * fotograma (JustDown "gasta" la pulsación).
+	 */
+	silencioPedido() {
+		return Phaser.Input.Keyboard.JustDown(this.teclaDelSilencio);
 	}
 
 	/**

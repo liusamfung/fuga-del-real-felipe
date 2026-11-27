@@ -121,6 +121,9 @@ export class Enemigo extends Phaser.Physics.Arcade.Sprite {
 		}
 
 		const { disparo } = this.datos;
+		if (disparo.sonido) {
+			this.scene.sonido?.efecto(disparo.sonido); // un sonido por disparo, aunque salgan varias balas (abanico)
+		}
 		const direcciones =
 			disparo.patron === 'abanico'
 				? direccionesDelAbanico(haciaElJugador, disparo.cantidad, disparo.apertura)
