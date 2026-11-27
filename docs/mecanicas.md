@@ -281,7 +281,11 @@ reto de inglés. Todos los números son **provisionales** (están en `CONFIG.POD
 
 ## 6. El jefe y su ataque fuerte
 
-La pelea con el jefe del piso se juega en la **sala del centro** (se abre con la llave). Los valores son los
+La pelea con el jefe del piso se juega en la **sala del centro** (se abre con la llave). **Cada nivel tiene su
+jefe** (`CONFIG.JEFES[nivel]`): el del nivel 2 es hoy un **duplicado** del del nivel 1 (el fantasma, que se puso en el
+nivel 1 solo para probar y en realidad es el jefe 2), con exactamente los mismos valores pero en un objeto aparte para
+poder retocarlo después. Con **`K`** se empieza el nivel 2 y con **`J`** se va a la sala del jefe del nivel actual
+(atajos de pruebas). Los valores de abajo valen para los dos. Los valores son los
 acordados el 26/11/2026 y son **provisionales** (`CONFIG.JEFE`); las reglas están en
 `src/sistemas/PeleaConElJefe.js` (lógica pura, con pruebas).
 

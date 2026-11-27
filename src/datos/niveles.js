@@ -1,4 +1,5 @@
 import { CONFIG } from '../config.js';
+import { FOTOGRAMAS_TILESET, FOTOGRAMAS_TILESET_2 } from './recursos.js';
 
 // Descripción de los niveles. Un nivel es una cuadrícula de salas; este archivo dice cómo es cada
 // sala y dónde está el jefe. El generador (src/sistemas/GeneradorDeNivel.js) arma el nivel a partir
@@ -37,6 +38,12 @@ const OBSTACULOS = Object.freeze({
 
 export const NIVEL_1 = Object.freeze({
 	nombre: 'Mazmorras inferiores',
+	// Cómo se ven el suelo y las paredes: de qué hoja (`tileset`) y qué cuadro de ella se repite en cada una.
+	estilo: Object.freeze({
+		tileset: 'tileset',
+		suelo: FOTOGRAMAS_TILESET.sueloRayas,
+		pared: FOTOGRAMAS_TILESET.texturaRayasMarron,
+	}),
 	columnas: 3,
 	filas: 3,
 	salaInicial: { columna: 0, fila: 0 },
@@ -147,3 +154,124 @@ export const NIVEL_1 = Object.freeze({
 		},
 	]),
 });
+
+// El nivel 2: la prisión. Las mismas 9 salas que el nivel 1 pero con el tileset azul-violeta de Jorge y con los
+// GUARDIAS, que disparan (ver src/datos/enemigos.js): el azul es el tirador (mantiene la distancia y dispara una bala
+// rápida) y el rojo el escopetero (avanza despacio y dispara un abanico tras un aviso largo). No hay nidos. Las
+// cajas son cobertura: contra enemigos que disparan sirven para esconderse, no solo para estorbar.
+// Los enemigos nacen en las posiciones ya comprobadas del nivel 1, sin pisar cajas ni puertas.
+// La sala del jefe (la del centro) tiene al fantasma, igual que en el nivel 1 (ver `CONFIG.JEFES`).
+export const NIVEL_2 = Object.freeze({
+	nombre: 'Prisión',
+	estilo: Object.freeze({
+		tileset: 'tileset-2',
+		suelo: FOTOGRAMAS_TILESET_2.sueloPunteado,
+		pared: FOTOGRAMAS_TILESET_2.ranuras,
+	}),
+	columnas: 3,
+	filas: 3,
+	salaInicial: { columna: 0, fila: 0 },
+	salaDelJefe: { columna: 1, fila: 1 },
+	posicionInicialDelJugador: { x: ANCHO / 2, y: ALTO / 2 },
+	posicionDelCofre: { x: ANCHO / 2, y: ALTO / 2 },
+
+	salas: Object.freeze([
+		{
+			// Inicial: tres tiradores azules en tres esquinas. La más suave: ya enseña a rodear las cajas.
+			columna: 0,
+			fila: 0,
+			obstaculos: OBSTACULOS.esquinas,
+			enemigos: [
+				enemigo('guardia-azul', 112, 200),
+				enemigo('guardia-azul', 600, 488),
+				enemigo('guardia-azul', 592, 120),
+			],
+		},
+		{
+			// Un escopetero que baja por la derecha con un tirador a cada lado.
+			columna: 1,
+			fila: 0,
+			obstaculos: OBSTACULOS.diagonal,
+			enemigos: [
+				enemigo('guardia-rojo', 656, 104),
+				enemigo('guardia-azul', 656, 536),
+				enemigo('guardia-azul', 160, 128),
+			],
+		},
+		{
+			// Dos escopeteros y un tirador entre los pilares.
+			columna: 2,
+			fila: 0,
+			obstaculos: OBSTACULOS.pilares,
+			enemigos: [
+				enemigo('guardia-rojo', 680, 528),
+				enemigo('guardia-rojo', 672, 144),
+				enemigo('guardia-azul', 160, 128),
+			],
+		},
+		{
+			// Fuego cruzado: cuatro tiradores, uno en cada rincón. No dejan de moverse para mantener la distancia.
+			columna: 0,
+			fila: 1,
+			obstaculos: OBSTACULOS.laterales,
+			enemigos: [
+				enemigo('guardia-azul', 128, 120),
+				enemigo('guardia-azul', 104, 536),
+				enemigo('guardia-azul', 640, 104),
+				enemigo('guardia-azul', 640, 504),
+			],
+		},
+		{
+			// Tres tiradores y un escopetero que espera junto a la caja de abajo.
+			columna: 2,
+			fila: 1,
+			obstaculos: OBSTACULOS.esquinas,
+			enemigos: [
+				enemigo('guardia-rojo', 696, 424),
+				enemigo('guardia-azul', 192, 136),
+				enemigo('guardia-azul', 608, 136),
+				enemigo('guardia-azul', 560, 250),
+			],
+		},
+		{
+			// Dos escopeteros y dos tiradores: hay que decidir a cuál rodear primero.
+			columna: 0,
+			fila: 2,
+			obstaculos: OBSTACULOS.diagonal,
+			enemigos: [
+				enemigo('guardia-rojo', 104, 480),
+				enemigo('guardia-rojo', 632, 112),
+				enemigo('guardia-azul', 112, 168),
+				enemigo('guardia-azul', 648, 528),
+			],
+		},
+		{
+			// Sin cajas: no hay dónde esconderse. Un tirador y tres escopeteros a campo abierto.
+			columna: 1,
+			fila: 2,
+			obstaculos: OBSTACULOS.vacia,
+			enemigos: [
+				enemigo('guardia-azul', 104, 536),
+				enemigo('guardia-rojo', 664, 104),
+				enemigo('guardia-rojo', 680, 528),
+				enemigo('guardia-rojo', 160, 128),
+			],
+		},
+		{
+			// La más difícil: tres escopeteros y dos tiradores entre los pilares (uno entre ellos, arriba del cofre).
+			columna: 2,
+			fila: 2,
+			obstaculos: OBSTACULOS.pilares,
+			enemigos: [
+				enemigo('guardia-rojo', 688, 536),
+				enemigo('guardia-rojo', 144, 528),
+				enemigo('guardia-rojo', 120, 104),
+				enemigo('guardia-azul', 656, 128),
+				enemigo('guardia-azul', 400, 232), // entre los pilares, arriba del cofre del centro y a 232 px de la puerta
+			],
+		},
+	]),
+});
+
+/** Los niveles del juego, por su número (1, 2…). */
+export const NIVELES = Object.freeze({ 1: NIVEL_1, 2: NIVEL_2 });

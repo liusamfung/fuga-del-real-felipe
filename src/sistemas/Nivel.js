@@ -1,5 +1,4 @@
 import { CONFIG } from '../config.js';
-import { FOTOGRAMAS_TILESET } from '../datos/recursos.js';
 import { Nido } from '../entidades/Nido.js';
 import { Puerta } from '../entidades/Puerta.js';
 import { buscarSala } from './GeneradorDeNivel.js';
@@ -103,23 +102,17 @@ export class Nivel {
 	#construirSala(sala) {
 		const origen = this.origenDeSala(sala.columna, sala.fila);
 		const { escena } = this;
+		const { estilo } = this.modelo; // qué cuadros del tileset son el suelo y la pared de este nivel
 
 		escena.add
-			.tileSprite(origen.x, origen.y, ANCHO, ALTO, 'tileset', FOTOGRAMAS_TILESET.sueloRayas)
+			.tileSprite(origen.x, origen.y, ANCHO, ALTO, estilo.tileset, estilo.suelo)
 			.setOrigin(0, 0)
 			.setDepth(-1);
 
 		const lados = sala.puertas.map((puerta) => puerta.lado);
 		for (const { x, y, ancho, alto } of segmentosDeParedes(MEDIDAS_DE_SALA, lados)) {
 			const pared = escena.add
-				.tileSprite(
-					origen.x + x,
-					origen.y + y,
-					ancho,
-					alto,
-					'tileset',
-					FOTOGRAMAS_TILESET.texturaRayasMarron,
-				)
+				.tileSprite(origen.x + x, origen.y + y, ancho, alto, estilo.tileset, estilo.pared)
 				.setOrigin(0, 0);
 			pared.setDepth(origen.y + y + alto);
 			this.bloques.add(pared);

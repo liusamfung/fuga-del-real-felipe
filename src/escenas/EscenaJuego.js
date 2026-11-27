@@ -1,8 +1,10 @@
 import Phaser from 'phaser';
 import { CONFIG, ESCENAS, MODOS_DE_DELETREO } from '../config.js';
-import { NIVEL_1 } from '../datos/niveles.js';
+import { NIVELES } from '../datos/niveles.js';
 import { DIFICULTADES, elegirPalabra } from '../datos/palabras.js';
 import { VOCABULARIO } from '../datos/vocabulario.js';
+import { BalasEnemigas } from '../entidades/BalasEnemigas.js';
+import { BalaEnemiga } from '../entidades/BalaEnemiga.js';
 import { Cofre } from '../entidades/Cofre.js';
 import { Enemigo } from '../entidades/Enemigo.js';
 import { Granada } from '../entidades/Granada.js';
@@ -37,6 +39,16 @@ export class EscenaJuego extends Phaser.Scene {
 		super(ESCENAS.JUEGO);
 	}
 
+	// El nivel que se juega (1 o 2) llega como dato al arrancar o reiniciar la escena: `scene.start(ESCENAS.JUEGO,
+	// { nivel: 2 })`. Sin dato, el 1. Cada nivel tiene su jefe (`CONFIG.JEFES`).
+	init(datos) {
+		this.numeroDeNivel = datos?.nivel ?? 1;
+		this.configDelJefe = CONFIG.JEFES[this.numeroDeNivel];
+		if (!this.configDelJefe) {
+			throw new Error(`No existe el nivel ${this.numeroDeNivel}`);
+		}
+	}
+
 	create() {
 		this.jugadorMuerto = false;
 		this.proximoAvisoDeLlave = 0;
@@ -53,7 +65,7 @@ export class EscenaJuego extends Phaser.Scene {
 		};
 		this.retoEnCurso = null; // de qué es el reto en pantalla: 'granada', 'ataque-fuerte' (del jefe) o null
 		this.apuntadoDelRayo = null; // por dónde saldrá el rayo del ataque fuerte: { origen, direccion, largo }
-		const { JEFE } = CONFIG;
+		const JEFE = this.configDelJefe;
 		this.pelea = new PeleaConElJefe({
 			vidaMaxima: JEFE.VIDA,
 			umbrales: JEFE.UMBRALES,
@@ -79,7 +91,7 @@ export class EscenaJuego extends Phaser.Scene {
 		this.estadoDeSalas = new Map(); // 'columna,fila' -> { combateIniciado, limpia, enemigosVivos, ... }
 		this.entrada = new Entrada(this);
 
-		this.modelo = generarNivel(NIVEL_1);
+		this.modelo = generarNivel(NIVELES[this.numeroDeNivel]);
 		this.nivel = new Nivel(this, this.modelo);
 		this.cameras.main.setBounds(
 			0,
@@ -98,8 +110,9 @@ export class EscenaJuego extends Phaser.Scene {
 		this.input.setDefaultCursor('crosshair');
 		this.#crearColisiones();
 		this.#crearElJefe();
-		this.rayo = new RayoDelJefe(this);
+		this.rayo = new RayoDelJefe(this, this.configDelJefe);
 		this.#entrarEnSala(inicio);
+		this.#mostrarMensaje(`Nivel ${this.numeroDeNivel}: ${this.modelo.nombre}`, { tamano: 28 });
 
 		// La interfaz es otra escena que se dibuja encima.
 		this.scene.launch(ESCENAS.HUD, {
@@ -131,6 +144,11 @@ export class EscenaJuego extends Phaser.Scene {
 		const irAlJefe = this.entrada.irAlJefePedido();
 		if (irAlJefe && !this.deletreoActivo) {
 			this.#irALaSalaDelJefe();
+		}
+		const irAlNivel2 = this.entrada.irAlNivel2Pedido();
+		if (irAlNivel2 && !this.deletreoActivo) {
+			this.scene.restart({ nivel: 2 }); // atajo de pruebas: empieza el nivel 2 desde cero
+			return;
 		}
 		const pedido = this.entrada.deletreoPedido();
 		const nivelPedido = this.entrada.retoDeOpcionesPedido();
@@ -173,9 +191,9 @@ export class EscenaJuego extends Phaser.Scene {
 			const { ataque } = this.jugador.estadisticas;
 			this.disparo.intentarDisparar(this.jugador, puntoDeApuntado, ataque);
 		}
-		this.disparo.actualizar(
-			this.nivel.limitesDeSala(this.salaActual.columna, this.salaActual.fila),
-		);
+		const limitesDeLaSala = this.nivel.limitesDeSala(this.salaActual.columna, this.salaActual.fila);
+		this.disparo.actualizar(limitesDeLaSala);
+		this.balasEnemigas.apagarLasQueSalieron(limitesDeLaSala);
 	}
 
 	// La cámara lenta: mientras un poder espera su reto, el mundo (enemigos, balas, animaciones y
@@ -395,14 +413,14 @@ export class EscenaJuego extends Phaser.Scene {
 			this,
 			origen.x + CONFIG.SALA.ANCHO / 2,
 			origen.y + CONFIG.SALA.ALTO / 2,
-			CONFIG.JEFE.CLAVE,
+			this.configDelJefe,
 		);
 
 		const { bloques, puertas } = this.nivel;
 		// Es sólido: el jugador no lo atraviesa y, si lo toca durante la pelea, le quita un corazón.
 		this.physics.add.collider(this.jugador, this.jefe, () => {
 			if (this.pelea.vulnerable) {
-				this.jugador.recibirDano(CONFIG.JEFE.DANO_POR_TOCARLO);
+				this.jugador.recibirDano(this.configDelJefe.DANO_POR_TOCARLO);
 			}
 		});
 		// Las balas del jugador lo golpean (antes de la pelea y después de derrotarlo no le hacen nada).
@@ -463,7 +481,7 @@ export class EscenaJuego extends Phaser.Scene {
 	// ráfaga de varios seguidos, cada uno hacia donde está el jugador en ese momento.
 	#lanzarElAtaqueBasico({ patron, disparos }) {
 		if (patron === 'triple') {
-			this.jefe.lanzarUnAbanico(this.jugador, 3, CONFIG.JEFE.TRIPLE.APERTURA);
+			this.jefe.lanzarUnAbanico(this.jugador, 3, this.configDelJefe.TRIPLE.APERTURA);
 			return;
 		}
 		if (patron !== 'rafaga') {
@@ -475,7 +493,7 @@ export class EscenaJuego extends Phaser.Scene {
 		this.jefe.lanzarUnProyectil(this.jugador); // el primero sale ya
 		if (disparos > 1) {
 			this.rafaga = this.time.addEvent({
-				delay: CONFIG.JEFE.RAFAGA.ENTRE_DISPAROS,
+				delay: this.configDelJefe.RAFAGA.ENTRE_DISPAROS,
 				repeat: disparos - 2,
 				callback: () => {
 					// Si empezó un ataque fuerte o el jefe cayó, los disparos que faltaban ya no salen.
@@ -505,7 +523,7 @@ export class EscenaJuego extends Phaser.Scene {
 			repeat: 4,
 			callback: () => this.jefe.active && this.jefe.destellar(),
 		});
-		this.time.delayedCall(CONFIG.JEFE.AVISO, () => this.#abrirElRetoDelAtaqueFuerte(nivel));
+		this.time.delayedCall(this.configDelJefe.AVISO, () => this.#abrirElRetoDelAtaqueFuerte(nivel));
 	}
 
 	#abrirElRetoDelAtaqueFuerte(nivel) {
@@ -564,7 +582,7 @@ export class EscenaJuego extends Phaser.Scene {
 		if (fin.desenlace === 'golpe') {
 			this.rayo.disparar(this.apuntadoDelRayo);
 			this.jugador.inmuneHasta = 0;
-			this.jugador.recibirDano(CONFIG.JEFE.DANO_DEL_GOLPE);
+			this.jugador.recibirDano(this.configDelJefe.DANO_DEL_GOLPE);
 			this.cameras.main.shake(260, 0.012);
 			this.#mostrarMensaje('¡Te golpeó!', { x, y: y - 100, tamano: 24 });
 		} else {
@@ -578,7 +596,9 @@ export class EscenaJuego extends Phaser.Scene {
 			this.rampa.cortar();
 			this.#aplicarLaEscalaDelTiempo(1);
 			this.jugador.esquivarConDash(lado);
-			this.rayo.disparar(this.apuntadoDelRayo, { retraso: CONFIG.JEFE.RAYO.RETRASO_SI_ESQUIVA });
+			this.rayo.disparar(this.apuntadoDelRayo, {
+				retraso: this.configDelJefe.RAYO.RETRASO_SI_ESQUIVA,
+			});
 			this.cameras.main.shake(160, 0.006);
 
 			if (fin.desenlace === 'devuelto') {
@@ -637,7 +657,7 @@ export class EscenaJuego extends Phaser.Scene {
 		this.tweens.add({
 			targets: this.jefe,
 			alpha: 0,
-			scale: CONFIG.JEFE.ESCALA * 1.4,
+			scale: this.configDelJefe.ESCALA * 1.4,
 			duration: 900,
 			onComplete: () => this.jefe.destroy(),
 		});
@@ -704,6 +724,21 @@ export class EscenaJuego extends Phaser.Scene {
 			this.jugador.recibirDano(enemigo.dano),
 		);
 		this.physics.add.collider(this.disparo.balas, puertas, (bala) => bala.desactivar());
+
+		// Las balas de los guardias (nivel 2): se detienen en paredes, cajas, nidos y puertas cerradas, y le quitan
+		// vida al jugador. Un solo grupo para toda la escena (ver `BalasEnemigas`).
+		this.balasEnemigas = new BalasEnemigas(this);
+		const balas = this.balasEnemigas.grupo;
+		this.physics.add.collider(balas, bloques, (bala) => bala.desactivar());
+		this.physics.add.collider(balas, puertas, (bala) => bala.desactivar());
+		this.physics.add.collider(balas, nidos, (bala) => bala.desactivar());
+		this.physics.add.overlap(this.jugador, balas, (a, b) => {
+			const bala = [a, b].find((objeto) => objeto instanceof BalaEnemiga);
+			if (bala?.active) {
+				this.jugador.recibirDano(bala.dano);
+				bala.desactivar();
+			}
+		});
 		this.physics.add.overlap(this.disparo.balas, this.enemigos, (bala, enemigo) =>
 			this.#alImpactarUnaBala(bala, enemigo),
 		);
@@ -883,6 +918,7 @@ export class EscenaJuego extends Phaser.Scene {
 		}
 
 		estado.limpia = true;
+		this.balasEnemigas.apagarTodas(); // las balas que quedaban en el aire ya no hacen falta
 		this.nivel.abrirPuertas(datos.columna, datos.fila);
 		this.events.emit('sala-limpia', datos);
 		this.#mostrarMensaje('¡Sala limpia!');
@@ -943,7 +979,7 @@ export class EscenaJuego extends Phaser.Scene {
 		this.jugadorMuerto = true;
 		this.physics.pause();
 		this.#mostrarMensaje('Has muerto');
-		this.time.delayedCall(1800, () => this.scene.restart());
+		this.time.delayedCall(1800, () => this.scene.restart({ nivel: this.numeroDeNivel }));
 	}
 
 	/** Muestra un texto que se desvanece. Por defecto sale en el centro de la sala actual. */

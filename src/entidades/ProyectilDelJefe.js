@@ -10,10 +10,11 @@ export class ProyectilDelJefe extends Phaser.Physics.Arcade.Image {
 		this.dano = 0;
 	}
 
-	/** Activa el proyectil en (x, y) y lo lanza en la dirección dada (un vector de largo 1). */
-	lanzar(x, y, direccion) {
-		const { VELOCIDAD, DANO } = CONFIG.JEFE.PROYECTIL;
-
+	/**
+	 * Activa el proyectil en (x, y) y lo lanza en la dirección dada (un vector de largo 1). `config` es el bloque
+	 * `PROYECTIL` del jefe del nivel (su velocidad y su daño).
+	 */
+	lanzar(x, y, direccion, { VELOCIDAD, DANO }) {
 		this.enableBody(true, x, y, true, true);
 		this.setDepth(CONFIG.DISPARO.PROFUNDIDAD_BALAS);
 		this.dano = DANO;

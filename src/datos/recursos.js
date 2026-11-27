@@ -156,6 +156,20 @@ export const RECURSOS = Object.freeze({
 	'rata-blanca': { tipo: 'hoja', ruta: 'assets/img/enemigos/rata-blanca.png', ancho: 32, alto: 48 },
 	'rata-negra': { tipo: 'hoja', ruta: 'assets/img/enemigos/rata-negra.png', ancho: 32, alto: 48 },
 
+	// Los guardias del nivel 2 (dibujos de Jorge): 3 cuadros de caminar cada uno (de pie y dos pasos).
+	'guardia-azul': {
+		tipo: 'hoja',
+		ruta: 'assets/img/enemigos/guardia-azul.png',
+		ancho: 32,
+		alto: 48,
+	},
+	'guardia-rojo': {
+		tipo: 'hoja',
+		ruta: 'assets/img/enemigos/guardia-rojo.png',
+		ancho: 32,
+		alto: 48,
+	},
+
 	// El segundo jefe: un fantasma con corona. 3 cuadros de flotar en una fila (las manos y la barba
 	// cambian de posición). Ojo: los cuadros miden 32 x 32, no 32 x 48 como los de los demás personajes.
 	'jefe-2': {
@@ -170,6 +184,15 @@ export const RECURSOS = Object.freeze({
 	tileset: {
 		tipo: 'hoja',
 		ruta: 'assets/img/escenario/tileset-prision.png',
+		ancho: 32,
+		alto: 48,
+	},
+
+	// El tileset del nivel 2 (de Jorge): la misma distribución que el del nivel 1, repintada en azul y violeta,
+	// pero con 13 piezas (ver `FOTOGRAMAS_TILESET_2`). No trae las piezas de suelo con bordes.
+	'tileset-2': {
+		tipo: 'hoja',
+		ruta: 'assets/img/escenario/tileset-prision-2.png',
 		ancho: 32,
 		alto: 48,
 	},
@@ -313,6 +336,30 @@ export const RECURSOS = Object.freeze({
 	'rayo-jefe': franjaDelRayo(64, 24),
 	'rayo-cabeza': bolaDeEnergia(32),
 
+	// Las balas de los guardias (provisionales): una pequeña de cada color, para que se distinga quién disparó.
+	'bala-guardia-azul': {
+		tipo: 'generado',
+		ancho: 10,
+		alto: 10,
+		formas: [
+			{ x: 3, y: 0, ancho: 4, alto: 10, color: 0x4a74d9 },
+			{ x: 0, y: 3, ancho: 10, alto: 4, color: 0x4a74d9 },
+			{ x: 2, y: 2, ancho: 6, alto: 6, color: 0x8fb4ff },
+			{ x: 4, y: 4, ancho: 2, alto: 2, color: 0xe8f0ff },
+		],
+	},
+	'bala-guardia-roja': {
+		tipo: 'generado',
+		ancho: 10,
+		alto: 10,
+		formas: [
+			{ x: 3, y: 0, ancho: 4, alto: 10, color: 0xc0392b },
+			{ x: 0, y: 3, ancho: 10, alto: 4, color: 0xc0392b },
+			{ x: 2, y: 2, ancho: 6, alto: 6, color: 0xff7a5c },
+			{ x: 4, y: 4, ancho: 2, alto: 2, color: 0xffe3d6 },
+		],
+	},
+
 	// La granada del jugador (poder especial): una bola oscura con la mecha encendida.
 	granada: {
 		tipo: 'generado',
@@ -354,4 +401,22 @@ export const FOTOGRAMAS_TILESET = Object.freeze({
 	sueloBordeDerecha: 19,
 	sueloLiso: 20,
 	sueloRayas: 21,
+});
+
+// Lo mismo para el tileset del nivel 2 (`tileset-2`): son 13 piezas, en el mismo orden que las primeras del otro
+// (los marcos y los paneles), y la 12 es el suelo. No tiene las piezas de suelo con borde (13 a 21 del otro).
+export const FOTOGRAMAS_TILESET_2 = Object.freeze({
+	marcoEsquinaArribaIzquierda: 0,
+	marcoEsquinaArribaDerecha: 1,
+	marcoEsquinaAbajoDerecha: 2,
+	marcoEsquinaAbajoIzquierda: 3,
+	marcoBordeArriba: 4,
+	marcoBordeAbajo: 5,
+	marcoBordeIzquierda: 6,
+	marcoBordeDerecha: 7,
+	paredLisa: 8,
+	ranuras: 9,
+	panelMarco: 10,
+	panelConcentrico: 11,
+	sueloPunteado: 12,
 });
