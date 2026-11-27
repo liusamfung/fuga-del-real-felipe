@@ -105,7 +105,7 @@ test('el jefe del juego (CONFIG.JEFE) apunta a una hoja que existe y tiene su an
 	assert.ok(Number.isInteger(ESCALA) && ESCALA >= 1, 'con pixel art la escala debe ser un entero');
 });
 
-test('el jefe del nivel 1 tiene su hoja de 3 cuadros de 32 × 32 (provisional) y su animación de flotar', () => {
+test('el jefe del nivel 1 (la rata de Sebastián) tiene su hoja de 3 cuadros de 32 × 32 y su animación de flotar', () => {
 	assert.equal(RECURSOS['jefe-1'].ancho, 32);
 	assert.equal(RECURSOS['jefe-1'].alto, 32);
 	assert.deepEqual(leerPng(RECURSOS['jefe-1'].ruta), { ancho: 96, alto: 32 });

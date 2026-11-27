@@ -126,8 +126,9 @@ test('el ataque básico es mucho más rápido y frecuente que antes (27/11/2026)
 	assert.ok(CONFIG.JEFE.INTERVALO_DE_ATAQUE <= 1000, 'al menos uno por segundo');
 });
 
-test('las texturas del rayo existen y todas sus formas caben dentro del dibujo', () => {
-	for (const clave of ['rayo-jefe', 'rayo-cabeza']) {
+test('las texturas del rayo (la verde y la de alcantarilla) existen y todas sus formas caben dentro del dibujo', () => {
+	const claves = ['rayo-jefe', 'rayo-cabeza', 'rayo-jefe-alcantarilla', 'rayo-cabeza-alcantarilla'];
+	for (const clave of claves) {
 		const { tipo, ancho, alto, formas } = RECURSOS[clave];
 		assert.equal(tipo, 'generado', clave);
 		assert.ok(formas.length > 0, clave);

@@ -53,8 +53,8 @@ export const ANIMACIONES = Object.freeze([
 		repetir: true,
 	},
 
-	// Los jefes flotan: van del cuadro 0 al 2 y vuelven por el 1, así el movimiento no da saltos. El del nivel 1 es
-	// provisional (una copia del fantasma, ver src/datos/recursos.js): con su dibujo definitivo se ajustan los cuadros.
+	// Los jefes flotan: van del cuadro 0 al 2 y vuelven por el 1, así el movimiento no da saltos. En la rata del nivel 1 los
+	// tres cuadros van bajando poco a poco (2 filas en total), así que este orden también le sirve.
 	{
 		clave: 'jefe-1-flotar',
 		textura: 'jefe-1',

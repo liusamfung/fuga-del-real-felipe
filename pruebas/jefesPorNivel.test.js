@@ -119,7 +119,7 @@ test('cada jefe tiene su PROPIO dibujo: el del nivel 1 ya no es el fantasma', ()
 
 test('lo que depende del dibujo (clave, escala y cuerpo) está en cada jefe, para cambiarlo sin tocar al otro', () => {
 	for (const [nivel, jefe] of Object.entries(JEFES)) {
-		for (const campo of ['CLAVE', 'ESCALA', 'CUERPO_ANCHO', 'CUERPO_ALTO']) {
+		for (const campo of ['CLAVE', 'ESCALA', 'CUERPO_ANCHO', 'CUERPO_ALTO', 'DIBUJO_DEL_RAYO']) {
 			assert.ok(Object.hasOwn(jefe, campo), `nivel ${nivel}: falta ${campo}`);
 		}
 		// El cuerpo de choque cabe dentro del cuadro de 32 x 32 del dibujo (se mide en píxeles del dibujo).
@@ -143,4 +143,38 @@ test('lo común a los dos jefes (vida, ataques, rayo) sale de una base: cambiar 
 	);
 	assert.notEqual(JEFES[1].NIVELES_DE_INGLES, JEFES[2].NIVELES_DE_INGLES);
 	assert.notEqual(JEFES[1].CLAVE, JEFES[2].CLAVE);
+});
+
+test('cada jefe tiene el rayo de su color: el de la rata es de alcantarilla y el del fantasma sigue verde', () => {
+	for (const [nivel, jefe] of Object.entries(JEFES)) {
+		const { FRANJA, CABEZA, AVISO } = jefe.DIBUJO_DEL_RAYO;
+		assert.ok(RECURSOS[FRANJA], `nivel ${nivel}: no existe la textura ${FRANJA}`);
+		assert.ok(RECURSOS[CABEZA], `nivel ${nivel}: no existe la textura ${CABEZA}`);
+		assert.ok(Number.isInteger(AVISO), `nivel ${nivel}: el color del aviso debe ser un número`);
+	}
+
+	assert.equal(JEFES[1].DIBUJO_DEL_RAYO.FRANJA, 'rayo-jefe-alcantarilla');
+	assert.equal(
+		JEFES[2].DIBUJO_DEL_RAYO.FRANJA,
+		'rayo-jefe',
+		'el rayo del jefe 2 no cambia: sigue verde',
+	);
+	assert.notEqual(JEFES[1].DIBUJO_DEL_RAYO.AVISO, JEFES[2].DIBUJO_DEL_RAYO.AVISO);
+});
+
+test('el rayo de alcantarilla no tiene nada de verde: en todos sus colores el rojo supera al verde y el verde al azul', () => {
+	// Marrón sucio = rojo > verde > azul. Un verde (o un blanco limpio) rompería la regla.
+	for (const clave of ['rayo-jefe-alcantarilla', 'rayo-cabeza-alcantarilla']) {
+		for (const { color } of RECURSOS[clave].formas) {
+			const rojo = (color >> 16) & 0xff;
+			const verde = (color >> 8) & 0xff;
+			const azul = color & 0xff;
+			assert.ok(
+				rojo >= verde && verde >= azul && rojo > azul,
+				`${clave}: el color 0x${color.toString(16)} no es marrón/negro`,
+			);
+		}
+	}
+	const { AVISO } = JEFES[1].DIBUJO_DEL_RAYO;
+	assert.ok(((AVISO >> 16) & 0xff) > (AVISO & 0xff), 'el aviso del jefe 1 debe ser marrón');
 });

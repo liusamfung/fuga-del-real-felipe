@@ -25,18 +25,43 @@ function azarConSemilla(semilla) {
 	};
 }
 
-// El rayo verde del ataque fuerte del jefe (provisional): una franja de energía que se repite a lo largo del rayo
-// (por eso el borde izquierdo y el derecho encajan: nada cambia de forma gradual a lo ancho). Capas de verde, de
-// oscuro en el borde a casi blanco en el centro, con el borde irregular, chispas sueltas y rayitas claras. Está
-// dibujada con la misma paleta que el fantasma y su proyectil.
-function franjaDelRayo(ancho, alto) {
+// Los colores del rayo del ataque fuerte de cada jefe: de oscuro en el borde a claro en el centro. `chispas` son las
+// motas sueltas fuera del borde, `rayitas` las líneas claras que corren a lo largo y `nucleo` el centro de la bola de
+// donde sale. Cada jefe usa la suya (ver `DIBUJO_DEL_RAYO` en src/config.js).
+// - Verde: el del fantasma con corona (jefe 2), la misma paleta que el fantasma y su proyectil.
+const PALETA_RAYO_VERDE = Object.freeze({
+	borde: 0x2f7a3a,
+	medio: 0x4fd16a,
+	claro: 0xa6f5a0,
+	centro: 0xe8ffd9,
+	chispas: 0x4fd16a,
+	rayitas: 0xffffff,
+	nucleo: 0xf4fff0,
+});
+// - Alcantarilla: el de la rata gigante (jefe 1). Marrón sucio, como agua de cloaca, con motas casi negras. El borde NO es
+//   negro: el suelo ya es oscuro y un borde negro se funde con él (el rayo se vería mucho más fino de lo que es y el
+//   daño cubre todo su ancho). El centro es un pardo apagado, sin blanco, y las rayitas son de barro claro.
+const PALETA_RAYO_ALCANTARILLA = Object.freeze({
+	borde: 0x5c3b1b,
+	medio: 0x83592a,
+	claro: 0xab823f,
+	centro: 0xd4b676,
+	chispas: 0x2a1a0e,
+	rayitas: 0xe6d3a3,
+	nucleo: 0xc9a560,
+});
+
+// La franja de energía del rayo (provisional): se repite a lo largo del rayo (por eso el borde izquierdo y el derecho
+// encajan: nada cambia de forma gradual a lo ancho). Cuatro capas de color, con el borde irregular, chispas sueltas y
+// rayitas claras. Los colores vienen de la `paleta`.
+function franjaDelRayo(ancho, alto, paleta) {
 	const azar = azarConSemilla(27112026);
 	const centro = alto / 2;
 	const capas = [
-		{ color: 0x2f7a3a, mitad: 7 }, // borde
-		{ color: 0x4fd16a, mitad: 4 },
-		{ color: 0xa6f5a0, mitad: 2 },
-		{ color: 0xe8ffd9, mitad: 1 }, // centro
+		{ color: paleta.borde, mitad: 7 },
+		{ color: paleta.medio, mitad: 4 },
+		{ color: paleta.claro, mitad: 2 },
+		{ color: paleta.centro, mitad: 1 },
 	];
 	const formas = [];
 
@@ -54,7 +79,7 @@ function franjaDelRayo(ancho, alto) {
 				y: centro + lado * (9 + Math.floor(azar() * 2)),
 				ancho: 1,
 				alto: 1,
-				color: 0x4fd16a,
+				color: paleta.chispas,
 			});
 		}
 	}
@@ -64,21 +89,21 @@ function franjaDelRayo(ancho, alto) {
 		const largo = 5 + Math.floor(azar() * 5);
 		const x = Math.floor(azar() * (ancho - largo));
 		const y = centro + Math.floor(azar() * 7) - 3;
-		formas.push({ x, y, ancho: largo, alto: 1, color: 0xffffff });
+		formas.push({ x, y, ancho: largo, alto: 1, color: paleta.rayitas });
 	}
 
 	return { tipo: 'generado', ancho, alto, formas };
 }
 
-// La bola de energía de donde sale el rayo (provisional): círculos de verde, del borde oscuro al centro casi
-// blanco, con el borde algo irregular. Se dibuja por filas de un mismo color.
-function bolaDeEnergia(lado) {
+// La bola de energía de donde sale el rayo (provisional): círculos de la `paleta`, del borde oscuro al núcleo claro,
+// con el borde algo irregular. Se dibuja por filas de un mismo color.
+function bolaDeEnergia(lado, paleta) {
 	const azar = azarConSemilla(15101985);
 	const anillos = [
-		{ hasta: 0.3, color: 0xf4fff0 },
-		{ hasta: 0.55, color: 0xa6f5a0 },
-		{ hasta: 0.8, color: 0x4fd16a },
-		{ hasta: 1, color: 0x2f7a3a },
+		{ hasta: 0.3, color: paleta.nucleo },
+		{ hasta: 0.55, color: paleta.claro },
+		{ hasta: 0.8, color: paleta.medio },
+		{ hasta: 1, color: paleta.borde },
 	];
 	const centro = (lado - 1) / 2;
 	const formas = [];
@@ -170,11 +195,11 @@ export const RECURSOS = Object.freeze({
 		alto: 48,
 	},
 
-	// El jefe del nivel 1. PROVISIONAL: una copia del fantasma teñida de rojo, para que el jefe 1 ya esté construido como debe
-	// (su propia hoja, su propia animación y su propia configuración, `CONFIG.JEFES[1]`). Cuando llegue el dibujo de Sebastián
-	// se reemplaza el archivo `jefe-1.png`; si mide distinto, se cambian `ancho` y `alto` de aquí (el tamaño de UN cuadro),
-	// los `cuadros` de su animación (src/datos/animaciones.js) y su `ESCALA` y cuerpo (src/config.js). Ver
-	// docs/guia-de-recursos.md.
+	// El jefe del nivel 1: una rata gigante gris azulada, dibujo de Sebastián. 3 cuadros de flotar en una fila (la rata sube y
+	// baja un poco y mueve la cola). Ojo: los cuadros miden 32 x 32, no 32 x 48 como los de los demás personajes. Tiene su
+	// propia hoja, su propia animación y su propia configuración (`CONFIG.JEFES[1]`). Si se cambia el archivo `jefe-1.png` y
+	// mide distinto, se cambian `ancho` y `alto` de aquí (el tamaño de UN cuadro), los `cuadros` de su animación
+	// (src/datos/animaciones.js) y su `ESCALA` y cuerpo (src/config.js). Ver docs/guia-de-recursos.md.
 	'jefe-1': {
 		tipo: 'hoja',
 		ruta: 'assets/img/enemigos/jefe-1.png',
@@ -345,8 +370,11 @@ export const RECURSOS = Object.freeze({
 	},
 
 	// El rayo del ataque fuerte del jefe (provisional): la franja se repite a lo largo del rayo y la bola es de donde sale.
-	'rayo-jefe': franjaDelRayo(64, 24),
-	'rayo-cabeza': bolaDeEnergia(32),
+	// Cada jefe tiene el suyo: verde (jefe 2) y de alcantarilla, negro y marrón sucio (jefe 1).
+	'rayo-jefe': franjaDelRayo(64, 24, PALETA_RAYO_VERDE),
+	'rayo-cabeza': bolaDeEnergia(32, PALETA_RAYO_VERDE),
+	'rayo-jefe-alcantarilla': franjaDelRayo(64, 24, PALETA_RAYO_ALCANTARILLA),
+	'rayo-cabeza-alcantarilla': bolaDeEnergia(32, PALETA_RAYO_ALCANTARILLA),
 
 	// Las balas de los guardias (provisionales): una pequeña de cada color, para que se distinga quién disparó.
 	'bala-guardia-azul': {
