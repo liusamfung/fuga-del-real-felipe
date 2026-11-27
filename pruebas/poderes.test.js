@@ -1,10 +1,13 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { PoderConRecarga } from '../src/sistemas/PoderConRecarga.js';
+import { CONFIG } from '../src/config.js';
 import {
 	alcanzadosPorLaExplosion,
 	limitarAlRectangulo,
+	rectanguloDelCuerpo,
 	tiempoDeVuelo,
+	tramosDeRayas,
 } from '../src/utilidades/explosion.js';
 
 const ACIERTO = 6000;
@@ -111,6 +114,91 @@ test('alcanzadosPorLaExplosion con la lista vacía no falla y no cambia la lista
 	const objetivos = [{ x: 1, y: 1 }];
 	alcanzadosPorLaExplosion({ x: 0, y: 0 }, 50, objetivos);
 	assert.equal(objetivos.length, 1);
+});
+
+test('la explosión cuenta el CUERPO del objetivo: basta con que el círculo lo roce, aunque su centro quede fuera', () => {
+	const centro = { x: 0, y: 0 };
+	const cuerpo = { ancho: 24, alto: 40 }; // lo que mide un enemigo
+	// A la derecha: el centro está a 110, pero su lado izquierdo está a 98 (110 - 12). Con radio 100 lo roza.
+	const roza = { x: 110, y: 0, ...cuerpo };
+	assert.deepEqual(alcanzadosPorLaExplosion(centro, 100, [roza]), [roza]);
+	// Como punto (sin cuerpo) el mismo objetivo quedaría fuera: eso es lo que arregla este cambio.
+	assert.deepEqual(alcanzadosPorLaExplosion(centro, 100, [{ x: 110, y: 0 }]), []);
+	// Un cuerpo alto cuyo borde de abajo toca el círculo.
+	const arriba = { x: 0, y: -118, ...cuerpo }; // su borde inferior está a 98
+	assert.deepEqual(alcanzadosPorLaExplosion(centro, 100, [arriba]), [arriba]);
+	// Un poco más lejos ya no.
+	assert.deepEqual(alcanzadosPorLaExplosion(centro, 100, [{ x: 130, y: 0, ...cuerpo }]), []);
+});
+
+test('un cuerpo cuyo centro está dentro del círculo siempre cuenta, y en una esquina se mide a la esquina', () => {
+	const centro = { x: 0, y: 0 };
+	const encima = { x: 0, y: 0, ancho: 64, alto: 64 }; // el nido justo debajo de la explosión
+	assert.deepEqual(alcanzadosPorLaExplosion(centro, 10, [encima]), [encima]);
+	// Una esquina del cuerpo a (60, 60) - (32, 32) = (28, 28) → distancia 39,6: fuera de 39, dentro de 40.
+	const enLaDiagonal = { x: 60, y: 60, ancho: 64, alto: 64 };
+	assert.deepEqual(alcanzadosPorLaExplosion(centro, 39, [enLaDiagonal]), []);
+	assert.deepEqual(alcanzadosPorLaExplosion(centro, 40, [enLaDiagonal]), [enLaDiagonal]);
+});
+
+test('la granada golpea a un enemigo pegado al jugador aunque la lance a sus pies', () => {
+	const { RADIO } = CONFIG.PODERES.GRANADA;
+	const { CUERPO_ANCHO, CUERPO_ALTO } = CONFIG.ENEMIGO;
+	const jugador = { x: 500, y: 500 };
+	// Un enemigo a 100 px de distancia, justo a un lado: dentro del círculo, con cuerpo o sin él.
+	const pegado = { x: 600, y: 500, ancho: CUERPO_ANCHO, alto: CUERPO_ALTO };
+	assert.deepEqual(alcanzadosPorLaExplosion(jugador, RADIO, [pegado]), [pegado]);
+	// Y uno a RADIO + medio ancho: el centro queda fuera, pero el cuerpo roza el círculo.
+	const rozando = {
+		x: 500 + RADIO + CUERPO_ANCHO / 2,
+		y: 500,
+		ancho: CUERPO_ANCHO,
+		alto: CUERPO_ALTO,
+	};
+	assert.deepEqual(alcanzadosPorLaExplosion(jugador, RADIO, [rozando]), [rozando]);
+});
+
+test('el radio de la granada creció: de 96 a 128 px (4 casillas)', () => {
+	assert.equal(CONFIG.PODERES.GRANADA.RADIO, 128);
+	assert.equal(CONFIG.PODERES.GRANADA.RADIO % CONFIG.SALA.CASILLA, 0);
+});
+
+test('rectanguloDelCuerpo convierte el cuerpo de Phaser en el objetivo de la explosión', () => {
+	const cuerpo = { center: { x: 50, y: 70 }, width: 24, height: 40, otra: 'cosa' };
+	assert.deepEqual(rectanguloDelCuerpo(cuerpo), { x: 50, y: 70, ancho: 24, alto: 40 });
+});
+
+// --- La vista previa ---
+
+test('tramosDeRayas parte la línea en rayas con huecos, empezando por una raya', () => {
+	const tramos = tramosDeRayas({ x: 0, y: 0 }, { x: 100, y: 0 }, 10, 10);
+	assert.equal(tramos.length, 5); // rayas en 0-10, 20-30, 40-50, 60-70, 80-90
+	assert.deepEqual(tramos[0], { desde: { x: 0, y: 0 }, hasta: { x: 10, y: 0 } });
+	assert.deepEqual(tramos[1].desde, { x: 20, y: 0 });
+	assert.deepEqual(tramos[4].hasta, { x: 90, y: 0 });
+});
+
+test('la última raya se corta donde acaba la línea: nunca pasa del destino', () => {
+	const tramos = tramosDeRayas({ x: 0, y: 0 }, { x: 25, y: 0 }, 10, 10);
+	assert.equal(tramos.length, 2);
+	assert.deepEqual(tramos[1], { desde: { x: 20, y: 0 }, hasta: { x: 25, y: 0 } });
+});
+
+test('tramosDeRayas funciona en diagonal y las rayas siguen la dirección de la línea', () => {
+	const tramos = tramosDeRayas({ x: 10, y: 10 }, { x: 10 + 30, y: 10 + 40 }, 25, 25); // largo 50
+	assert.equal(tramos.length, 1);
+	assert.deepEqual(tramos[0].desde, { x: 10, y: 10 });
+	assert.ok(Math.abs(tramos[0].hasta.x - 25) < 1e-9 && Math.abs(tramos[0].hasta.y - 30) < 1e-9);
+});
+
+test('una línea de largo cero (lanzar a los pies) no tiene rayas', () => {
+	assert.deepEqual(tramosDeRayas({ x: 5, y: 5 }, { x: 5, y: 5 }, 10, 10), []);
+});
+
+test('la vista previa tiene su configuración: color, raya y hueco', () => {
+	const { COLOR, RAYA, HUECO } = CONFIG.PODERES.GRANADA.VISTA_PREVIA;
+	assert.ok(Number.isInteger(COLOR));
+	assert.ok(RAYA > 0 && HUECO > 0);
 });
 
 // --- El vuelo ---

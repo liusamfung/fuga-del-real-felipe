@@ -34,17 +34,14 @@ El juego se abre en http://localhost:5173.
 
 ## Controles
 
-| Acción                        | Control                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Moverse                       | Flechas o W A S D                                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| Apuntar                       | Mover el ratón (el cursor es la mira)                                                                                                                                                                                                                                                                                                                                                                                                                          |
-| Disparar                      | Clic izquierdo; se puede mantener pulsado para seguir                                                                                                                                                                                                                                                                                                                                                                                                          |
-| Dash                          | Barra espaciadora (una pulsación por dash)                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| Deletrear con la voz (prueba) | `V`: cambia entre teclado y voz. Con la voz se usa el micrófono (Chrome) y hay el doble de tiempo                                                                                                                                                                                                                                                                                                                                                              |
-| Deletrear (prueba)            | `E`: palabra visible. `T`: con huecos (Ahorcado). `Y`: de memoria. Con `Mayúsculas`: al revés. `R`: una fácil al revés. `I`: dictado en inglés (el juego dice la palabra y la escribes; `ESPACIO` la repite). `G`: la granada (superas un reto de inglés y la lanzas hacia el cursor). `O`: nivel 1 de inglés (palabra en español, dices su traducción). `P`: nivel 2 (definición en inglés, dices la palabra). Provisional hasta que el deletreo sea un poder |
-| Ir al jefe (prueba)           | `J`: te lleva directo a la sala del jefe (con la llave) y la pelea empieza al instante; sirve para probarlo sin recorrer las otras salas                                                                                                                                                                                                                                                                                                                       |
-| Ir al nivel 2 (prueba)        | `K`: empieza el nivel 2 (la prisión, con guardias que disparan) desde el principio, sin pasar por el jefe del nivel 1. Se quitará cuando el paso de nivel esté hecho.                                                                                                                                                                                                                                                                                          |
-| Silenciar el sonido           | `M`: silencia o devuelve la música y los efectos (se recuerda). Más en [`docs/audio.md`](docs/audio.md)                                                                                                                                                                                                                                                                                                                                                        |
+| Acción                    | Control                                                                                                                                                       |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Moverse                   | Flechas o W A S D                                                                                                                                             |
+| Apuntar                   | Mover el ratón (el cursor es la mira)                                                                                                                         |
+| Disparar                  | Clic izquierdo; se puede mantener pulsado para seguir                                                                                                         |
+| Dash                      | `Mayúsculas` (Shift): una pulsación por dash                                                                                                                  |
+| Ataque especial (granada) | `Espacio`: abre un reto de inglés; si lo aciertas, lanzas la granada hacia el cursor. Mientras respondes se ve una línea y un círculo naranja con dónde caerá |
+| Silenciar el sonido       | `M`: silencia o devuelve la música y los efectos (se recuerda). Más en [`docs/audio.md`](docs/audio.md)                                                       |
 
 ## Comandos
 
@@ -57,23 +54,41 @@ El juego se abre en http://localhost:5173.
 | `npm run lint`    | Revisa el código con ESLint                   |
 | `npm run format`  | Da formato a los archivos con Prettier        |
 
+### Publicar el juego
+
+El juego publicado no trae atajos de prueba (ir al jefe, saltar de nivel, pedir retos sueltos) ni el modo de depuración.
+
+```bash
+npm run build          # genera la carpeta dist/ con el juego listo para publicar
+npm run preview        # (opcional) lo prueba en http://localhost:4173 tal como se publicaría
+```
+
+Para subir `dist/` a Netlify: arrástrala a <https://app.netlify.com/drop> o, con la herramienta de Netlify:
+
+```bash
+npx netlify-cli deploy --dir=dist --prod
+```
+
+El micrófono solo funciona en una página segura: Netlify publica con **https**, así que sirve. `dist/` no se sube a git.
+
 ### Prueba de voz
 
-Abre **http://localhost:5173/?voz** para medir qué tan bien reconoce el navegador a alguien
+Con `npm run dev` en marcha (esta herramienta **no existe en el juego publicado**), abre **http://localhost:5173/?voz** para medir qué tan bien reconoce el navegador a alguien
 deletreando: muestra lo que oye y las letras que entiende. El procedimiento está en
 [`docs/prueba-de-voz.md`](docs/prueba-de-voz.md). Necesita **Chrome**, **internet** y permiso para el
 micrófono.
 
 ### Prueba de voz en inglés
 
-Abre **http://localhost:5173/?ingles** para medir si el navegador entiende una palabra en inglés
+Con `npm run dev` en marcha (tampoco existe en el juego publicado), abre **http://localhost:5173/?ingles** para medir si el navegador entiende una palabra en inglés
 dicha en voz alta (10 fichas con tres opciones). El procedimiento está en
 [`docs/prueba-de-voz-ingles.md`](docs/prueba-de-voz-ingles.md). Necesita **Chrome**, **internet** y
 permiso para el micrófono.
 
 ### Modo de depuración
 
-Abre el juego con `?debug` al final de la dirección: http://localhost:5173/?debug
+Solo con `npm run dev` en marcha: abre el juego con `?debug` al final de la dirección: http://localhost:5173/?debug.
+En el juego publicado (`npm run build`) `?debug` no hace nada.
 
 - Muestra los cuerpos de choque (cuadros de colores) y la velocidad de los objetos.
 - Deja el juego accesible desde la consola del navegador como `window.juego`.

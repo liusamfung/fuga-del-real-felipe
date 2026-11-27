@@ -53,8 +53,8 @@ Elegir entre Juran, Deming o Crosby y confirmar el nombre "Joseph Durand" con el
 
 ## 3. Voz: poderes, idioma y tiempo
 
-- **Granada** (hecha el 26/11/2026, tecla `G`, ver [`mecanicas.md`](mecanicas.md) 5.11): reto de nivel 1,
-  daño 3 en un radio de 96 px, recarga 6 s si se acierta y 2,5 s si se falla _(todo provisional)_.
+- **Granada** (hecha el 26/11/2026, tecla `Espacio` desde el 27/11/2026, antes `G`; ver [`mecanicas.md`](mecanicas.md) 5.11): reto de nivel 1,
+  daño 3 en un radio de 128 px (cuenta el cuerpo del enemigo), con vista previa mientras se responde, recarga 6 s si se acierta y 2,5 s si se falla _(todo provisional)_.
   **Confirmar o ajustar:** ¿el daño y el radio, la recarga, y si el reto debe ser de otro nivel?
 - ¿Qué poderes hay además de la **granada**? (nombre, efecto, recarga y de qué nivel de inglés es su reto).
 - Idioma del reconocimiento: `es-PE` o `es-ES`. Hoy `es-PE` _(provisional; aceptado por ahora el 25/11/2026)_; se decide con la
@@ -103,7 +103,7 @@ Elegir entre Juran, Deming o Crosby y confirmar el nombre "Joseph Durand" con el
 ## 5. Combate
 
 - **Disparo:** ¿manual (clics), automático o ambos con una opción?
-- **Dash:** hoy es la barra espaciadora, con 0,2 s de inmunidad y 1,2 s de recarga _(provisional)_.
+- **Dash:** hoy es la tecla Mayúsculas (Shift; antes la barra espaciadora), con 0,2 s de inmunidad y 1,2 s de recarga _(provisional)_.
   ¿Se confirma? ¿El DobleDash recarga las dos cargas a la vez (como está) o una por una?
 - **Enemigos (26/11/2026):** hoy hay 5 tipos (el débil y 4 ratas de Jorge) y todos **caminan en línea recta
   hacia el jugador**; lo que cambia es la vida, la velocidad, el daño y cuántos hay por sala (ver
@@ -116,7 +116,7 @@ Elegir entre Juran, Deming o Crosby y confirmar el nombre "Joseph Durand" con el
   ataque fuerte es un **rayo** (verde el del jefe 2, de alcantarilla —marrón sucio— el del jefe 1, 27/11/2026) que se esquiva con un dash automático al acertar. **Abierto:** ¿los números son justos? _(Resuelto el 27/11/2026: el jefe 2 usa los niveles 2 y 3; al derrotar al jefe 1 se pasa al nivel 2 y al jefe 2 se gana; ver `mecanicas.md`, 6.3.)_
 - **Nivel 2 (27/11/2026):** empezado con los dibujos de Jorge: tileset azul-violeta, 2 guardias que **disparan distinto**
   (el tirador azul y el escopetero rojo; ver [`enemigos.md`](enemigos.md)) y el jefe 2 (el fantasma). Se entra con el cartel de «nivel completado»
-  del jefe 1 o con la tecla `K` (atajo de pruebas, se puede quitar ya). **Abierto:** ¿los guardias son justos (no se han jugado de principio a fin)?
+  del jefe 1 (el atajo `K` se quitó el 27/11/2026). **Abierto:** ¿los guardias son justos (no se han jugado de principio a fin)?
   El **jefe 1** ya tiene su dibujo (la rata gigante de Sebastián, 27/11/2026, PR #20): solo trae el flotar; faltan ataque y daño. ¿Qué hace cada pieza del tileset 2 y hay más (cajas, puertas)? ¿Las cajas marrones sirven
   en la prisión azul? Los guardias solo tienen dibujo de frente.
 - **Voz y palabras que Chrome no entiende (27/11/2026): DECIDIDO.** Chrome no entrega texto para algunas palabras («leg», «boat», «tail»,

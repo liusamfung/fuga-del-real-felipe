@@ -3,18 +3,17 @@ import { CONFIG, ESCENAS, MODOS_DE_DELETREO } from '../config.js';
 import { claveDeLaMusicaDelNivel } from '../datos/audio.js';
 import { cartelDe } from '../datos/carteles.js';
 import { NIVELES } from '../datos/niveles.js';
-import { DIFICULTADES, elegirPalabra } from '../datos/palabras.js';
 import { VOCABULARIO, VOCABULARIO_PARA_VOZ } from '../datos/vocabulario.js';
 import { BalasEnemigas } from '../entidades/BalasEnemigas.js';
 import { BalaEnemiga } from '../entidades/BalaEnemiga.js';
 import { Cofre } from '../entidades/Cofre.js';
 import { Enemigo } from '../entidades/Enemigo.js';
 import { Granada } from '../entidades/Granada.js';
+import { VistaPreviaDeLaGranada } from '../entidades/VistaPreviaDeLaGranada.js';
 import { Jefe } from '../entidades/Jefe.js';
 import { RayoDelJefe } from '../entidades/RayoDelJefe.js';
 import { ProyectilDelJefe } from '../entidades/ProyectilDelJefe.js';
 import { Jugador } from '../entidades/Jugador.js';
-import { ReconocedorDeVoz } from '../sistemas/ReconocedorDeVoz.js';
 import { Disparo } from '../sistemas/Disparo.js';
 import { Entrada } from '../sistemas/Entrada.js';
 import { generarNivel } from '../sistemas/GeneradorDeNivel.js';
@@ -25,8 +24,11 @@ import { alDerrotarAlJefe, alMorir } from '../sistemas/ProgresoDelJuego.js';
 import { Sonido } from '../sistemas/Sonido.js';
 import { RampaDeTiempo } from '../sistemas/RampaDeTiempo.js';
 import { aplicarMejora, elegirMejoraComun } from '../sistemas/Recompensas.js';
-import { elegirAlAzar } from '../utilidades/azar.js';
-import { alcanzadosPorLaExplosion, limitarAlRectangulo } from '../utilidades/explosion.js';
+import {
+	alcanzadosPorLaExplosion,
+	limitarAlRectangulo,
+	rectanguloDelCuerpo,
+} from '../utilidades/explosion.js';
 import { puntoDeSalidaDelNido } from '../utilidades/nido.js';
 import { ladoDeEsquive, largoHastaElBorde } from '../utilidades/rayo.js';
 import { normalizar } from '../utilidades/vectores.js';
@@ -44,9 +46,11 @@ export class EscenaJuego extends Phaser.Scene {
 	}
 
 	// El nivel que se juega (1 o 2) llega como dato al arrancar o reiniciar la escena: `scene.start(ESCENAS.JUEGO,
-	// { nivel: 2 })`. Sin dato, el 1. Cada nivel tiene su jefe (`CONFIG.JEFES`).
+	// { nivel: 2 })`. Sin dato, el 1. Cada nivel tiene su jefe (`CONFIG.JEFES`). Al pasar de nivel llegan también las
+	// `estadisticas` del jugador (su vida, su ataque…), para que las conserve; sin ellas empieza de cero.
 	init(datos) {
 		this.numeroDeNivel = datos?.nivel ?? 1;
+		this.estadisticasGuardadas = datos?.estadisticas ?? null;
 		this.configDelJefe = CONFIG.JEFES[this.numeroDeNivel];
 		if (!this.configDelJefe) {
 			throw new Error(`No existe el nivel ${this.numeroDeNivel}`);
@@ -60,7 +64,6 @@ export class EscenaJuego extends Phaser.Scene {
 		this.proximoAvisoDeLlave = 0;
 		this.deletreoActivo = false;
 		this.deletreoRecienTerminado = false; // el reto acabó en este fotograma (ver update)
-		this.usarVoz = false; // provisional: la tecla V activa deletrear con el micrófono
 		this.ultimasPalabrasDeIngles = []; // las últimas del dictado, para no repetirlas enseguida
 		const { GRANADA } = CONFIG.PODERES;
 		this.poderes = {
@@ -113,10 +116,11 @@ export class EscenaJuego extends Phaser.Scene {
 		const inicio = this.modelo.salaInicial;
 		const origen = this.nivel.origenDeSala(inicio.columna, inicio.fila);
 		const { x, y } = this.modelo.posicionInicialDelJugador;
-		this.jugador = new Jugador(this, origen.x + x, origen.y + y);
+		this.jugador = new Jugador(this, origen.x + x, origen.y + y, this.estadisticasGuardadas);
 		this.jugador.once('muerto', () => this.#alMorirElJugador());
 
 		this.disparo = new Disparo(this, this.nivel.bloques);
+		this.vistaPreviaDeLaGranada = new VistaPreviaDeLaGranada(this);
 		this.input.setDefaultCursor('crosshair');
 		this.#crearColisiones();
 		this.#crearElJefe();
@@ -146,45 +150,23 @@ export class EscenaJuego extends Phaser.Scene {
 			return;
 		}
 
-		const alternarVoz = this.entrada.vozAlternada(); // se consulta siempre, aunque no se use
-		if (alternarVoz && !this.deletreoActivo) {
-			this.#alternarLaVoz();
-		}
-
-		// Se consultan todas las teclas de retos en cada fotograma, aunque no se usen (JustDown "gasta"
-		// la pulsación).
-		const irAlJefe = this.entrada.irAlJefePedido();
-		if (irAlJefe && !this.deletreoActivo) {
-			this.#irALaSalaDelJefe();
-		}
 		// M silencia o devuelve el sonido. Mientras se escribe una palabra (dictado) la M es una letra más: no cuenta.
 		const silencio = this.entrada.silencioPedido();
 		if (silencio && !this.deletreoActivo) {
 			const silenciado = this.sonido.alternarSilencio();
 			this.#mostrarMensaje(silenciado ? 'Sonido: NO (M)' : 'Sonido: SÍ (M)', { tamano: 24 });
 		}
-		const irAlNivel2 = this.entrada.irAlNivel2Pedido();
-		if (irAlNivel2 && !this.deletreoActivo) {
-			this.scene.restart({ nivel: 2 }); // atajo de pruebas: empieza el nivel 2 desde cero
-			return;
-		}
-		const pedido = this.entrada.deletreoPedido();
-		const nivelPedido = this.entrada.retoDeOpcionesPedido();
+		// Se consulta siempre, aunque no se use (JustDown «gasta» la pulsación).
 		const granadaPedida = this.entrada.granadaPedida();
-		// La letra que completa una palabra puede ser también la tecla que pide otro reto (E, T, Y, I, R, G):
-		// esa pulsación ya se gastó en el reto que acaba de terminar y no debe empezar uno nuevo.
-		if (!this.deletreoActivo && !this.deletreoRecienTerminado) {
-			if (pedido) {
-				this.#empezarElDeletreo(pedido);
-			} else if (nivelPedido) {
-				this.#empezarElRetoDeOpciones(nivelPedido);
-			} else if (granadaPedida) {
-				this.#empezarLaGranada();
-			}
+		// La tecla que responde o repite en un reto (el dictado repite la palabra con ESPACIO) es la misma que pide la
+		// granada: esa pulsación ya se gastó en el reto que acaba de terminar y no debe empezar uno nuevo.
+		if (granadaPedida && !this.deletreoActivo && !this.deletreoRecienTerminado) {
+			this.#empezarLaGranada();
 		}
 		this.deletreoRecienTerminado = false;
 
 		this.#actualizarLaPelea();
+		this.#actualizarLaVistaPreviaDeLaGranada();
 
 		const direccion = this.entrada.direccionDeMovimiento();
 		const puntoDeApuntado = this.entrada.puntoDeApuntado();
@@ -266,30 +248,9 @@ export class EscenaJuego extends Phaser.Scene {
 		this.anims.globalTimeScale = escala;
 	}
 
-	// Provisional hasta el paso 9 (poderes por voz): E, T e Y piden una palabra al azar (visible, con
-	// huecos, de memoria), con Mayúsculas al revés, y R una fácil al revés. I pide un dictado en inglés
-	// (el juego dice la palabra y se escribe). Mientras se deletrea el jugador no puede moverse (las
-	// letras W, A, S y D son las teclas de caminar), pero el juego sigue: los enemigos no esperan.
-	#empezarElDeletreo({ modo, invertida }) {
-		this.deletreoActivo = true;
-		this.entrada.bloquearMovimiento(true);
-
-		const esDictado = modo === MODOS_DE_DELETREO.DICTADO;
-		const esLaFacilAlReves = invertida && modo === MODOS_DE_DELETREO.VISIBLE;
-		const dificultad = esLaFacilAlReves ? 'facil' : elegirAlAzar(DIFICULTADES);
-		this.scene.launch(ESCENAS.DELETREO, {
-			palabra: esDictado ? this.#palabraParaDictar() : elegirPalabra(dificultad),
-			invertida: esDictado ? false : invertida,
-			modo,
-			usaVoz: this.usarVoz,
-			alTerminar: (resultado) => this.#alTerminarElDeletreo(resultado),
-		});
-	}
-
-	// Provisional hasta el paso 9: O pide un reto de traducción (nivel 1) y P uno de definición
-	// (nivel 2). Se dice la opción correcta con el micrófono; si falla, se responde con 1, 2 o 3. Como el
-	// deletreo, bloquea el movimiento y le avisa al juego con `deletreo-terminado`.
-	// Devuelve verdadero si el reto empezó.
+	// Abre un reto de opciones: de traducción (nivel 1) o de definición (nivel 2). Se dice la opción correcta con el
+	// micrófono; si falla, se responde con 1, 2 o 3. Bloquea el movimiento y le avisa al juego con
+	// `deletreo-terminado`. Lo usan la granada y el ataque fuerte del jefe. Devuelve verdadero si el reto empezó.
 	#empezarElRetoDeOpciones(nivel) {
 		// Los retos por voz solo usan las palabras que Chrome reconoce bien (ver `voz` en src/datos/vocabulario.js).
 		const ficha = armarFicha(
@@ -310,7 +271,7 @@ export class EscenaJuego extends Phaser.Scene {
 		return true;
 	}
 
-	// G: la granada. Si está lista, se abre un reto de inglés (nivel 1); al acertarlo se lanza hacia donde
+	// ESPACIO: la granada (el ataque especial). Si está lista, se abre un reto de inglés (nivel 1); al acertarlo se lanza hacia donde
 	// apunta el cursor. Mientras se responde, el juego sigue a velocidad normal (la cámara lenta es solo
 	// para los ataques fuertes del jefe). Si no está lista (recargando), no pasa nada.
 	#empezarLaGranada() {
@@ -326,8 +287,23 @@ export class EscenaJuego extends Phaser.Scene {
 		}
 	}
 
+	// Mientras se responde el reto de la granada se ve dónde caería (la línea y el círculo de la explosión), siguiendo
+	// al cursor. Fuera del reto, o si el jugador murió, no se ve.
+	#actualizarLaVistaPreviaDeLaGranada() {
+		if (this.retoEnCurso !== 'granada' || this.jugadorMuerto) {
+			this.vistaPreviaDeLaGranada.ocultar();
+			return;
+		}
+		this.vistaPreviaDeLaGranada.mostrar(
+			this.jugador.body.center,
+			this.#destinoDeLaGranada(),
+			CONFIG.PODERES.GRANADA.RADIO,
+		);
+	}
+
 	// El reto de la granada terminó: si se acertó, se lanza; si no, no hay granada y la recarga es corta.
 	#alTerminarLaGranada(resultado) {
+		this.vistaPreviaDeLaGranada.ocultar();
 		const acerto = resultado === 'acertada';
 		this.poderes.granada.terminar(acerto, this.time.now);
 		if (acerto) {
@@ -337,13 +313,19 @@ export class EscenaJuego extends Phaser.Scene {
 		}
 	}
 
-	// Sale del jugador hacia donde apunta el cursor en este momento (sin salir de la sala). Si el ratón
-	// todavía no se ha movido, cae un poco a la derecha del jugador.
-	#lanzarLaGranada() {
+	// Dónde caería la granada ahora mismo: hacia donde apunta el cursor, sin salir de la sala. Si el ratón todavía no
+	// se ha movido, un poco a la derecha del jugador. Lo usan tanto el lanzamiento como la vista previa.
+	#destinoDeLaGranada() {
 		const origen = this.jugador.body.center;
 		const apuntado = this.entrada.puntoDeApuntado() ?? { x: origen.x + 160, y: origen.y };
 		const limites = this.nivel.limitesDeSala(this.salaActual.columna, this.salaActual.fila);
-		const destino = limitarAlRectangulo(apuntado, limites);
+		return limitarAlRectangulo(apuntado, limites);
+	}
+
+	// Sale del jugador hacia donde apunta el cursor en este momento (sin salir de la sala).
+	#lanzarLaGranada() {
+		const origen = this.jugador.body.center;
+		const destino = this.#destinoDeLaGranada();
 
 		new Granada(this, origen.x, origen.y).lanzar(destino, (punto) =>
 			this.#explotarLaGranada(punto),
@@ -355,28 +337,25 @@ export class EscenaJuego extends Phaser.Scene {
 		const { RADIO, DANO, DURACION_DE_LA_EXPLOSION } = CONFIG.PODERES.GRANADA;
 
 		const enemigos = this.enemigos.getChildren().filter((enemigo) => enemigo.active);
-		const centros = enemigos.map((enemigo) => ({
-			enemigo,
-			x: enemigo.body.center.x,
-			y: enemigo.body.center.y,
-		}));
-		for (const { enemigo } of alcanzadosPorLaExplosion(punto, RADIO, centros)) {
+		// Cada objetivo cuenta con su CUERPO (centro, ancho y alto), no solo con su centro: basta con que el círculo lo roce.
+		const cuerpos = enemigos.map((enemigo) => ({ enemigo, ...rectanguloDelCuerpo(enemigo.body) }));
+		for (const { enemigo } of alcanzadosPorLaExplosion(punto, RADIO, cuerpos)) {
 			enemigo.recibirDano(DANO);
 		}
 
-		// La explosión también daña los nidos que alcance (cuentan por su centro).
+		// La explosión también daña los nidos que alcance (cuenta su dibujo entero: miden 64 × 64).
 		const nidos = this.nivel.nidos
 			.getChildren()
 			.filter((nido) => nido.active)
-			.map((nido) => ({ nido, x: nido.x, y: nido.y }));
+			.map((nido) => ({ nido, x: nido.x, y: nido.y, ancho: nido.width, alto: nido.height }));
 		for (const { nido } of alcanzadosPorLaExplosion(punto, RADIO, nidos)) {
 			nido.recibirDano(DANO);
 		}
 
-		// Y al jefe, si la pelea está en marcha (cuenta por el centro de su cuerpo).
+		// Y al jefe, si la pelea está en marcha (cuenta su cuerpo entero).
 		if (this.jefe.active && this.pelea.vulnerable) {
-			const centro = { x: this.jefe.body.center.x, y: this.jefe.body.center.y };
-			if (alcanzadosPorLaExplosion(punto, RADIO, [centro]).length > 0) {
+			const cuerpoDelJefe = rectanguloDelCuerpo(this.jefe.body);
+			if (alcanzadosPorLaExplosion(punto, RADIO, [cuerpoDelJefe]).length > 0) {
 				const { derrotado } = this.pelea.recibirDano(DANO);
 				this.jefe.destellar();
 				if (derrotado) {
@@ -412,18 +391,6 @@ export class EscenaJuego extends Phaser.Scene {
 		// El dictado se escribe con el teclado: puede usar todas las palabras, también las que Chrome no entiende.
 		return armarFicha(this.#entradaDeIngles(VOCABULARIO), NIVELES_DE_INGLES.DICTADO, VOCABULARIO)
 			.palabra;
-	}
-
-	// Provisional hasta el paso 9: la tecla V cambia entre deletrear con el teclado y con la voz. La
-	// primera vez que se deletrea con la voz, el navegador pide permiso para el micrófono.
-	#alternarLaVoz() {
-		if (!ReconocedorDeVoz.disponible()) {
-			this.#mostrarMensaje('Este navegador no tiene voz: usa Chrome', { tamano: 20 });
-			return;
-		}
-
-		this.usarVoz = !this.usarVoz;
-		this.#mostrarMensaje(this.usarVoz ? 'Deletreo: VOZ' : 'Deletreo: TECLADO', { tamano: 24 });
 	}
 
 	/** `resultado` es 'acertada', 'fallada' o 'tiempo-agotado'. */
@@ -735,43 +702,6 @@ export class EscenaJuego extends Phaser.Scene {
 		});
 	}
 
-	// Atajo de pruebas (tecla J): lleva al jugador directo a la sala del jefe, para no recorrer las otras ocho. La
-	// sala donde estaba se da por terminada sin premio (para que no queden sus puertas cerradas), el jugador recibe
-	// la llave y la sala del jefe queda abierta; el jugador aparece abajo y la pelea empieza al instante.
-	#irALaSalaDelJefe() {
-		const sala = this.modelo.salaDelJefe;
-		if (this.#estadoDe(sala.columna, sala.fila).combateIniciado) {
-			this.#mostrarMensaje(
-				this.pelea.derrotado ? 'El jefe ya fue derrotado' : 'Ya estás en la pelea',
-				{ tamano: 24 },
-			);
-			return;
-		}
-
-		this.#darPorTerminadaLaSalaActual();
-		this.jugador.recogerLlave();
-		this.nivel.desbloquearSalaDelJefe();
-
-		const origen = this.nivel.origenDeSala(sala.columna, sala.fila);
-		this.jugador.body.reset(origen.x + CONFIG.SALA.ANCHO / 2, origen.y + CONFIG.SALA.ALTO - 120);
-		this.#entrarEnSala(sala);
-	}
-
-	// Si la sala donde está el jugador está en pleno combate, la da por terminada: quita sus enemigos y el
-	// temporizador de su nido y abre sus puertas. No hay cofre ni mensaje: solo es para poder irse.
-	#darPorTerminadaLaSalaActual() {
-		const { columna, fila } = this.salaActual;
-		const estado = this.#estadoDe(columna, fila);
-		if (!estado.combateIniciado || estado.limpia) {
-			return;
-		}
-
-		estado.temporizadorDelNido?.remove();
-		this.enemigos.clear(true, true);
-		Object.assign(estado, { enemigosVivos: 0, nidoVivo: false, limpia: true });
-		this.nivel.abrirPuertas(columna, fila);
-	}
-
 	#crearColisiones() {
 		const { bloques, puertas, nidos } = this.nivel;
 
@@ -1062,6 +992,7 @@ export class EscenaJuego extends Phaser.Scene {
 		this.scene.stop(ESCENAS.DELETREO);
 		this.deletreoActivo = false;
 		this.retoEnCurso = null;
+		this.vistaPreviaDeLaGranada.ocultar();
 		this.sonido.detenerMusica();
 		this.sonido.efecto('jugador-muerte');
 		this.time.delayedCall(CONFIG.CARTEL.RETRASO_TRAS_MORIR, () => this.#abrirElCartel(alMorir()));
@@ -1078,7 +1009,12 @@ export class EscenaJuego extends Phaser.Scene {
 		this.physics.pause();
 		this.scene.launch(ESCENAS.CARTEL, {
 			cartel: cartelDe(desenlace),
-			alAceptar: () => this.scene.restart({ nivel: desenlace.siguiente }),
+			alAceptar: () =>
+				this.scene.restart({
+					nivel: desenlace.siguiente,
+					// Al pasar de nivel el jugador conserva sus estadísticas; al volver a empezar, no.
+					estadisticas: desenlace.conservaEstadisticas ? { ...this.jugador.estadisticas } : null,
+				}),
 		});
 	}
 

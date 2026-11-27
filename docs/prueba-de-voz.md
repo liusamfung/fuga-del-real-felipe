@@ -181,7 +181,6 @@ mostró ventaja visible (4 de 10 palabras con sesgo contra 2 de 6 sin él, con p
 
 ## Probar la voz dentro del juego
 
-En el juego, la tecla **V** cambia entre deletrear con el **teclado** y con la **voz** _(provisional,
-hasta el paso 9)_. Después, **E**, **T** e **Y** piden la palabra como siempre (ver
-[`mecanicas.md`](mecanicas.md) 5.7 y 5.8). Con la voz, el tiempo es el doble y el teclado se
+En el juego ya no hay teclas para esto (la `V` y las `E`, `T`, `Y` eran atajos de prueba y se quitaron el 27/11/2026; ver
+[`mecanicas.md`](mecanicas.md) 5.7 y 5.9). La pantalla `?voz` solo existe con `npm run dev`. Con la voz, el tiempo es el doble y el teclado se
 desactiva mientras el micrófono esté activo.

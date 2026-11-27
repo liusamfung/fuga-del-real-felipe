@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { CONFIG } from '../config.js';
 import { cuadroQuietoDelJugador } from '../datos/animaciones.js';
 import { Dash } from '../sistemas/Dash.js';
+import { aplicarDano } from '../utilidades/vida.js';
 import { VECTORES_DE_DIRECCION } from '../utilidades/vectores.js';
 
 // El personaje que controla el jugador: se mueve, hace dash, tiene vida y puede mejorar sus
@@ -12,7 +13,11 @@ import { VECTORES_DE_DIRECCION } from '../utilidades/vectores.js';
 //   - 'estadisticas-cambiadas': cambió la vida o alguna estadística (lo escucha el HUD).
 //   - 'muerto': la vida llegó a cero.
 export class Jugador extends Phaser.Physics.Arcade.Sprite {
-	constructor(escena, x, y) {
+	/**
+	 * `estadisticasGuardadas` son las del nivel anterior (un objeto como `estadisticas`): al pasar de nivel el jugador
+	 * conserva su vida, sus corazones extra, su ataque y su velocidad. Sin ellas empieza con las iniciales.
+	 */
+	constructor(escena, x, y, estadisticasGuardadas = null) {
 		super(escena, x, y, 'jugador');
 		escena.add.existing(this);
 		escena.physics.add.existing(this);
@@ -20,12 +25,15 @@ export class Jugador extends Phaser.Physics.Arcade.Sprite {
 		const { ANCHO, ALTO, CUERPO_ANCHO, CUERPO_ALTO } = CONFIG.JUGADOR;
 		const { VIDA_INICIAL, ATAQUE_INICIAL, VELOCIDAD } = CONFIG.JUGADOR;
 
-		this.estadisticas = {
-			vidaMaxima: VIDA_INICIAL,
-			vida: VIDA_INICIAL,
-			ataque: ATAQUE_INICIAL,
-			velocidad: VELOCIDAD,
-		};
+		this.estadisticas = estadisticasGuardadas
+			? { ...estadisticasGuardadas }
+			: {
+					vidaMaxima: VIDA_INICIAL, // los corazones base: siempre 3
+					vida: VIDA_INICIAL,
+					vidaExtra: 0, // los corazones temporales de los cofres: absorben el daño primero
+					ataque: ATAQUE_INICIAL,
+					velocidad: VELOCIDAD,
+				};
 		this.inmuneHasta = 0; // instante (en ms del reloj de la escena) hasta el que no recibe daño
 		this.direccionMirada = 'abajo'; // 'abajo', 'derecha', 'izquierda' o 'arriba'
 		this.tieneLlave = false; // la llave de la sala del jefe
@@ -122,6 +130,7 @@ export class Jugador extends Phaser.Physics.Arcade.Sprite {
 
 	/**
 	 * Resta vida si el jugador no está en su tiempo de inmunidad. Devuelve verdadero si hubo daño.
+	 * El daño se lo llevan primero los corazones extra y después los base (ver `aplicarDano`).
 	 * Después de un golpe parpadea durante la inmunidad, así se ve que no puede recibir más.
 	 */
 	recibirDano(cantidad) {
@@ -130,7 +139,9 @@ export class Jugador extends Phaser.Physics.Arcade.Sprite {
 			return false;
 		}
 
-		this.estadisticas.vida = Math.max(0, this.estadisticas.vida - cantidad);
+		const { vida, vidaExtra } = aplicarDano(this.estadisticas, cantidad);
+		this.estadisticas.vida = vida;
+		this.estadisticas.vidaExtra = vidaExtra;
 		this.inmuneHasta = ahora + CONFIG.JUGADOR.INMUNIDAD;
 		this.emit('estadisticas-cambiadas');
 
@@ -144,14 +155,11 @@ export class Jugador extends Phaser.Physics.Arcade.Sprite {
 	}
 
 	/**
-	 * Sube una estadística ('vidaMaxima', 'ataque' o 'velocidad'). Al subir la vida máxima, la
-	 * vida actual sube lo mismo: el corazón nuevo viene lleno.
+	 * Sube una estadística ('vidaExtra', 'ataque' o 'velocidad'). 'vidaExtra' son los corazones temporales
+	 * de los cofres: no tocan los 3 corazones base (que no se curan).
 	 */
 	mejorar(estadistica, cantidad) {
 		this.estadisticas[estadistica] += cantidad;
-		if (estadistica === 'vidaMaxima') {
-			this.estadisticas.vida += cantidad;
-		}
 		this.emit('estadisticas-cambiadas');
 	}
 

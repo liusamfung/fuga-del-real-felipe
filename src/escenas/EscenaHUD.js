@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { CONFIG, ESCENAS } from '../config.js';
+import { corazonesAMostrar } from '../utilidades/vida.js';
 
 // La interfaz: los corazones de vida y las estadísticas. Es una escena aparte que se dibuja
 // encima del juego, así los efectos de la cámara del juego (temblor, cámara lenta) no la afectan.
@@ -27,14 +28,14 @@ export class EscenaHUD extends Phaser.Scene {
 		this.textoEstadisticas = this.add
 			.text(CONFIG.ANCHO - MARGEN, Y, '', {
 				fontFamily: 'monospace',
-				fontSize: '14px',
+				fontSize: '12px', // chico para no pisar el indicador de la granada
 				color: '#c9b79c',
 			})
 			.setOrigin(1, 0.5);
 
 		// El dash: una pastilla por carga (azul si está lista) y una barra que se llena al recargar.
 		this.add
-			.text(CONFIG.HUD.DASH_X - 8, Y, 'Dash', {
+			.text(CONFIG.HUD.DASH_X - 8, Y, 'Shift', {
 				fontFamily: 'monospace',
 				fontSize: '12px',
 				color: '#c9b79c',
@@ -42,9 +43,9 @@ export class EscenaHUD extends Phaser.Scene {
 			.setOrigin(1, 0.5);
 		this.graficoDelDash = this.add.graphics();
 
-		// La granada: la tecla que la pide, una pastilla (naranja si está lista) y una barra de recarga.
+		// La granada (el ataque especial): la tecla que la pide, una pastilla (naranja si está lista) y una barra de recarga.
 		this.add
-			.text(CONFIG.HUD.GRANADA_X - 8, Y, 'G', {
+			.text(CONFIG.HUD.GRANADA_X - 8, Y, 'Espacio', {
 				fontFamily: 'monospace',
 				fontSize: '12px',
 				color: '#c9b79c',
@@ -142,14 +143,20 @@ export class EscenaHUD extends Phaser.Scene {
 
 	#actualizar() {
 		const { MARGEN, Y, SEPARACION_CORAZONES } = CONFIG.HUD;
-		const { vida, vidaMaxima, ataque, velocidad } = this.jugador.estadisticas;
+		const { estadisticas } = this.jugador;
+		const { vida, vidaMaxima, ataque, velocidad } = estadisticas;
 
 		for (const corazon of this.corazones) {
 			corazon.destroy();
 		}
 		this.corazones = [];
-		for (let i = 0; i < vidaMaxima; i += 1) {
-			const clave = i < vida ? 'corazon-lleno' : 'corazon-vacio';
+		// Primero los corazones base (rojos, o grises los perdidos) y después los extra de los cofres (azules).
+		const total = corazonesAMostrar(estadisticas);
+		for (let i = 0; i < total; i += 1) {
+			let clave = 'corazon-extra';
+			if (i < vidaMaxima) {
+				clave = i < vida ? 'corazon-lleno' : 'corazon-vacio';
+			}
 			const x = MARGEN + i * SEPARACION_CORAZONES;
 			this.corazones.push(this.add.image(x, Y, clave).setOrigin(0, 0.5));
 		}
@@ -158,7 +165,7 @@ export class EscenaHUD extends Phaser.Scene {
 		this.iconoDeLlave?.destroy();
 		this.iconoDeLlave = null;
 		if (this.jugador.tieneLlave) {
-			const x = MARGEN + vidaMaxima * SEPARACION_CORAZONES + 8;
+			const x = MARGEN + total * SEPARACION_CORAZONES + 8;
 			this.iconoDeLlave = this.add.image(x, Y, 'llave').setOrigin(0, 0.5);
 		}
 

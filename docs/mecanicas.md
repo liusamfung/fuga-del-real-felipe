@@ -6,14 +6,16 @@ iniciales**: se ajustan jugando y viven en `src/config.js` o en `src/datos/`.
 
 ## 1. Controles
 
-| Acción       | Control                                                      | Estado              |
-| ------------ | ------------------------------------------------------------ | ------------------- |
-| Moverse      | Flechas **o** W A S D                                        | Definido            |
-| Apuntar      | Ratón (el personaje mira hacia el cursor)                    | Definido            |
-| Disparar     | Clic, varios clics o mantener pulsado el clic                | Definido            |
-| Disparo auto | Opción para que dispare solo mientras apuntas                | Por decidir         |
-| Dash         | Barra espaciadora (una pulsación por dash)                   | Hecho (provisional) |
-| Voz          | El micrófono se activa solo cuando hay una palabra que decir | Definido            |
+| Acción          | Control                                                                         | Estado              |
+| --------------- | ------------------------------------------------------------------------------- | ------------------- |
+| Moverse         | Flechas **o** W A S D                                                           | Definido            |
+| Apuntar         | Ratón (el personaje mira hacia el cursor)                                       | Definido            |
+| Disparar        | Clic, varios clics o mantener pulsado el clic                                   | Definido            |
+| Disparo auto    | Opción para que dispare solo mientras apuntas                                   | Por decidir         |
+| Dash            | **Mayúsculas (Shift)** (una pulsación por dash)                                 | Hecho (provisional) |
+| Ataque especial | **Barra espaciadora**: la granada, con reto de inglés (ver 5.11)                | Hecho (provisional) |
+| Silenciar       | **M**: silencia o devuelve la música y los efectos (ver [`audio.md`](audio.md)) | Hecho               |
+| Voz             | El micrófono se activa solo cuando hay una palabra que decir                    | Definido            |
 
 ## 2. Movimiento y disparo
 
@@ -21,7 +23,9 @@ iniciales**: se ajustan jugando y viven en `src/config.js` o en `src/datos/`.
   velocidad). En diagonal se normaliza el vector para no ir más rápido.
 - Las balas salen hacia el cursor. Hay una **cadencia** (tiempo mínimo entre disparos) y un **daño**
   por bala; las mejoras de ataque suben el daño.
-- Las balas desaparecen al chocar con una pared o con un enemigo, o al salir de la sala.
+- Las balas desaparecen al chocar con una pared o con un enemigo, al salir de la sala o **al llegar a su
+  alcance: 400 px** desde donde salieron (`CONFIG.DISPARO.ALCANCE`, media sala). Así una bala ya no cruza
+  toda la sala. La cuenta es `superoElAlcance` (`src/utilidades/alcance.js`, con pruebas).
 
 ## 3. Dash
 
@@ -40,11 +44,25 @@ iniciales**: se ajustan jugando y viven en `src/config.js` o en `src/datos/`.
 
 ## 4. Estadísticas del jugador
 
-| Estadística | Para qué sirve          | La sube            |
-| ----------- | ----------------------- | ------------------ |
-| Vida        | Cuántos golpes aguanta  | Cofre de vida      |
-| Ataque      | Daño de cada bala       | Cofre de ataque    |
-| Velocidad   | Velocidad de movimiento | Cofre de velocidad |
+| Estadística | Para qué sirve                     | La sube                                |
+| ----------- | ---------------------------------- | -------------------------------------- |
+| Vida        | Cuántos golpes aguanta (ver abajo) | Cofre de vida (da corazones **extra**) |
+| Ataque      | Daño de cada bala                  | Cofre de ataque                        |
+| Velocidad   | Velocidad de movimiento            | Cofre de velocidad                     |
+
+**La vida (27/11/2026).** El jugador tiene **3 corazones base**, siempre: ningún cofre sube ese máximo.
+
+- El **cofre de vida** da un corazón **extra** (azul), **temporal**: absorbe el daño **antes** que los corazones base y,
+  cuando lo absorbe, **desaparece para siempre**. Con 2 extras, un golpe de 1 quita 1 extra; el rayo del jefe (2 de daño)
+  quita 2 extras, o 1 extra y 1 corazón base si solo queda uno.
+- Los corazones **base** perdidos se ven en **gris** (como siempre) y **no se recuperan**: no hay curación. Se muere cuando
+  los 3 base llegan a 0. Los extra se dibujan a la derecha de los tres base.
+- Un golpe **mortal** (la rata negra hace daño infinito) mata aunque haya extras: no sirven de escudo contra él.
+- **Al pasar de nivel se conserva todo**: los corazones base que quedan (también los grises), los extra, el ataque y la
+  velocidad. La llave no (es de cada nivel). Solo se vuelve a empezar de cero al **morir** o al **ganar el juego**.
+- Código: `aplicarDano` y `corazonesAMostrar` (`src/utilidades/vida.js`, lógica pura con pruebas); `Jugador.estadisticas`
+  tiene `vidaMaxima` (3), `vida` y `vidaExtra`; lo que se conserva entre niveles lo decide `ProgresoDelJuego`
+  (`conservaEstadisticas`) y lo recibe `EscenaJuego.init` (`estadisticas`).
 
 ## 5. Control de voz: deletrear palabras
 
@@ -123,10 +141,9 @@ Se guardan en `src/datos/palabras.js`. La palabra **no cambia** mientras la barr
 
 ### 5.7 Cómo funciona hoy el deletreo con teclado (y con voz, ver 5.9)
 
-- **Provisional:** la tecla **E** pide una palabra al azar con la palabra siempre visible, **T** con
-  huecos e **Y** de memoria (ver 5.8). Con **Mayúsculas** pulsada se pide **al revés**. **R** pide una
-  palabra fácil al revés, siempre visible. **I** pide un **dictado en inglés** (ver 5.8). Cuando el
-  deletreo sea un poder (paso 9) se activará desde el juego.
+- **Ya no hay teclas para pedirlo** (27/11/2026): `E`, `T`, `Y`, `I`, `R` y `Q` eran atajos de prueba y se quitaron al preparar
+  la versión de producción. Los modos (visible, huecos, memoria, al revés) siguen en el código (`EscenaDeletreo`), pero hoy solo se
+  usa en el juego el **dictado en inglés** (ver 5.8), que abre el ataque fuerte del jefe 2.
 - Aparece una pantalla encima del juego con la palabra, las letras acertadas en verde, la que toca
   subrayada y una **barra de tiempo**. La barra mide el **tiempo real** (`performance.now()`), no el
   del juego, para que la cámara lenta del jefe no la estire.
@@ -145,8 +162,8 @@ Se guardan en `src/datos/palabras.js`. La palabra **no cambia** mientras la barr
 
 ### 5.9 Cómo funciona hoy el deletreo con voz
 
-- **Provisional:** la tecla **V** cambia entre teclado y voz. Después se pide la palabra con **E**, **T**
-  o **Y** como siempre (5.7 y 5.8). La primera vez, el navegador pide permiso para el micrófono.
+- El deletreo con voz solo se podía probar con la tecla `V` (atajo de prueba, **quitado el 27/11/2026**). Hoy la voz se usa en los
+  retos de opciones (5.10). La primera vez, el navegador pide permiso para el micrófono.
 - Se usa la **Web Speech API** (`SpeechRecognition`, `webkitSpeechRecognition` en Chrome) con el idioma
   `es-PE` _(provisional)_. Escucha de forma continua y entrega resultados provisionales mientras se
   habla (`src/sistemas/ReconocedorDeVoz.js`).
@@ -214,8 +231,8 @@ en todas; lo que cambia es **qué ve el jugador** (y, en el dictado, que una voz
 ### 5.10 Retos de opciones: niveles 1 y 2 de inglés
 
 Se ve una **ficha** con tres opciones y el jugador **dice en voz alta la correcta**, en inglés
-americano. Provisional: **O** pide el nivel 1 y **P** el nivel 2 (con **I**, el dictado, son los tres
-niveles; el paso 9 los conectará al jefe).
+americano. Se abren desde la granada (nivel 1) y desde el ataque fuerte de los jefes (ver 5.11 y 6). Las teclas `O` y `P`
+(pruebas de los niveles 1 y 2) se quitaron el 27/11/2026.
 
 | Nivel | Qué se ve                                   | Qué se dice           |
 | ----- | ------------------------------------------- | --------------------- |
@@ -269,7 +286,7 @@ niveles; el paso 9 los conectará al jefe).
   Debajo del aviso salen **contadores** (`sesiones · silencios · tardíos · modo`): _sesiones_ = cuántas veces arrancó Chrome
   (muchas = se corta y reinicia), _silencios_ = veces que dijo «no oí nada» (`no-speech`), _tardíos_ = resultados que llegaron
   de una sesión ya reemplazada y se descartaron, y _modo_ = `continuo` o `corto`. **Prueba A/B:** abrir el juego con
-  `?vozcorta` (por ejemplo `localhost:5173/?vozcorta`) hace que Chrome use **una sesión por frase** en vez de una continua
+  `?vozcorta` (solo con `npm run dev`, por ejemplo `localhost:5173/?vozcorta`; en el juego publicado siempre es continua) hace que Chrome use **una sesión por frase** en vez de una continua
   (`ReconocedorDeVoz`, opción `continuo: false`), por si el modo continuo es lo que falla.
 
   Además, cada aviso de Chrome queda en la consola del navegador (F12) con el prefijo `[voz]`: `inicio`, `audio`, `sonido`,
@@ -284,26 +301,32 @@ niveles; el paso 9 los conectará al jefe).
 
 ### 5.11 La granada (el primer poder)
 
-**G** pide la granada. Es el primer poder especial del jugador; cada poder se activa superando un
-reto de inglés. Todos los números son **provisionales** (están en `CONFIG.PODERES.GRANADA`).
+**ESPACIO** pide la granada (el **ataque especial**; antes era la tecla G). Es el primer poder especial del jugador;
+cada poder se activa superando un reto de inglés. Todos los números son **provisionales** (están en `CONFIG.PODERES.GRANADA`).
 
 1. Si está **lista**, se abre un **reto de nivel 1** (una palabra en español; se dice su traducción;
    ver 5.10). El mundo va en **cámara lenta** (6.1) mientras se responde, para que el enemigo al que
    quieres darle no se haya ido cuando aciertes. El jugador no se mueve.
 2. Si se **acierta**, la granada sale del jugador **hacia donde apunta el cursor en ese momento** (sin
    salir de la sala), vuela a 420 px/s y explota al llegar.
-3. La explosión le quita **3** de vida a **todo enemigo a 96 px o menos** del centro: mata al débil y a las
+3. La explosión le quita **3** de vida a **todo enemigo que toque un círculo de 128 px de radio** (`RADIO`, antes 96)
+   alrededor del impacto. Cuenta el **cuerpo** del enemigo, no solo su centro: basta con que el círculo lo roce, así que también
+   golpea a los que están pegados al jugador cuando la lanza a sus pies. Mata al débil y a las
    rata gris (1 de vida) y a la blanca (2), pero no a la azul (5) ni a la negra (10). **También daña los
    nidos** que alcance (le quita 3 de sus 10). Se ve una onda naranja que se desvanece en 0,28 s.
 4. Si se **falla** o se acaba el tiempo, **no hay granada** y aparece «Falló la granada».
 5. **Recarga**, contada desde que **termina** el reto (lo que se tarda en responder no cuenta): **6 s**
-   si se acertó y **2,5 s** si se falló. Mientras recarga, o mientras se responde un reto, **G no hace
-   nada**.
-6. El **HUD** muestra la tecla **G**, una pastilla (naranja si está lista) y una barra que se llena
+   si se acertó y **2,5 s** si se falló. Mientras recarga, o mientras se responde un reto, **ESPACIO no hace
+   nada** (también en el dictado, donde ESPACIO repite la palabra).
+6. El **HUD** muestra la tecla **Espacio**, una pastilla (naranja si está lista) y una barra que se llena
    mientras recarga, junto al dash.
+7. **Vista previa:** mientras se responde el reto se dibuja una **línea de rayas naranja** del jugador al punto de impacto
+   y el **círculo** de la explosión, y siguen al cursor; se apagan cuando termina el reto. Es como el aviso del rayo del
+   jefe: se ve dónde va a caer. Código: `VistaPreviaDeLaGranada` (`src/entidades/VistaPreviaDeLaGranada.js`) y
+   `tramosDeRayas` (`src/utilidades/explosion.js`, con pruebas); los valores están en `CONFIG.PODERES.GRANADA.VISTA_PREVIA`.
 
 - Código: `PoderConRecarga` (`src/sistemas/PoderConRecarga.js`) y `alcanzadosPorLaExplosion`,
-  `tiempoDeVuelo` y `limitarAlRectangulo` (`src/utilidades/explosion.js`), con pruebas;
+  `tiempoDeVuelo`, `limitarAlRectangulo` y `rectanguloDelCuerpo` (`src/utilidades/explosion.js`), con pruebas;
   `Granada` (`src/entidades/Granada.js`) solo vuela; el daño y el dibujo de la explosión están en
   `EscenaJuego`.
 - Con un solo poder, el reto es siempre el nivel 1. Cuando haya más poderes, cada uno puede tener su
@@ -320,8 +343,7 @@ retos de inglés usa en sus ataques fuertes (_decidido el 27/11/2026_):
 | **Jefe 1** (nivel 1, «Mazmorras inferiores») | `jefe-1`: la rata gigante gris azulada de Sebastián (PR #20), ampliada ×3 (ver [`guia-de-recursos.md`](guia-de-recursos.md)) | **Solo el FÁCIL** (nivel 1: se ve una palabra en español y se dice su traducción): fácil, fácil, fácil                                                                                                    |
 | **Jefe 2** (nivel 2, «Prisión»)              | `jefe-2`: el fantasma con corona de Sebastián                                                                                | **El único que alterna MEDIO y ALTO**: medio (nivel 2: se ve la definición en inglés y se dice la palabra), alto (nivel 3: el juego **dice** la palabra en inglés y se **escribe con el teclado**), medio |
 
-El jefe 2 usa **todas las palabras del banco** en el reto alto, porque se escribe y no depende de que Chrome las entienda. Con
-**`K`** se empieza el nivel 2 y con **`J`** se va a la sala del jefe del nivel actual (atajos de pruebas). Los demás valores
+El jefe 2 usa **todas las palabras del banco** en el reto alto, porque se escribe y no depende de que Chrome las entienda. Los demás valores
 (vida, ataques, rayo…) son los mismos para los dos jefes y salen de `JEFE_BASE`.
 
 Los valores de abajo valen para los dos jefes. Son los acordados el 26/11/2026 y retocados el 27/11/2026, y son
@@ -354,9 +376,8 @@ Los valores de abajo valen para los dos jefes. Son los acordados el 26/11/2026 y
   El movimiento **no** lo evita: hay que responder un **reto de inglés**. El jefe 1 usa solo el
   reto **fácil** (nivel 1) y el jefe 2 alterna el **medio** y el **alto** (niveles 2 y 3, el dictado: ver arriba y 5.10). El
   golpe es un **rayo** (6.0.1): de **alcantarilla** (marrón sucio) el del jefe 1 y **verde** el del jefe 2.
-- **Atajo de pruebas, tecla `J`:** lleva al jugador directo a la sala del jefe, con la llave, y la pelea empieza
-  al instante. La sala donde estaba se da por terminada (sin cofre) para que no queden sus puertas cerradas.
-  Sirve para probar al jefe sin recorrer las otras ocho salas; no es parte del juego final.
+- **Atajos de prueba quitados (27/11/2026):** `J` llevaba directo a la sala del jefe y `K` empezaba el nivel 2. Se quitaron para
+  publicar el juego: ahora el jefe solo se alcanza recorriendo el nivel y recogiendo la llave.
 - **Al derrotarlo:** el jefe se desvanece, se apagan sus proyectiles, se **abren las puertas** y, 1,6 s después, sale un
   **cartel** (ver 6.3): con el jefe 1, «¡Nivel completado!» y se pasa al nivel 2; con el jefe 2, «¡Ganaste!» y es el final.
 
@@ -457,16 +478,18 @@ Las reglas son lógica pura (`src/sistemas/ProgresoDelJuego.js`, con pruebas) y 
 cartel (`EscenaCartel`) tapa el juego, lo deja **congelado** y pide **pulsar un botón** (clic o `ENTER`). El botón no responde en los
 primeros 0,7 s, para que nadie lo acepte sin querer si seguía disparando o tecleando.
 
-| Qué pasa                 | Cartel                                                          | Botón                         | Después                                                          |
-| ------------------------ | --------------------------------------------------------------- | ----------------------------- | ---------------------------------------------------------------- |
-| **El jugador muere**     | **«Perdiste»** · «¿Deseas volver a intentarlo?»                 | «Volver a intentar (nivel 1)» | Empieza **de nuevo desde el nivel 1**, esté en el nivel que esté |
-| **Se derrota al jefe 1** | «¡Nivel completado!» · «Derrotaste al jefe. Ahora, el nivel 2.» | «Continuar»                   | Empieza el **nivel 2**                                           |
-| **Se derrota al jefe 2** | **«¡Ganaste!»** · «Cada día estás más cerca de ser bilingüe»    | «Jugar de nuevo»              | Vuelve al **nivel 1**. **No hay nivel 3**: es el final           |
+| Qué pasa                 | Cartel                                                          | Botón                         | Después                                                                                                  |
+| ------------------------ | --------------------------------------------------------------- | ----------------------------- | -------------------------------------------------------------------------------------------------------- |
+| **El jugador muere**     | **«Perdiste»** · «¿Deseas volver a intentarlo?»                 | «Volver a intentar (nivel 1)» | Empieza **de nuevo desde el nivel 1**, esté en el nivel que esté                                         |
+| **Se derrota al jefe 1** | «¡Nivel completado!» · «Derrotaste al jefe. Ahora, el nivel 2.» | «Continuar»                   | Empieza el **nivel 2**, con **la misma vida y estadísticas** que se tenían (no se curan ni se reinician) |
+| **Se derrota al jefe 2** | **«¡Ganaste!»** · «Cada día estás más cerca de ser bilingüe»    | «Jugar de nuevo»              | Vuelve al **nivel 1**. **No hay nivel 3**: es el final                                                   |
 
 - Al morir suena `jugador-muerte`, la música se corta y el cartel sale ~0,9 s después. Si había un reto de inglés abierto (y con él
   el micrófono) se cierra. Tras derrotar al jefe, el cartel sale ~1,6 s después, cuando termina de desvanecerse.
 - Si el jefe cae **en pleno reto** (también en el dictado), el reto se cierra solo y no cae ningún golpe.
-- Los atajos de pruebas `J` y `K` siguen existiendo; con el paso de nivel ya hecho, `K` se puede quitar cuando el usuario quiera.
+- Al pasar de nivel el jugador **conserva** su vida, sus corazones extra, su ataque y su velocidad (27/11/2026); tras
+  morir o ganar, todo vuelve a empezar de cero.
+- Los atajos de pruebas `J` y `K` ya no existen (se quitaron el 27/11/2026, al preparar la versión de producción).
 
 ## 7. Cofres especiales
 

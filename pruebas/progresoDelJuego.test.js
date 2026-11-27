@@ -15,24 +15,36 @@ test('el juego tiene 2 niveles: no hay nivel 3', () => {
 });
 
 test('al morir se vuelve a empezar desde el nivel 1, y el desenlace es una derrota', () => {
-	assert.deepEqual(alMorir(), { tipo: 'derrota', siguiente: 1 });
+	assert.deepEqual(alMorir(), { tipo: 'derrota', siguiente: 1, conservaEstadisticas: false });
 });
 
 test('al derrotar al jefe del nivel 1 se pasa al nivel 2', () => {
-	assert.deepEqual(alDerrotarAlJefe(1, TOTAL), { tipo: 'nivel-completado', siguiente: 2 });
+	assert.deepEqual(alDerrotarAlJefe(1, TOTAL), {
+		tipo: 'nivel-completado',
+		siguiente: 2,
+		conservaEstadisticas: true,
+	});
 });
 
 test('al derrotar al jefe del nivel 2 (el último) se gana el juego, y jugar de nuevo empieza en el nivel 1', () => {
-	assert.deepEqual(alDerrotarAlJefe(2, TOTAL), { tipo: 'victoria', siguiente: 1 });
+	assert.deepEqual(alDerrotarAlJefe(2, TOTAL), {
+		tipo: 'victoria',
+		siguiente: 1,
+		conservaEstadisticas: false,
+	});
 });
 
 test('con otro número de niveles las reglas se adaptan: solo gana quien derrota al jefe del último', () => {
 	assert.equal(alDerrotarAlJefe(1, 3).tipo, 'nivel-completado');
 	assert.equal(alDerrotarAlJefe(2, 3).tipo, 'nivel-completado');
-	assert.deepEqual(alDerrotarAlJefe(3, 3), { tipo: 'victoria', siguiente: 1 });
+	assert.deepEqual(alDerrotarAlJefe(3, 3), {
+		tipo: 'victoria',
+		siguiente: 1,
+		conservaEstadisticas: false,
+	});
 	assert.deepEqual(
 		alDerrotarAlJefe(1, 1),
-		{ tipo: 'victoria', siguiente: 1 },
+		{ tipo: 'victoria', siguiente: 1, conservaEstadisticas: false },
 		'un juego de un solo nivel',
 	);
 });
@@ -116,4 +128,15 @@ test('el botón no responde al instante: espera un momento para no aceptarse sin
 		RETRASO_TRAS_EL_JEFE >= 1000,
 		'el jefe tarda ~0,9 s en desvanecerse: el cartel sale después',
 	);
+});
+
+test('las estadísticas se conservan solo al pasar de nivel: al morir o al ganar se empieza de cero', () => {
+	// Pasar al nivel siguiente: el jugador sigue con su vida, sus corazones extra, su ataque y su velocidad.
+	assert.equal(alDerrotarAlJefe(1, TOTAL).conservaEstadisticas, true);
+	assert.equal(alDerrotarAlJefe(1, 3).conservaEstadisticas, true);
+	assert.equal(alDerrotarAlJefe(2, 3).conservaEstadisticas, true);
+	// Volver a empezar (perder, o ganar y jugar de nuevo): todo vuelve a como estaba al principio.
+	assert.equal(alMorir().conservaEstadisticas, false);
+	assert.equal(alDerrotarAlJefe(2, TOTAL).conservaEstadisticas, false);
+	assert.equal(alDerrotarAlJefe(1, 1).conservaEstadisticas, false);
 });
