@@ -14,7 +14,7 @@ Diseñar un videojuego que permita controlar las mecánicas del jugador mediante
 | 2   | Temática basada en hechos reales e históricos            | Sitio del Callao y Fortaleza del Real Felipe (1824–1826), palabras históricas, nota final                                  | [ ]   |
 | 3   | Objetivo: generar impacto                                | Cámara lenta, deletreo bajo presión, efectos y sonido, final luminoso                                                      | [ ]   |
 | 4   | Tipo **multijugador**                                    | **Aplazado**: solo si el profesor lo exige, al final (ver [`decisiones-pendientes.md`](decisiones-pendientes.md), punto 9) | [ ]   |
-| 5   | Portada                                                  | `EscenaPortada`                                                                                                            | [ ]   |
+| 5   | Portada                                                  | `EscenaPortada`: nombre del juego, integrantes y «Pulsa ENTER para comenzar» (27/11/2026)                                  | [x]   |
 | 6   | Nivel 1 y Nivel 2                                        | `EscenaJuego` con los datos de cada piso                                                                                   | [ ]   |
 | 7   | Sonidos del juego                                        | Sistema de audio (disparo, golpe, cofre, música, avisos)                                                                   | [ ]   |
 | 8   | Insertar **efectos**                                     | Temblor de pantalla, destellos, partículas, cámara lenta                                                                   | [ ]   |

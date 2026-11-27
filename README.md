@@ -36,6 +36,7 @@ El juego se abre en http://localhost:5173.
 
 | Acción                    | Control                                                                                                                                                       |
 | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Empezar a jugar           | `Enter` en la portada (muestra el nombre del juego y a los integrantes del equipo)                                                                            |
 | Moverse                   | Flechas o W A S D                                                                                                                                             |
 | Apuntar                   | Mover el ratón (el cursor es la mira)                                                                                                                         |
 | Disparar                  | Clic izquierdo; se puede mantener pulsado para seguir                                                                                                         |

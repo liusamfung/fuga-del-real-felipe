@@ -6,16 +6,17 @@ iniciales**: se ajustan jugando y viven en `src/config.js` o en `src/datos/`.
 
 ## 1. Controles
 
-| Acción          | Control                                                                         | Estado              |
-| --------------- | ------------------------------------------------------------------------------- | ------------------- |
-| Moverse         | Flechas **o** W A S D                                                           | Definido            |
-| Apuntar         | Ratón (el personaje mira hacia el cursor)                                       | Definido            |
-| Disparar        | Clic, varios clics o mantener pulsado el clic                                   | Definido            |
-| Disparo auto    | Opción para que dispare solo mientras apuntas                                   | Por decidir         |
-| Dash            | **Mayúsculas (Shift)** (una pulsación por dash)                                 | Hecho (provisional) |
-| Ataque especial | **Barra espaciadora**: la granada, con reto de inglés (ver 5.11)                | Hecho (provisional) |
-| Silenciar       | **M**: silencia o devuelve la música y los efectos (ver [`audio.md`](audio.md)) | Hecho               |
-| Voz             | El micrófono se activa solo cuando hay una palabra que decir                    | Definido            |
+| Acción          | Control                                                                               | Estado              |
+| --------------- | ------------------------------------------------------------------------------------- | ------------------- |
+| Empezar         | **Enter** en la portada (nombre del juego, integrantes y «Pulsa ENTER para comenzar») | Hecho               |
+| Moverse         | Flechas **o** W A S D                                                                 | Definido            |
+| Apuntar         | Ratón (el personaje mira hacia el cursor)                                             | Definido            |
+| Disparar        | Clic, varios clics o mantener pulsado el clic                                         | Definido            |
+| Disparo auto    | Opción para que dispare solo mientras apuntas                                         | Por decidir         |
+| Dash            | **Mayúsculas (Shift)** (una pulsación por dash)                                       | Hecho (provisional) |
+| Ataque especial | **Barra espaciadora**: la granada, con reto de inglés (ver 5.11)                      | Hecho (provisional) |
+| Silenciar       | **M**: silencia o devuelve la música y los efectos (ver [`audio.md`](audio.md))       | Hecho               |
+| Voz             | El micrófono se activa solo cuando hay una palabra que decir                          | Definido            |
 
 ## 2. Movimiento y disparo
 

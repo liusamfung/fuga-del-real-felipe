@@ -3,8 +3,7 @@ import { ESCENAS } from '../config.js';
 import { crearAnimaciones } from '../sistemas/Animaciones.js';
 import { cargarRecursos, generarRecursosProvisionales } from '../sistemas/Recursos.js';
 
-// Primera escena del juego: prepara los recursos y pasa al juego.
-// Más adelante pasará a la portada en vez de ir directo al juego.
+// Primera escena del juego: prepara los recursos y pasa a la portada (`EscenaPortada`), que a su vez empieza el juego.
 export class EscenaArranque extends Phaser.Scene {
 	constructor() {
 		super(ESCENAS.ARRANQUE);
@@ -31,6 +30,6 @@ export class EscenaArranque extends Phaser.Scene {
 				return;
 			}
 		}
-		this.scene.start(ESCENAS.JUEGO);
+		this.scene.start(ESCENAS.PORTADA);
 	}
 }

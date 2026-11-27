@@ -5,6 +5,7 @@
 
 export const ESCENAS = Object.freeze({
 	ARRANQUE: 'EscenaArranque',
+	PORTADA: 'EscenaPortada',
 	JUEGO: 'EscenaJuego',
 	HUD: 'EscenaHUD',
 	DELETREO: 'EscenaDeletreo',
@@ -339,6 +340,15 @@ export const CONFIG = Object.freeze({
 			RECARGA_TRAS_ACIERTO: 6000,
 			RECARGA_TRAS_FALLO: 2500,
 		}),
+	}),
+
+	// La portada del inicio (src/escenas/EscenaPortada.js; los textos están en src/datos/creditos.js).
+	PORTADA: Object.freeze({
+		FUNDIDO: 350, // ms que tarda en aparecer y en irse a negro al pulsar ENTER
+		PARPADEO: 800, // ms que tarda en apagarse (y en volver) el «Pulsa ENTER para comenzar»
+		COLOR_DEL_TITULO: 0xd9b84a, // el dorado del juego
+		COLOR_DEL_TEXTO: '#e8dcc6',
+		COLOR_APAGADO: '#9a8d77',
 	}),
 
 	// Interfaz que se dibuja sobre la pared de arriba.
