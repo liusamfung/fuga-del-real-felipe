@@ -24,11 +24,15 @@ test('la portada dice el nombre del juego y desde cuándo y dónde ocurre', () =
 	assert.match(SUBTITULO_DEL_JUEGO, /Callao/);
 });
 
-test('la portada nombra a los cuatro integrantes del equipo, cada uno con su rol', () => {
-	for (const nombre of ['Liu Fung', 'Sebastián', 'Carlo Flores', 'Jorge Vega']) {
+test('la portada nombra a los tres integrantes del equipo, cada uno con su rol', () => {
+	for (const nombre of ['Liu Fung', 'Sebastián Carlo Flores', 'Jorge Vega']) {
 		assert.ok(nombresDelEquipo.includes(nombre), `falta ${nombre}`);
 	}
-	assert.equal(nombresDelEquipo.length, 4, 'nadie sale dos veces ni sobra nadie');
+	assert.equal(
+		nombresDelEquipo.length,
+		3,
+		'son tres integrantes: nadie sale dos veces ni sobra nadie',
+	);
 	assert.equal(new Set(nombresDelEquipo).size, nombresDelEquipo.length);
 	for (const { rol, nombres } of CREDITOS) {
 		assert.ok(rol.trim().length > 0, 'cada grupo tiene su rol');
@@ -36,11 +40,11 @@ test('la portada nombra a los cuatro integrantes del equipo, cada uno con su rol
 	}
 });
 
-test('quien programó es uno solo y el arte y el diseño visual son de los otros tres', () => {
+test('quien programó es uno solo y el arte y el diseño visual son de los otros dos', () => {
 	const programacion = CREDITOS.find(({ rol }) => /Programaci/.test(rol));
 	const arte = CREDITOS.find(({ rol }) => /Sprites/.test(rol));
 	assert.deepEqual(programacion.nombres, ['Liu Fung']);
-	assert.deepEqual([...arte.nombres].sort(), ['Carlo Flores', 'Jorge Vega', 'Sebastián']);
+	assert.deepEqual([...arte.nombres].sort(), ['Jorge Vega', 'Sebastián Carlo Flores']);
 });
 
 test('la portada pide pulsar ENTER para comenzar', () => {
