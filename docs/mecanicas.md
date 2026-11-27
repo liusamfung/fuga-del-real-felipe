@@ -246,6 +246,29 @@ niveles; el paso 9 los conectará al jefe).
 - **Plan B:** si el micrófono falla de forma grave (sin permiso, sin conexión, sin soporte), la
   pantalla pasa sola al **teclado** y lo avisa: se responde con **1**, **2** o **3**, y el reloj
   **no se reinicia**. Mientras el micrófono funciona, esas teclas no hacen nada.
+- **Diagnóstico de la voz** _(27/11/2026)_: si el cartel dice «Micrófono: escuchando» pero nunca aparece «oí: …», es que
+  Chrome **no está devolviendo texto**. Tras 3,5 s sin ningún resultado, la línea de abajo se pone **naranja** y dice en qué
+  punto se rompe, según lo que Chrome avisó (`ReconocedorDeVoz`, opción `alEvento`; mensajes en
+  `src/utilidades/diagnosticoDeVoz.js`, con pruebas):
+
+  | Aviso                                                                | Qué significa                                                                                                                                                                            |
+  | -------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+  | «A Chrome no le llega sonido…»                                       | Abrió el micrófono pero **solo recibe silencio**: suele ser el micrófono equivocado, silenciado o con el volumen de entrada en cero                                                      |
+  | «Chrome oye ruido pero no voz…»                                      | Llega sonido pero no lo reconoce como voz: hablar más cerca o más fuerte                                                                                                                 |
+  | «Chrome oyó voz pero no entregó texto: dila más fuerte y más claro.» | **No dice por qué** (el 27/11/2026 una primera versión del aviso culpaba al internet y era una suposición): Chrome detectó voz y no devolvió ningún texto; mirar los contadores de abajo |
+  | «El reconocimiento se corta solo…»                                   | Otra pestaña usa el reconocimiento a la vez                                                                                                                                              |
+  | «Chrome no abre el micrófono…»                                       | Lo ocupa otra pestaña o aplicación                                                                                                                                                       |
+
+  Debajo del aviso salen **contadores** (`sesiones · silencios · tardíos · modo`): _sesiones_ = cuántas veces arrancó Chrome
+  (muchas = se corta y reinicia), _silencios_ = veces que dijo «no oí nada» (`no-speech`), _tardíos_ = resultados que llegaron
+  de una sesión ya reemplazada y se descartaron, y _modo_ = `continuo` o `corto`. **Prueba A/B:** abrir el juego con
+  `?vozcorta` (por ejemplo `localhost:5173/?vozcorta`) hace que Chrome use **una sesión por frase** en vez de una continua
+  (`ReconocedorDeVoz`, opción `continuo: false`), por si el modo continuo es lo que falla.
+
+  Además, cada aviso de Chrome queda en la consola del navegador (F12) con el prefijo `[voz]`: `inicio`, `audio`, `sonido`,
+  `voz`, `resultado`, `error:<código>` (también los que el juego ignora, como `no-speech`) y `fin`; lo que llega de una sesión
+  ya reemplazada lleva el prefijo `viejo:`.
+
 - Al terminar se marca la correcta en verde (y la elegida en rojo si falló) y el juego recibe el mismo
   evento `deletreo-terminado` con `acertada`, `fallada` o `tiempo-agotado`.
 - Código: `RetoDeOpciones` (`src/sistemas/RetoDeOpciones.js`, lógica pura con pruebas),

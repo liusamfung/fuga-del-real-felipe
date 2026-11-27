@@ -23,9 +23,14 @@ const ERRORES_IGNORADOS = new Set(['no-speech', 'aborted']);
  *     alTexto: ({ numero, texto, esFinal, alternativas }) => ...,   // lo que oyó, tal cual
  *     alEstado: (estado) => ...,   // 'escuchando' | 'detenido'
  *     alError: (codigo, grave) => ...,
+ *     alEvento: (nombre) => ...,   // opcional, para diagnosticar: cada cosa que Chrome avisa. Nombres: 'inicio',
+ *                                 // 'audio', 'sonido', 'voz', 'fin-de-voz', 'sin-coincidencia', 'resultado',
+ *                                 // 'error:<codigo>' (también los que se ignoran, como no-speech) y 'fin'. Lo que
+ *                                 // llega de una sesión que ya no es la actual lleva el prefijo 'viejo:'
  *     sesgo: ['efe', 'ere', ...],   // opcional: palabras hacia las que inclinar el reconocimiento
  *                                 // (Chrome solo lo admite con procesarLocal: true)
  *     procesarLocal: false,         // opcional: reconocer en el equipo, sin mandar el audio a un servidor
+ *     continuo: true,               // opcional: false = una sesión por frase (Chrome la cierra al terminar de hablar)
  *   });
  *   voz.iniciar();   // la primera vez, el navegador pide permiso para el micrófono
  *   voz.detener();   // corta ya; con { esperarLoPendiente: true } espera los resultados que faltan
@@ -80,23 +85,27 @@ export class ReconocedorDeVoz {
 		sesgo = [],
 		impulsoDelSesgo = 5,
 		procesarLocal = false,
+		continuo = true,
 		ventana = globalThis,
 		esperaDeReinicio = 150,
 		alLetras,
 		alTexto,
 		alEstado,
 		alError,
+		alEvento,
 	} = {}) {
 		this.idioma = idioma;
 		this.sesgo = sesgo;
 		this.impulsoDelSesgo = impulsoDelSesgo;
 		this.procesarLocal = procesarLocal;
+		this.continuo = continuo;
 		this.ventana = ventana;
 		this.esperaDeReinicio = esperaDeReinicio;
 		this.alLetras = alLetras;
 		this.alTexto = alTexto;
 		this.alEstado = alEstado;
 		this.alError = alError;
+		this.alEvento = alEvento;
 		this.acumulador = new AcumuladorDeVoz({ retenerUltima });
 		this.activo = false;
 		this.cerrando = false; // se pidió parar, pero se esperan los últimos resultados
@@ -144,7 +153,7 @@ export class ReconocedorDeVoz {
 		const Reconocimiento = ReconocedorDeVoz.#constructorDelNavegador(this.ventana);
 		const reconocimiento = new Reconocimiento();
 		reconocimiento.lang = this.idioma;
-		reconocimiento.continuous = true; // no se corta al primer silencio
+		reconocimiento.continuous = this.continuo; // con true no se corta al primer silencio
 		reconocimiento.interimResults = true; // da resultados mientras se habla, no solo al final
 		reconocimiento.maxAlternatives = 3;
 		if (this.procesarLocal) {
@@ -158,16 +167,42 @@ export class ReconocedorDeVoz {
 
 		reconocimiento.onstart = () => {
 			if (esElActual()) {
+				this.alEvento?.('inicio');
 				this.alEstado?.('escuchando');
+			} else {
+				this.alEvento?.('viejo:inicio');
 			}
 		};
+		// Avisos de bajo nivel, solo para diagnosticar (ver `alEvento` y src/utilidades/diagnosticoDeVoz.js).
+		const avisos = {
+			onaudiostart: 'audio',
+			onsoundstart: 'sonido',
+			onspeechstart: 'voz',
+			onspeechend: 'fin-de-voz',
+			onnomatch: 'sin-coincidencia',
+		};
+		for (const [propiedad, nombre] of Object.entries(avisos)) {
+			reconocimiento[propiedad] = () => {
+				this.alEvento?.(esElActual() ? nombre : `viejo:${nombre}`);
+			};
+		}
 		reconocimiento.onresult = (evento) => {
 			if (esElActual()) {
+				this.alEvento?.('resultado');
 				this.#alResultado(evento);
+			} else {
+				// Un resultado de una sesión que ya no es la actual: se descarta, pero se avisa (puede explicar que
+				// «oyó voz» y no llegue texto).
+				this.alEvento?.('viejo:resultado');
 			}
 		};
 		reconocimiento.onerror = (evento) => {
-			if (reconocimiento !== this.reconocimiento || ERRORES_IGNORADOS.has(evento.error)) {
+			if (reconocimiento !== this.reconocimiento) {
+				this.alEvento?.(`viejo:error:${evento.error}`);
+				return;
+			}
+			this.alEvento?.(`error:${evento.error}`);
+			if (ERRORES_IGNORADOS.has(evento.error)) {
 				return;
 			}
 			const grave = ERRORES_GRAVES.has(evento.error);
@@ -182,8 +217,10 @@ export class ReconocedorDeVoz {
 		};
 		reconocimiento.onend = () => {
 			if (reconocimiento !== this.reconocimiento) {
+				this.alEvento?.('viejo:fin');
 				return;
 			}
+			this.alEvento?.('fin');
 			this.alEstado?.('detenido');
 			if (this.activo) {
 				this.temporizador = setTimeout(() => this.#reiniciar(), this.esperaDeReinicio);
