@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { CONFIG, ESCENAS, MODOS_DE_DELETREO } from '../config.js';
 import { claveDeLaMusicaDelNivel } from '../datos/audio.js';
-
+import { cartelDe } from '../datos/carteles.js';
 import { NIVELES } from '../datos/niveles.js';
 import { DIFICULTADES, elegirPalabra } from '../datos/palabras.js';
 import { VOCABULARIO, VOCABULARIO_PARA_VOZ } from '../datos/vocabulario.js';
@@ -21,7 +21,7 @@ import { generarNivel } from '../sistemas/GeneradorDeNivel.js';
 import { Nivel } from '../sistemas/Nivel.js';
 import { PeleaConElJefe } from '../sistemas/PeleaConElJefe.js';
 import { PoderConRecarga } from '../sistemas/PoderConRecarga.js';
-
+import { alDerrotarAlJefe, alMorir } from '../sistemas/ProgresoDelJuego.js';
 import { Sonido } from '../sistemas/Sonido.js';
 import { RampaDeTiempo } from '../sistemas/RampaDeTiempo.js';
 import { aplicarMejora, elegirMejoraComun } from '../sistemas/Recompensas.js';
@@ -55,6 +55,7 @@ export class EscenaJuego extends Phaser.Scene {
 
 	create() {
 		this.jugadorMuerto = false;
+		this.cartelAbierto = false; // verdadero mientras un cartel de fin (perdiste, nivel completado, ganaste) tapa el juego
 
 		this.proximoAvisoDeLlave = 0;
 		this.deletreoActivo = false;
@@ -134,14 +135,14 @@ export class EscenaJuego extends Phaser.Scene {
 			this.scene.stop(ESCENAS.HUD);
 			this.scene.stop(ESCENAS.DELETREO);
 			this.scene.stop(ESCENAS.OPCIONES);
-
+			this.scene.stop(ESCENAS.CARTEL);
 			this.#restablecerLaEscalaDelTiempo();
 		});
 	}
 
 	update() {
 		this.#actualizarLaVelocidadDelMundo();
-		if (this.jugadorMuerto) {
+		if (this.jugadorMuerto || this.cartelAbierto) {
 			return;
 		}
 
@@ -704,6 +705,14 @@ export class EscenaJuego extends Phaser.Scene {
 		this.nivel.abrirPuertas(columna, fila);
 		this.events.emit('jefe-derrotado');
 		this.#mostrarMensaje('¡Derrotaste al jefe!');
+
+		// Con el jefe del nivel 1 se pasa al nivel 2; con el del último nivel se gana el juego (no hay más niveles).
+		const desenlace = alDerrotarAlJefe(this.numeroDeNivel, Object.keys(NIVELES).length);
+		this.time.delayedCall(CONFIG.CARTEL.RETRASO_TRAS_EL_JEFE, () => {
+			if (!this.jugadorMuerto) {
+				this.#abrirElCartel(desenlace);
+			}
+		});
 	}
 
 	// Atajo de pruebas (tecla J): lleva al jugador directo a la sala del jefe, para no recorrer las otras ocho. La
@@ -1022,15 +1031,35 @@ export class EscenaJuego extends Phaser.Scene {
 		}
 	}
 
-	// Muerte provisional: se reinicia el nivel. Qué pasa de verdad al morir (volver a la portada,
-	// reiniciar el nivel, Revivir…) está por decidir; ver docs/decisiones-pendientes.md.
+	// El jugador murió: se para todo, suena su muerte y, tras un instante, sale el cartel «Perdiste». Al aceptarlo la
+	// partida empieza de nuevo DESDE EL NIVEL 1, esté en el nivel que esté (ver `alMorir`).
 	#alMorirElJugador() {
 		this.jugadorMuerto = true;
 		this.physics.pause();
+		// Un reto de inglés que estuviera abierto se cierra (y con él el micrófono): el cartel no debe quedar debajo ni
+		// seguir escuchando.
+		this.scene.stop(ESCENAS.OPCIONES);
+		this.scene.stop(ESCENAS.DELETREO);
+		this.deletreoActivo = false;
+		this.retoEnCurso = null;
 		this.sonido.detenerMusica();
 		this.sonido.efecto('jugador-muerte');
-		this.#mostrarMensaje('Has muerto');
-		this.time.delayedCall(1800, () => this.scene.restart({ nivel: this.numeroDeNivel }));
+		this.time.delayedCall(CONFIG.CARTEL.RETRASO_TRAS_MORIR, () => this.#abrirElCartel(alMorir()));
+	}
+
+	// Tapa el juego con un cartel y espera a que el jugador pulse el botón: entonces empieza el nivel que indica el
+	// desenlace (`siguiente`). El juego queda congelado mientras tanto.
+	#abrirElCartel(desenlace) {
+		if (this.cartelAbierto) {
+			return;
+		}
+
+		this.cartelAbierto = true;
+		this.physics.pause();
+		this.scene.launch(ESCENAS.CARTEL, {
+			cartel: cartelDe(desenlace),
+			alAceptar: () => this.scene.restart({ nivel: desenlace.siguiente }),
+		});
 	}
 
 	/** Muestra un texto que se desvanece. Por defecto sale en el centro de la sala actual. */

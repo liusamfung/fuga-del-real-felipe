@@ -11,6 +11,7 @@ export const ESCENAS = Object.freeze({
 	PRUEBA_VOZ: 'EscenaPruebaVoz',
 	PRUEBA_INGLES: 'EscenaPruebaIngles',
 	OPCIONES: 'EscenaOpciones',
+	CARTEL: 'EscenaCartel',
 });
 
 // Cómo se muestra la palabra que hay que deletrear (de menos a más difícil).
@@ -201,6 +202,21 @@ export const CONFIG = Object.freeze({
 	// nivel: `JEFE` es el del nivel 1 y `JEFES` los trae todos por el número del nivel (ver más arriba).
 	JEFE: JEFE_1,
 	JEFES: Object.freeze({ 1: JEFE_1, 2: JEFE_2 }),
+
+	// Los carteles de fin (src/escenas/EscenaCartel.js, textos en src/datos/carteles.js): perdiste, nivel completado y ganaste.
+	CARTEL: Object.freeze({
+		ANCHO: 600,
+		ALTO: 320,
+		BOTON_ANCHO: 440,
+		BOTON_ALTO: 58,
+		// Tras morir pasan unos instantes antes de que salga el cartel: se oye la muerte y se ve el golpe.
+		RETRASO_TRAS_MORIR: 900,
+		// Tras derrotar al jefe, igual: se ve cómo se desvanece.
+		RETRASO_TRAS_EL_JEFE: 1600,
+		// El botón no responde hasta pasado este tiempo: un jugador que seguía disparando o tecleando no debe aceptar
+		// el cartel sin querer.
+		RETRASO_PARA_ACEPTAR: 700,
+	}),
 
 	// El audio (catálogo en src/datos/audio.js, sistema en src/sistemas/Sonido.js). Se silencia con la tecla M y se acuerda.
 	AUDIO: Object.freeze({
