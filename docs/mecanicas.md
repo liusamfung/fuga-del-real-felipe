@@ -6,15 +6,16 @@ iniciales**: se ajustan jugando y viven en `src/config.js` o en `src/datos/`.
 
 ## 1. Controles
 
-| Acción          | Control                                                          | Estado              |
-| --------------- | ---------------------------------------------------------------- | ------------------- |
-| Moverse         | Flechas **o** W A S D                                            | Definido            |
-| Apuntar         | Ratón (el personaje mira hacia el cursor)                        | Definido            |
-| Disparar        | Clic, varios clics o mantener pulsado el clic                    | Definido            |
-| Disparo auto    | Opción para que dispare solo mientras apuntas                    | Por decidir         |
-| Dash            | **Mayúsculas (Shift)** (una pulsación por dash)                  | Hecho (provisional) |
-| Ataque especial | **Barra espaciadora**: la granada, con reto de inglés (ver 5.11) | Hecho (provisional) |
-| Voz             | El micrófono se activa solo cuando hay una palabra que decir     | Definido            |
+| Acción          | Control                                                                         | Estado              |
+| --------------- | ------------------------------------------------------------------------------- | ------------------- |
+| Moverse         | Flechas **o** W A S D                                                           | Definido            |
+| Apuntar         | Ratón (el personaje mira hacia el cursor)                                       | Definido            |
+| Disparar        | Clic, varios clics o mantener pulsado el clic                                   | Definido            |
+| Disparo auto    | Opción para que dispare solo mientras apuntas                                   | Por decidir         |
+| Dash            | **Mayúsculas (Shift)** (una pulsación por dash)                                 | Hecho (provisional) |
+| Ataque especial | **Barra espaciadora**: la granada, con reto de inglés (ver 5.11)                | Hecho (provisional) |
+| Silenciar       | **M**: silencia o devuelve la música y los efectos (ver [`audio.md`](audio.md)) | Hecho               |
+| Voz             | El micrófono se activa solo cuando hay una palabra que decir                    | Definido            |
 
 ## 2. Movimiento y disparo
 
@@ -140,10 +141,9 @@ Se guardan en `src/datos/palabras.js`. La palabra **no cambia** mientras la barr
 
 ### 5.7 Cómo funciona hoy el deletreo con teclado (y con voz, ver 5.9)
 
-- **Provisional:** la tecla **E** pide una palabra al azar con la palabra siempre visible, **T** con
-  huecos e **Y** de memoria (ver 5.8). Con **Q** pulsada se pide **al revés** (antes era con Mayúsculas, que ahora es el dash). **R** pide una
-  palabra fácil al revés, siempre visible. **I** pide un **dictado en inglés** (ver 5.8). Cuando el
-  deletreo sea un poder (paso 9) se activará desde el juego.
+- **Ya no hay teclas para pedirlo** (27/11/2026): `E`, `T`, `Y`, `I`, `R` y `Q` eran atajos de prueba y se quitaron al preparar
+  la versión de producción. Los modos (visible, huecos, memoria, al revés) siguen en el código (`EscenaDeletreo`), pero hoy solo se
+  usa en el juego el **dictado en inglés** (ver 5.8), que abre el ataque fuerte del jefe 2.
 - Aparece una pantalla encima del juego con la palabra, las letras acertadas en verde, la que toca
   subrayada y una **barra de tiempo**. La barra mide el **tiempo real** (`performance.now()`), no el
   del juego, para que la cámara lenta del jefe no la estire.
@@ -162,8 +162,8 @@ Se guardan en `src/datos/palabras.js`. La palabra **no cambia** mientras la barr
 
 ### 5.9 Cómo funciona hoy el deletreo con voz
 
-- **Provisional:** la tecla **V** cambia entre teclado y voz. Después se pide la palabra con **E**, **T**
-  o **Y** como siempre (5.7 y 5.8). La primera vez, el navegador pide permiso para el micrófono.
+- El deletreo con voz solo se podía probar con la tecla `V` (atajo de prueba, **quitado el 27/11/2026**). Hoy la voz se usa en los
+  retos de opciones (5.10). La primera vez, el navegador pide permiso para el micrófono.
 - Se usa la **Web Speech API** (`SpeechRecognition`, `webkitSpeechRecognition` en Chrome) con el idioma
   `es-PE` _(provisional)_. Escucha de forma continua y entrega resultados provisionales mientras se
   habla (`src/sistemas/ReconocedorDeVoz.js`).
@@ -231,8 +231,8 @@ en todas; lo que cambia es **qué ve el jugador** (y, en el dictado, que una voz
 ### 5.10 Retos de opciones: niveles 1 y 2 de inglés
 
 Se ve una **ficha** con tres opciones y el jugador **dice en voz alta la correcta**, en inglés
-americano. Provisional: **O** pide el nivel 1 y **P** el nivel 2 (con **I**, el dictado, son los tres
-niveles; el paso 9 los conectará al jefe).
+americano. Se abren desde la granada (nivel 1) y desde el ataque fuerte de los jefes (ver 5.11 y 6). Las teclas `O` y `P`
+(pruebas de los niveles 1 y 2) se quitaron el 27/11/2026.
 
 | Nivel | Qué se ve                                   | Qué se dice           |
 | ----- | ------------------------------------------- | --------------------- |
@@ -286,7 +286,7 @@ niveles; el paso 9 los conectará al jefe).
   Debajo del aviso salen **contadores** (`sesiones · silencios · tardíos · modo`): _sesiones_ = cuántas veces arrancó Chrome
   (muchas = se corta y reinicia), _silencios_ = veces que dijo «no oí nada» (`no-speech`), _tardíos_ = resultados que llegaron
   de una sesión ya reemplazada y se descartaron, y _modo_ = `continuo` o `corto`. **Prueba A/B:** abrir el juego con
-  `?vozcorta` (por ejemplo `localhost:5173/?vozcorta`) hace que Chrome use **una sesión por frase** en vez de una continua
+  `?vozcorta` (solo con `npm run dev`, por ejemplo `localhost:5173/?vozcorta`; en el juego publicado siempre es continua) hace que Chrome use **una sesión por frase** en vez de una continua
   (`ReconocedorDeVoz`, opción `continuo: false`), por si el modo continuo es lo que falla.
 
   Además, cada aviso de Chrome queda en la consola del navegador (F12) con el prefijo `[voz]`: `inicio`, `audio`, `sonido`,
@@ -343,8 +343,7 @@ retos de inglés usa en sus ataques fuertes (_decidido el 27/11/2026_):
 | **Jefe 1** (nivel 1, «Mazmorras inferiores») | `jefe-1`: la rata gigante gris azulada de Sebastián (PR #20), ampliada ×3 (ver [`guia-de-recursos.md`](guia-de-recursos.md)) | **Solo el FÁCIL** (nivel 1: se ve una palabra en español y se dice su traducción): fácil, fácil, fácil                                                                                                    |
 | **Jefe 2** (nivel 2, «Prisión»)              | `jefe-2`: el fantasma con corona de Sebastián                                                                                | **El único que alterna MEDIO y ALTO**: medio (nivel 2: se ve la definición en inglés y se dice la palabra), alto (nivel 3: el juego **dice** la palabra en inglés y se **escribe con el teclado**), medio |
 
-El jefe 2 usa **todas las palabras del banco** en el reto alto, porque se escribe y no depende de que Chrome las entienda. Con
-**`K`** se empieza el nivel 2 y con **`J`** se va a la sala del jefe del nivel actual (atajos de pruebas). Los demás valores
+El jefe 2 usa **todas las palabras del banco** en el reto alto, porque se escribe y no depende de que Chrome las entienda. Los demás valores
 (vida, ataques, rayo…) son los mismos para los dos jefes y salen de `JEFE_BASE`.
 
 Los valores de abajo valen para los dos jefes. Son los acordados el 26/11/2026 y retocados el 27/11/2026, y son
@@ -377,9 +376,8 @@ Los valores de abajo valen para los dos jefes. Son los acordados el 26/11/2026 y
   El movimiento **no** lo evita: hay que responder un **reto de inglés**. El jefe 1 usa solo el
   reto **fácil** (nivel 1) y el jefe 2 alterna el **medio** y el **alto** (niveles 2 y 3, el dictado: ver arriba y 5.10). El
   golpe es un **rayo** (6.0.1): de **alcantarilla** (marrón sucio) el del jefe 1 y **verde** el del jefe 2.
-- **Atajo de pruebas, tecla `J`:** lleva al jugador directo a la sala del jefe, con la llave, y la pelea empieza
-  al instante. La sala donde estaba se da por terminada (sin cofre) para que no queden sus puertas cerradas.
-  Sirve para probar al jefe sin recorrer las otras ocho salas; no es parte del juego final.
+- **Atajos de prueba quitados (27/11/2026):** `J` llevaba directo a la sala del jefe y `K` empezaba el nivel 2. Se quitaron para
+  publicar el juego: ahora el jefe solo se alcanza recorriendo el nivel y recogiendo la llave.
 - **Al derrotarlo:** el jefe se desvanece, se apagan sus proyectiles, se **abren las puertas** y, 1,6 s después, sale un
   **cartel** (ver 6.3): con el jefe 1, «¡Nivel completado!» y se pasa al nivel 2; con el jefe 2, «¡Ganaste!» y es el final.
 
@@ -491,7 +489,7 @@ primeros 0,7 s, para que nadie lo acepte sin querer si seguía disparando o tecl
 - Si el jefe cae **en pleno reto** (también en el dictado), el reto se cierra solo y no cae ningún golpe.
 - Al pasar de nivel el jugador **conserva** su vida, sus corazones extra, su ataque y su velocidad (27/11/2026); tras
   morir o ganar, todo vuelve a empezar de cero.
-- Los atajos de pruebas `J` y `K` siguen existiendo; con el paso de nivel ya hecho, `K` se puede quitar cuando el usuario quiera.
+- Los atajos de pruebas `J` y `K` ya no existen (se quitaron el 27/11/2026, al preparar la versión de producción).
 
 ## 7. Cofres especiales
 

@@ -89,9 +89,11 @@ export class EscenaOpciones extends Phaser.Scene {
 			noSpeech: 0,
 			tardios: 0,
 		};
-		// Prueba A/B (solo para diagnosticar): con ?vozcorta en la dirección, Chrome usa una sesión por frase en vez de
-		// una sesión continua.
-		this.vozContinua = !new URLSearchParams(window.location.search).has('vozcorta');
+		// Prueba A/B (solo para diagnosticar, solo con `npm run dev`): con ?vozcorta en la dirección, Chrome usa una
+		// sesión por frase en vez de una sesión continua. En el juego compilado siempre es continua.
+		this.vozContinua = !(
+			import.meta.env.DEV && new URLSearchParams(window.location.search).has('vozcorta')
+		);
 		this.escuchaDesde = null;
 
 		this.#crearPantalla();

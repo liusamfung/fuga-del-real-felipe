@@ -18,13 +18,19 @@ export class EscenaArranque extends Phaser.Scene {
 		generarRecursosProvisionales(this);
 		crearAnimaciones(this);
 
-		// Con ?voz se abre la prueba de voz (docs/prueba-de-voz.md) y con ?ingles la prueba de voz en
-		// inglés (docs/prueba-de-voz-ingles.md), en vez del juego.
-		const parametros = new URLSearchParams(window.location.search);
-		if (parametros.has('ingles')) {
-			this.scene.start(ESCENAS.PRUEBA_INGLES);
-		} else {
-			this.scene.start(parametros.has('voz') ? ESCENAS.PRUEBA_VOZ : ESCENAS.JUEGO);
+		// Solo en desarrollo (`npm run dev`): con ?voz se abre la prueba de voz (docs/prueba-de-voz.md) y con ?ingles la
+		// prueba de voz en inglés (docs/prueba-de-voz-ingles.md), en vez del juego. En el juego compilado esto no existe.
+		if (import.meta.env.DEV) {
+			const parametros = new URLSearchParams(window.location.search);
+			if (parametros.has('ingles')) {
+				this.scene.start(ESCENAS.PRUEBA_INGLES);
+				return;
+			}
+			if (parametros.has('voz')) {
+				this.scene.start(ESCENAS.PRUEBA_VOZ);
+				return;
+			}
 		}
+		this.scene.start(ESCENAS.JUEGO);
 	}
 }
