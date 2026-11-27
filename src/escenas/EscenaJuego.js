@@ -566,6 +566,20 @@ export class EscenaJuego extends Phaser.Scene {
 		this.time.delayedCall(this.configDelJefe.AVISO, () => this.#abrirElRetoDelAtaqueFuerte(nivel));
 	}
 
+	// El reto más difícil del ataque fuerte (nivel 3): una voz dice una palabra en inglés y hay que escribirla con el
+	// teclado antes de que se acabe el tiempo (el tiempo corre en tiempo real, aunque el mundo vaya en cámara lenta).
+	// Usa todas las palabras del banco: se teclea, no depende de que Chrome las entienda. Devuelve verdadero si empezó.
+	#empezarElDictadoDelAtaqueFuerte() {
+		this.deletreoActivo = true;
+		this.entrada.bloquearMovimiento(true);
+		this.scene.launch(ESCENAS.DELETREO, {
+			palabra: this.#palabraParaDictar(),
+			modo: MODOS_DE_DELETREO.DICTADO,
+			alTerminar: (resultado, info) => this.#alTerminarElDeletreo(resultado, info),
+		});
+		return true;
+	}
+
 	#abrirElRetoDelAtaqueFuerte(nivel) {
 		if (this.jugadorMuerto || this.pelea.derrotado) {
 			this.deletreoActivo = false;
@@ -574,7 +588,13 @@ export class EscenaJuego extends Phaser.Scene {
 
 		this.#apuntarElRayo();
 		this.retoEnCurso = 'ataque-fuerte';
-		if (!this.#empezarElRetoDeOpciones(nivel)) {
+		// El nivel 3 de inglés (el más difícil, solo del jefe 2) es el dictado: el juego dice la palabra y se escribe con el
+		// teclado. Los niveles 1 y 2 son retos de opciones que se dicen con la voz.
+		const empezo =
+			nivel === NIVELES_DE_INGLES.DICTADO
+				? this.#empezarElDictadoDelAtaqueFuerte()
+				: this.#empezarElRetoDeOpciones(nivel);
+		if (!empezo) {
 			// No se pudo armar el reto (con el banco de vocabulario no pasa): que el jugador no pague por eso.
 			this.retoEnCurso = null;
 			this.deletreoActivo = false;
@@ -690,7 +710,7 @@ export class EscenaJuego extends Phaser.Scene {
 		if (this.retoEnCurso === 'ataque-fuerte') {
 			this.retoEnCurso = null;
 			this.scene.stop(ESCENAS.OPCIONES);
-
+			this.scene.stop(ESCENAS.DELETREO); // si el reto era un dictado
 			this.deletreoActivo = false;
 			this.entrada.bloquearMovimiento(false);
 		}

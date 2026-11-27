@@ -297,8 +297,8 @@ test('la configuración del jefe es coherente y se puede armar una pelea con ell
 	);
 	for (const nivel of JEFE.NIVELES_DE_INGLES) {
 		assert.ok(
-			[1, 2].includes(nivel),
-			`el nivel ${nivel}: los ataques fuertes usan retos de opciones (1 o 2)`,
+			[1, 2, 3].includes(nivel),
+			`el nivel ${nivel}: los ataques fuertes usan los retos 1 (traducción), 2 (definición) o 3 (dictado)`,
 		);
 	}
 	// Desde el 27/11/2026 el ataque básico es rápido y frecuente (lo pidió el usuario), pero con un tope: dos por segundo ya no se esquivarían.

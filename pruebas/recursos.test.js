@@ -104,3 +104,15 @@ test('el jefe del juego (CONFIG.JEFE) apunta a una hoja que existe y tiene su an
 	);
 	assert.ok(Number.isInteger(ESCALA) && ESCALA >= 1, 'con pixel art la escala debe ser un entero');
 });
+
+test('el jefe del nivel 1 tiene su hoja de 3 cuadros de 32 × 32 (provisional) y su animación de flotar', () => {
+	assert.equal(RECURSOS['jefe-1'].ancho, 32);
+	assert.equal(RECURSOS['jefe-1'].alto, 32);
+	assert.deepEqual(leerPng(RECURSOS['jefe-1'].ruta), { ancho: 96, alto: 32 });
+	assert.equal(cuadrosDeLaHoja('jefe-1'), 3);
+
+	const flotar = ANIMACIONES.find(({ clave }) => clave === 'jefe-1-flotar');
+	assert.ok(flotar, 'falta la animación jefe-1-flotar');
+	assert.deepEqual([...new Set(flotar.cuadros)].sort(), [0, 1, 2], 'usa los tres cuadros');
+	assert.equal(flotar.repetir, true);
+});

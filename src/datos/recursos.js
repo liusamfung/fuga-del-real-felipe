@@ -170,6 +170,18 @@ export const RECURSOS = Object.freeze({
 		alto: 48,
 	},
 
+	// El jefe del nivel 1. PROVISIONAL: una copia del fantasma teñida de rojo, para que el jefe 1 ya esté construido como debe
+	// (su propia hoja, su propia animación y su propia configuración, `CONFIG.JEFES[1]`). Cuando llegue el dibujo de Sebastián
+	// se reemplaza el archivo `jefe-1.png`; si mide distinto, se cambian `ancho` y `alto` de aquí (el tamaño de UN cuadro),
+	// los `cuadros` de su animación (src/datos/animaciones.js) y su `ESCALA` y cuerpo (src/config.js). Ver
+	// docs/guia-de-recursos.md.
+	'jefe-1': {
+		tipo: 'hoja',
+		ruta: 'assets/img/enemigos/jefe-1.png',
+		ancho: 32,
+		alto: 32,
+	},
+
 	// El segundo jefe: un fantasma con corona. 3 cuadros de flotar en una fila (las manos y la barba
 	// cambian de posición). Ojo: los cuadros miden 32 x 32, no 32 x 48 como los de los demás personajes.
 	'jefe-2': {

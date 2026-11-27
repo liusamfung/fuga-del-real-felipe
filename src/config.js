@@ -29,17 +29,13 @@ export const MODOS_DE_DELETREO = Object.freeze({
 });
 
 // --- Los jefes (uno por nivel) ---
-// El jefe del piso y su pelea (ver src/sistemas/PeleaConElJefe.js y docs/mecanicas.md, sección 6).
+// El jefe de cada piso y su pelea (ver src/sistemas/PeleaConElJefe.js y docs/mecanicas.md, sección 6).
 // Los valores son los acordados el 26/11/2026 y retocados el 27/11/2026; son provisionales y se ajustan jugando.
-const JEFE_1 = Object.freeze({
-	// Provisional: el dibujo del jefe del piso 1 todavía no existe, así que se usa el del segundo
-	// (`jefe-2`) en la sala del centro. Se cambia aquí cuando haya uno por piso.
-	CLAVE: 'jefe-2',
-	ESCALA: 3, // los cuadros miden 32 x 32; ampliados ×3 son 96 x 96 px, más grandes que el jugador
-	// El cuerpo de choque, en píxeles del dibujo (se amplía junto con él): el fantasma tiene aire a los lados.
-	CUERPO_ANCHO: 22,
-	CUERPO_ALTO: 26,
-
+//
+// `JEFE_BASE` tiene lo que comparten los jefes (vida, ataques, rayo…). Cada jefe agrega lo SUYO: su dibujo (clave de la
+// hoja, escala y cuerpo de choque) y qué retos de inglés usa en sus ataques fuertes. Así se puede cambiar un jefe sin
+// tocar al otro, y para cambiar un valor que valga para los dos basta cambiarlo en `JEFE_BASE`.
+const JEFE_BASE = Object.freeze({
 	VIDA: 60, // con la bala del jugador (1 de daño) son 60 aciertos; la granada quita 3. El 27/11/2026 se duplicó (era 30)
 	// Ataque básico: un proyectil hacia el jugador. Se esquiva moviéndose (o con el dash).
 	INTERVALO_DE_ATAQUE: 900, // ms entre un ataque básico y el siguiente (el 27/11/2026 bajó de 2000: más frecuente)
@@ -64,7 +60,6 @@ const JEFE_1 = Object.freeze({
 	}),
 	// Ataque fuerte: no se esquiva moviéndose; hay que responder un reto de inglés con el mundo en cámara lenta.
 	UMBRALES: [0.75, 0.5, 0.25], // viene uno al bajar el jefe de estas fracciones de su vida
-	NIVELES_DE_INGLES: [1, 2, 1], // el reto de cada ataque fuerte (jefe 1: alterna los niveles 1 y 2)
 	AVISO: 800, // ms de aviso (destello y letrero) antes de que aparezca el reto
 	// El golpe del ataque fuerte es un rayo verde que va del jefe hasta el final de la sala, en la dirección en que
 	// estaba el jugador cuando apareció el reto. Si se falla, el rayo le cae sí o sí; si se acierta, el jugador hace
@@ -83,11 +78,35 @@ const JEFE_1 = Object.freeze({
 	DANO_POR_TOCARLO: 1, // corazones que quita al jugador si lo toca
 });
 
-// El jefe del nivel 2 es un DUPLICADO del del nivel 1 (el fantasma, que se puso en el nivel 1 solo para probar):
-// empieza con exactamente los mismos valores, pero es un objeto aparte para poder cambiarle lo que haga falta (más
-// vida, otro ritmo, los niveles de inglés 2 y 3…) sin tocar al del nivel 1. Lo que cambie va después del `...`.
+// El jefe del nivel 1 («Mazmorras inferiores»). Solo usa retos FÁCILES: el nivel 1 de inglés (se ve una palabra en
+// español y se dice su traducción) en sus tres ataques fuertes.
+//
+// El dibujo es PROVISIONAL: una copia del fantasma teñida de rojo (public/assets/img/enemigos/jefe-1.png), para que el
+// jefe del nivel 1 ya esté construido como debe. Cuando llegue el dibujo de Sebastián basta con reemplazar ese archivo
+// por el suyo; si no mide lo mismo (3 cuadros de 32 x 32 en una fila) hay que ajustar su `ancho`/`alto` en
+// src/datos/recursos.js, los `cuadros` de su animación en src/datos/animaciones.js y la `ESCALA` y el cuerpo de aquí.
+// Todo está explicado en docs/guia-de-recursos.md.
+const JEFE_1 = Object.freeze({
+	...JEFE_BASE,
+	CLAVE: 'jefe-1',
+	ESCALA: 3, // los cuadros miden 32 x 32; ampliados ×3 son 96 x 96 px, más grandes que el jugador
+	// El cuerpo de choque, en píxeles del dibujo (se amplía junto con él).
+	CUERPO_ANCHO: 22,
+	CUERPO_ALTO: 26,
+	NIVELES_DE_INGLES: [1, 1, 1], // el reto de cada ataque fuerte: solo el nivel 1 (fácil)
+});
+
+// El jefe del nivel 2 («Prisión»): el fantasma con corona (dibujo de Sebastián). Es el único que alterna el reto MEDIO
+// (nivel 2: se ve la definición en inglés y se dice la palabra) con el ALTO (nivel 3: el juego dice la palabra en
+// inglés y el jugador la ESCRIBE con el teclado): medio, alto, medio.
 const JEFE_2 = Object.freeze({
-	...JEFE_1,
+	...JEFE_BASE,
+	CLAVE: 'jefe-2',
+	ESCALA: 3,
+	// El fantasma tiene aire a los lados: su cuerpo de choque es más angosto que el dibujo.
+	CUERPO_ANCHO: 22,
+	CUERPO_ALTO: 26,
+	NIVELES_DE_INGLES: [2, 3, 2],
 });
 
 export const CONFIG = Object.freeze({
@@ -155,7 +174,9 @@ export const CONFIG = Object.freeze({
 			PROCESAR_EN_EL_EQUIPO: false, // reconocer sin servidor (hay que descargar el idioma)
 		}),
 		ERRORES_PERMITIDOS: 2, // letras equivocadas que se perdonan; una más y se falla
-		TIEMPO_DEL_RESULTADO: 900, // ms que se ve el resultado antes de cerrar la pantalla
+		// ms que se ve el resultado antes de cerrar la pantalla; el juego NO sigue hasta que se cierra (sigue en cámara lenta).
+		// El 27/11/2026 bajó de 900 a 450, igual que en los retos de opciones («0,5 s o menos»).
+		TIEMPO_DEL_RESULTADO: 450,
 		DESTELLO_DE_ERROR: 150, // ms que el marco se pone rojo al equivocarse
 		PANEL: Object.freeze({
 			Y: 170,
