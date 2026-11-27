@@ -1,5 +1,6 @@
 import { CONFIG } from '../config.js';
 import { Bala } from '../entidades/Bala.js';
+import { superoElAlcance } from '../utilidades/alcance.js';
 import { normalizar } from '../utilidades/vectores.js';
 
 // Controla los disparos del jugador: la cadencia, la dirección y el reciclaje de las balas.
@@ -48,15 +49,17 @@ export class Disparo {
 	}
 
 	/**
-	 * Apaga las balas que salieron de la sala. Llamar en cada `update()`.
+	 * Apaga las balas que salieron de la sala o que ya llegaron a su alcance (`CONFIG.DISPARO.ALCANCE`): una bala no
+	 * cruza toda la sala. Llamar en cada `update()`.
 	 * `limites` es el rectángulo de la sala actual en el mundo: { x, y, ancho, alto }.
 	 */
 	actualizar(limites) {
 		const { x, y, ancho, alto } = limites;
+		const { ALCANCE } = CONFIG.DISPARO;
 
 		for (const bala of this.balas.getChildren()) {
 			const afuera = bala.x < x || bala.x > x + ancho || bala.y < y || bala.y > y + alto;
-			if (bala.active && afuera) {
+			if (bala.active && (afuera || superoElAlcance(bala.origen, bala, ALCANCE))) {
 				bala.desactivar();
 			}
 		}

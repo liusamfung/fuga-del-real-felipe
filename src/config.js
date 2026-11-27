@@ -289,6 +289,7 @@ export const CONFIG = Object.freeze({
 	DISPARO: Object.freeze({
 		CADENCIA: 250, // ms mínimos entre un disparo y el siguiente
 		VELOCIDAD_BALA: 520,
+		ALCANCE: 400, // px: lo más lejos que llega una bala desde donde salió (media sala); pasado eso desaparece
 		MAX_BALAS: 30, // balas reservadas; se reciclan, nunca se crean más
 		PROFUNDIDAD_BALAS: 1000, // las balas se dibujan por encima de todo lo demás
 	}),
@@ -321,10 +322,19 @@ export const CONFIG = Object.freeze({
 		GRANADA: Object.freeze({
 			NIVEL_DE_INGLES: 1, // el reto: 1 es el de traducción (el más fácil), ver NIVELES_DE_INGLES
 			DANO: 3, // lo que le quita a cada enemigo alcanzado: mata a todos menos a la rata azul (5 de vida)
-			RADIO: 96, // px: todo lo que quede a esta distancia del centro de la explosión recibe el daño
+			// px: todo lo que toque este círculo recibe el daño. Cuenta el CUERPO del enemigo (no solo su centro), así que
+			// también golpea a los que están pegados al jugador cuando la lanza a sus pies.
+			RADIO: 128,
 			VELOCIDAD: 420, // px/s: lo que tarda en volar hasta donde apuntaba el cursor
 			VUELO_MINIMO: 150, // ms: lanzada a los pies también se ve volar un instante
 			DURACION_DE_LA_EXPLOSION: 280, // ms que se ve la onda de la explosión
+			// La vista previa mientras se responde el reto: una línea de rayas del jugador al punto de impacto y el
+			// círculo de la explosión, para ver dónde caerá (como el aviso del rayo de los jefes).
+			VISTA_PREVIA: Object.freeze({
+				COLOR: 0xff9a3c,
+				RAYA: 14, // px de cada raya de la línea
+				HUECO: 10, // px entre rayas
+			}),
 			// Recarga (ms) desde que TERMINA el reto: mayor si se acertó (se lanzó la granada).
 			RECARGA_TRAS_ACIERTO: 6000,
 			RECARGA_TRAS_FALLO: 2500,
@@ -336,7 +346,7 @@ export const CONFIG = Object.freeze({
 		MARGEN: 48,
 		Y: 16,
 		SEPARACION_CORAZONES: 20,
-		DASH_X: 372, // donde empiezan las cargas del dash, en el centro de la franja
-		GRANADA_X: 482, // donde empieza el indicador de la granada, después del dash
+		DASH_X: 356, // donde empiezan las cargas del dash, en el centro de la franja (a su izquierda va su tecla: Shift)
+		GRANADA_X: 500, // donde empieza el indicador de la granada, después del dash (a su izquierda va su tecla: Espacio)
 	}),
 });

@@ -8,6 +8,7 @@ export class Bala extends Phaser.Physics.Arcade.Image {
 	constructor(escena, x, y) {
 		super(escena, x, y, 'bala');
 		this.dano = 0;
+		this.origen = { x, y }; // de dónde salió: el alcance se mide desde aquí (ver `Disparo.actualizar`)
 	}
 
 	/**
@@ -20,6 +21,7 @@ export class Bala extends Phaser.Physics.Arcade.Image {
 		this.enableBody(true, x, y, true, true);
 		this.setDepth(PROFUNDIDAD_BALAS);
 		this.dano = dano;
+		this.origen = { x, y };
 		this.setVelocity(direccion.x * VELOCIDAD_BALA, direccion.y * VELOCIDAD_BALA);
 	}
 

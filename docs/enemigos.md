@@ -21,7 +21,7 @@ Para comparar: el jugador camina a **220 px/s**, empieza con **3 corazones** y s
 granada, 3). Ninguna rata es más rápida que el jugador: siempre se puede huir.
 
 **Golpe mortal:** la rata negra le quita al jugador **infinito**, así que lo mata de un toque aunque haya
-mejorado su vida máxima (el jugador resta `vida - daño` y no baja de 0). Cada una de las otras ratas quita 1 o
+corazones extra de cofre (el jugador resta `vida - daño` y no baja de 0; el daño infinito supera cualquier extra). Cada una de las otras ratas quita 1 o
 2 corazones. Después de un golpe, el jugador es inmune 1 segundo.
 
 ## Los guardias del nivel 2 _(27/11/2026)_

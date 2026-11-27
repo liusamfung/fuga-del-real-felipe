@@ -53,8 +53,8 @@ Elegir entre Juran, Deming o Crosby y confirmar el nombre "Joseph Durand" con el
 
 ## 3. Voz: poderes, idioma y tiempo
 
-- **Granada** (hecha el 26/11/2026, tecla `G`, ver [`mecanicas.md`](mecanicas.md) 5.11): reto de nivel 1,
-  daño 3 en un radio de 96 px, recarga 6 s si se acierta y 2,5 s si se falla _(todo provisional)_.
+- **Granada** (hecha el 26/11/2026, tecla `Espacio` desde el 27/11/2026, antes `G`; ver [`mecanicas.md`](mecanicas.md) 5.11): reto de nivel 1,
+  daño 3 en un radio de 128 px (cuenta el cuerpo del enemigo), con vista previa mientras se responde, recarga 6 s si se acierta y 2,5 s si se falla _(todo provisional)_.
   **Confirmar o ajustar:** ¿el daño y el radio, la recarga, y si el reto debe ser de otro nivel?
 - ¿Qué poderes hay además de la **granada**? (nombre, efecto, recarga y de qué nivel de inglés es su reto).
 - Idioma del reconocimiento: `es-PE` o `es-ES`. Hoy `es-PE` _(provisional; aceptado por ahora el 25/11/2026)_; se decide con la
@@ -103,7 +103,7 @@ Elegir entre Juran, Deming o Crosby y confirmar el nombre "Joseph Durand" con el
 ## 5. Combate
 
 - **Disparo:** ¿manual (clics), automático o ambos con una opción?
-- **Dash:** hoy es la barra espaciadora, con 0,2 s de inmunidad y 1,2 s de recarga _(provisional)_.
+- **Dash:** hoy es la tecla Mayúsculas (Shift; antes la barra espaciadora), con 0,2 s de inmunidad y 1,2 s de recarga _(provisional)_.
   ¿Se confirma? ¿El DobleDash recarga las dos cargas a la vez (como está) o una por una?
 - **Enemigos (26/11/2026):** hoy hay 5 tipos (el débil y 4 ratas de Jorge) y todos **caminan en línea recta
   hacia el jugador**; lo que cambia es la vida, la velocidad, el daño y cuántos hay por sala (ver

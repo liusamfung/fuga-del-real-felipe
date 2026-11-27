@@ -25,6 +25,23 @@ function azarConSemilla(semilla) {
 	};
 }
 
+// El dibujo de un corazón de 16 × 16 de un solo color, con un brillo opcional arriba a la izquierda.
+function corazon(color, brillo = null) {
+	const formas = [
+		{ x: 1, y: 2, ancho: 6, alto: 3, color },
+		{ x: 9, y: 2, ancho: 6, alto: 3, color },
+		{ x: 0, y: 4, ancho: 16, alto: 4, color },
+		{ x: 1, y: 8, ancho: 14, alto: 2, color },
+		{ x: 3, y: 10, ancho: 10, alto: 2, color },
+		{ x: 5, y: 12, ancho: 6, alto: 2, color },
+		{ x: 7, y: 14, ancho: 2, alto: 1, color },
+	];
+	if (brillo !== null) {
+		formas.push({ x: 3, y: 3, ancho: 2, alto: 2, color: brillo });
+	}
+	return { tipo: 'generado', ancho: 16, alto: 16, formas };
+}
+
 // Los colores del rayo del ataque fuerte de cada jefe: de oscuro en el borde a claro en el centro. `chispas` son las
 // motas sueltas fuera del borde, `rayitas` las líneas claras que corren a lo largo y `nucleo` el centro de la bola de
 // donde sale. Cada jefe usa la suya (ver `DIBUJO_DEL_RAYO` en src/config.js).
@@ -314,36 +331,11 @@ export const RECURSOS = Object.freeze({
 		],
 	},
 
-	'corazon-lleno': {
-		tipo: 'generado',
-		ancho: 16,
-		alto: 16,
-		formas: [
-			{ x: 1, y: 2, ancho: 6, alto: 3, color: 0xc0392b },
-			{ x: 9, y: 2, ancho: 6, alto: 3, color: 0xc0392b },
-			{ x: 0, y: 4, ancho: 16, alto: 4, color: 0xc0392b },
-			{ x: 1, y: 8, ancho: 14, alto: 2, color: 0xc0392b },
-			{ x: 3, y: 10, ancho: 10, alto: 2, color: 0xc0392b },
-			{ x: 5, y: 12, ancho: 6, alto: 2, color: 0xc0392b },
-			{ x: 7, y: 14, ancho: 2, alto: 1, color: 0xc0392b },
-			{ x: 3, y: 3, ancho: 2, alto: 2, color: 0xe6736a }, // brillo
-		],
-	},
-
-	'corazon-vacio': {
-		tipo: 'generado',
-		ancho: 16,
-		alto: 16,
-		formas: [
-			{ x: 1, y: 2, ancho: 6, alto: 3, color: 0x4a3a38 },
-			{ x: 9, y: 2, ancho: 6, alto: 3, color: 0x4a3a38 },
-			{ x: 0, y: 4, ancho: 16, alto: 4, color: 0x4a3a38 },
-			{ x: 1, y: 8, ancho: 14, alto: 2, color: 0x4a3a38 },
-			{ x: 3, y: 10, ancho: 10, alto: 2, color: 0x4a3a38 },
-			{ x: 5, y: 12, ancho: 6, alto: 2, color: 0x4a3a38 },
-			{ x: 7, y: 14, ancho: 2, alto: 1, color: 0x4a3a38 },
-		],
-	},
+	// Los corazones del HUD: el mismo dibujo en tres colores. Lleno y vacío (gris) son los corazones base; el azul es el
+	// corazón EXTRA de los cofres, el temporal que se pierde al recibir daño.
+	'corazon-lleno': corazon(0xc0392b, 0xe6736a),
+	'corazon-vacio': corazon(0x4a3a38),
+	'corazon-extra': corazon(0x3d8fd1, 0x9fd3f5),
 
 	bala: {
 		tipo: 'generado',

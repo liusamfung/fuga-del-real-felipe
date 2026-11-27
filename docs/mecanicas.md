@@ -6,14 +6,15 @@ iniciales**: se ajustan jugando y viven en `src/config.js` o en `src/datos/`.
 
 ## 1. Controles
 
-| Acción       | Control                                                      | Estado              |
-| ------------ | ------------------------------------------------------------ | ------------------- |
-| Moverse      | Flechas **o** W A S D                                        | Definido            |
-| Apuntar      | Ratón (el personaje mira hacia el cursor)                    | Definido            |
-| Disparar     | Clic, varios clics o mantener pulsado el clic                | Definido            |
-| Disparo auto | Opción para que dispare solo mientras apuntas                | Por decidir         |
-| Dash         | Barra espaciadora (una pulsación por dash)                   | Hecho (provisional) |
-| Voz          | El micrófono se activa solo cuando hay una palabra que decir | Definido            |
+| Acción          | Control                                                          | Estado              |
+| --------------- | ---------------------------------------------------------------- | ------------------- |
+| Moverse         | Flechas **o** W A S D                                            | Definido            |
+| Apuntar         | Ratón (el personaje mira hacia el cursor)                        | Definido            |
+| Disparar        | Clic, varios clics o mantener pulsado el clic                    | Definido            |
+| Disparo auto    | Opción para que dispare solo mientras apuntas                    | Por decidir         |
+| Dash            | **Mayúsculas (Shift)** (una pulsación por dash)                  | Hecho (provisional) |
+| Ataque especial | **Barra espaciadora**: la granada, con reto de inglés (ver 5.11) | Hecho (provisional) |
+| Voz             | El micrófono se activa solo cuando hay una palabra que decir     | Definido            |
 
 ## 2. Movimiento y disparo
 
@@ -21,7 +22,9 @@ iniciales**: se ajustan jugando y viven en `src/config.js` o en `src/datos/`.
   velocidad). En diagonal se normaliza el vector para no ir más rápido.
 - Las balas salen hacia el cursor. Hay una **cadencia** (tiempo mínimo entre disparos) y un **daño**
   por bala; las mejoras de ataque suben el daño.
-- Las balas desaparecen al chocar con una pared o con un enemigo, o al salir de la sala.
+- Las balas desaparecen al chocar con una pared o con un enemigo, al salir de la sala o **al llegar a su
+  alcance: 400 px** desde donde salieron (`CONFIG.DISPARO.ALCANCE`, media sala). Así una bala ya no cruza
+  toda la sala. La cuenta es `superoElAlcance` (`src/utilidades/alcance.js`, con pruebas).
 
 ## 3. Dash
 
@@ -40,11 +43,25 @@ iniciales**: se ajustan jugando y viven en `src/config.js` o en `src/datos/`.
 
 ## 4. Estadísticas del jugador
 
-| Estadística | Para qué sirve          | La sube            |
-| ----------- | ----------------------- | ------------------ |
-| Vida        | Cuántos golpes aguanta  | Cofre de vida      |
-| Ataque      | Daño de cada bala       | Cofre de ataque    |
-| Velocidad   | Velocidad de movimiento | Cofre de velocidad |
+| Estadística | Para qué sirve                     | La sube                                |
+| ----------- | ---------------------------------- | -------------------------------------- |
+| Vida        | Cuántos golpes aguanta (ver abajo) | Cofre de vida (da corazones **extra**) |
+| Ataque      | Daño de cada bala                  | Cofre de ataque                        |
+| Velocidad   | Velocidad de movimiento            | Cofre de velocidad                     |
+
+**La vida (27/11/2026).** El jugador tiene **3 corazones base**, siempre: ningún cofre sube ese máximo.
+
+- El **cofre de vida** da un corazón **extra** (azul), **temporal**: absorbe el daño **antes** que los corazones base y,
+  cuando lo absorbe, **desaparece para siempre**. Con 2 extras, un golpe de 1 quita 1 extra; el rayo del jefe (2 de daño)
+  quita 2 extras, o 1 extra y 1 corazón base si solo queda uno.
+- Los corazones **base** perdidos se ven en **gris** (como siempre) y **no se recuperan**: no hay curación. Se muere cuando
+  los 3 base llegan a 0. Los extra se dibujan a la derecha de los tres base.
+- Un golpe **mortal** (la rata negra hace daño infinito) mata aunque haya extras: no sirven de escudo contra él.
+- **Al pasar de nivel se conserva todo**: los corazones base que quedan (también los grises), los extra, el ataque y la
+  velocidad. La llave no (es de cada nivel). Solo se vuelve a empezar de cero al **morir** o al **ganar el juego**.
+- Código: `aplicarDano` y `corazonesAMostrar` (`src/utilidades/vida.js`, lógica pura con pruebas); `Jugador.estadisticas`
+  tiene `vidaMaxima` (3), `vida` y `vidaExtra`; lo que se conserva entre niveles lo decide `ProgresoDelJuego`
+  (`conservaEstadisticas`) y lo recibe `EscenaJuego.init` (`estadisticas`).
 
 ## 5. Control de voz: deletrear palabras
 
@@ -124,7 +141,7 @@ Se guardan en `src/datos/palabras.js`. La palabra **no cambia** mientras la barr
 ### 5.7 Cómo funciona hoy el deletreo con teclado (y con voz, ver 5.9)
 
 - **Provisional:** la tecla **E** pide una palabra al azar con la palabra siempre visible, **T** con
-  huecos e **Y** de memoria (ver 5.8). Con **Mayúsculas** pulsada se pide **al revés**. **R** pide una
+  huecos e **Y** de memoria (ver 5.8). Con **Q** pulsada se pide **al revés** (antes era con Mayúsculas, que ahora es el dash). **R** pide una
   palabra fácil al revés, siempre visible. **I** pide un **dictado en inglés** (ver 5.8). Cuando el
   deletreo sea un poder (paso 9) se activará desde el juego.
 - Aparece una pantalla encima del juego con la palabra, las letras acertadas en verde, la que toca
@@ -284,26 +301,32 @@ niveles; el paso 9 los conectará al jefe).
 
 ### 5.11 La granada (el primer poder)
 
-**G** pide la granada. Es el primer poder especial del jugador; cada poder se activa superando un
-reto de inglés. Todos los números son **provisionales** (están en `CONFIG.PODERES.GRANADA`).
+**ESPACIO** pide la granada (el **ataque especial**; antes era la tecla G). Es el primer poder especial del jugador;
+cada poder se activa superando un reto de inglés. Todos los números son **provisionales** (están en `CONFIG.PODERES.GRANADA`).
 
 1. Si está **lista**, se abre un **reto de nivel 1** (una palabra en español; se dice su traducción;
    ver 5.10). El mundo va en **cámara lenta** (6.1) mientras se responde, para que el enemigo al que
    quieres darle no se haya ido cuando aciertes. El jugador no se mueve.
 2. Si se **acierta**, la granada sale del jugador **hacia donde apunta el cursor en ese momento** (sin
    salir de la sala), vuela a 420 px/s y explota al llegar.
-3. La explosión le quita **3** de vida a **todo enemigo a 96 px o menos** del centro: mata al débil y a las
+3. La explosión le quita **3** de vida a **todo enemigo que toque un círculo de 128 px de radio** (`RADIO`, antes 96)
+   alrededor del impacto. Cuenta el **cuerpo** del enemigo, no solo su centro: basta con que el círculo lo roce, así que también
+   golpea a los que están pegados al jugador cuando la lanza a sus pies. Mata al débil y a las
    rata gris (1 de vida) y a la blanca (2), pero no a la azul (5) ni a la negra (10). **También daña los
    nidos** que alcance (le quita 3 de sus 10). Se ve una onda naranja que se desvanece en 0,28 s.
 4. Si se **falla** o se acaba el tiempo, **no hay granada** y aparece «Falló la granada».
 5. **Recarga**, contada desde que **termina** el reto (lo que se tarda en responder no cuenta): **6 s**
-   si se acertó y **2,5 s** si se falló. Mientras recarga, o mientras se responde un reto, **G no hace
-   nada**.
-6. El **HUD** muestra la tecla **G**, una pastilla (naranja si está lista) y una barra que se llena
+   si se acertó y **2,5 s** si se falló. Mientras recarga, o mientras se responde un reto, **ESPACIO no hace
+   nada** (también en el dictado, donde ESPACIO repite la palabra).
+6. El **HUD** muestra la tecla **Espacio**, una pastilla (naranja si está lista) y una barra que se llena
    mientras recarga, junto al dash.
+7. **Vista previa:** mientras se responde el reto se dibuja una **línea de rayas naranja** del jugador al punto de impacto
+   y el **círculo** de la explosión, y siguen al cursor; se apagan cuando termina el reto. Es como el aviso del rayo del
+   jefe: se ve dónde va a caer. Código: `VistaPreviaDeLaGranada` (`src/entidades/VistaPreviaDeLaGranada.js`) y
+   `tramosDeRayas` (`src/utilidades/explosion.js`, con pruebas); los valores están en `CONFIG.PODERES.GRANADA.VISTA_PREVIA`.
 
 - Código: `PoderConRecarga` (`src/sistemas/PoderConRecarga.js`) y `alcanzadosPorLaExplosion`,
-  `tiempoDeVuelo` y `limitarAlRectangulo` (`src/utilidades/explosion.js`), con pruebas;
+  `tiempoDeVuelo`, `limitarAlRectangulo` y `rectanguloDelCuerpo` (`src/utilidades/explosion.js`), con pruebas;
   `Granada` (`src/entidades/Granada.js`) solo vuela; el daño y el dibujo de la explosión están en
   `EscenaJuego`.
 - Con un solo poder, el reto es siempre el nivel 1. Cuando haya más poderes, cada uno puede tener su
@@ -457,15 +480,17 @@ Las reglas son lógica pura (`src/sistemas/ProgresoDelJuego.js`, con pruebas) y 
 cartel (`EscenaCartel`) tapa el juego, lo deja **congelado** y pide **pulsar un botón** (clic o `ENTER`). El botón no responde en los
 primeros 0,7 s, para que nadie lo acepte sin querer si seguía disparando o tecleando.
 
-| Qué pasa                 | Cartel                                                          | Botón                         | Después                                                          |
-| ------------------------ | --------------------------------------------------------------- | ----------------------------- | ---------------------------------------------------------------- |
-| **El jugador muere**     | **«Perdiste»** · «¿Deseas volver a intentarlo?»                 | «Volver a intentar (nivel 1)» | Empieza **de nuevo desde el nivel 1**, esté en el nivel que esté |
-| **Se derrota al jefe 1** | «¡Nivel completado!» · «Derrotaste al jefe. Ahora, el nivel 2.» | «Continuar»                   | Empieza el **nivel 2**                                           |
-| **Se derrota al jefe 2** | **«¡Ganaste!»** · «Cada día estás más cerca de ser bilingüe»    | «Jugar de nuevo»              | Vuelve al **nivel 1**. **No hay nivel 3**: es el final           |
+| Qué pasa                 | Cartel                                                          | Botón                         | Después                                                                                                  |
+| ------------------------ | --------------------------------------------------------------- | ----------------------------- | -------------------------------------------------------------------------------------------------------- |
+| **El jugador muere**     | **«Perdiste»** · «¿Deseas volver a intentarlo?»                 | «Volver a intentar (nivel 1)» | Empieza **de nuevo desde el nivel 1**, esté en el nivel que esté                                         |
+| **Se derrota al jefe 1** | «¡Nivel completado!» · «Derrotaste al jefe. Ahora, el nivel 2.» | «Continuar»                   | Empieza el **nivel 2**, con **la misma vida y estadísticas** que se tenían (no se curan ni se reinician) |
+| **Se derrota al jefe 2** | **«¡Ganaste!»** · «Cada día estás más cerca de ser bilingüe»    | «Jugar de nuevo»              | Vuelve al **nivel 1**. **No hay nivel 3**: es el final                                                   |
 
 - Al morir suena `jugador-muerte`, la música se corta y el cartel sale ~0,9 s después. Si había un reto de inglés abierto (y con él
   el micrófono) se cierra. Tras derrotar al jefe, el cartel sale ~1,6 s después, cuando termina de desvanecerse.
 - Si el jefe cae **en pleno reto** (también en el dictado), el reto se cierra solo y no cae ningún golpe.
+- Al pasar de nivel el jugador **conserva** su vida, sus corazones extra, su ataque y su velocidad (27/11/2026); tras
+  morir o ganar, todo vuelve a empezar de cero.
 - Los atajos de pruebas `J` y `K` siguen existiendo; con el paso de nivel ya hecho, `K` se puede quitar cuando el usuario quiera.
 
 ## 7. Cofres especiales

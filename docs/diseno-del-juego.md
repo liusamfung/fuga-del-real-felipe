@@ -116,11 +116,11 @@ Sprite actual del jugador (provisional):
 
 Dan una mejora permanente para el resto de la partida:
 
-| Mejora    | Efecto                             |
-| --------- | ---------------------------------- |
-| Vida      | Aumenta la vida máxima             |
-| Ataque    | Aumenta el daño de las balas       |
-| Velocidad | Aumenta la velocidad de movimiento |
+| Mejora    | Efecto                                                          |
+| --------- | --------------------------------------------------------------- |
+| Vida      | Da un corazón **extra** temporal (la vida base son 3 y no sube) |
+| Ataque    | Aumenta el daño de las balas                                    |
+| Velocidad | Aumenta la velocidad de movimiento                              |
 
 Los valores concretos (+1 corazón, +10 % de daño, etc.) se ajustan con pruebas de juego y viven en
 `src/datos/recompensas.js`.

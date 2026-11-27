@@ -23,9 +23,10 @@ export class Entrada {
 			{ tecla: teclado.addKey('P'), nivel: NIVELES_DE_INGLES.DEFINICION },
 		];
 		this.teclaDeDeletreoInvertido = teclado.addKey('R');
-		this.teclaMayuscula = teclado.addKey('SHIFT');
+		this.teclaDeInvertir = teclado.addKey('Q'); // solo para las pruebas: con E, T, Y o I pide la palabra al revés
+		this.teclaDeDash = teclado.addKey('SHIFT');
 		this.teclaDeVoz = teclado.addKey('V');
-		this.teclaDeGranada = teclado.addKey('G');
+		this.teclaDeGranada = teclado.addKey('SPACE'); // el ataque especial
 		this.teclaDelJefe = teclado.addKey('J');
 		this.teclaDelNivel2 = teclado.addKey('K');
 		this.teclaDelSilencio = teclado.addKey('M');
@@ -42,8 +43,8 @@ export class Entrada {
 
 	/**
 	 * Provisional (hasta que el deletreo sea un poder, paso 9): E pide una palabra al azar con la
-	 * palabra siempre visible, T con huecos (Ahorcado) e Y de memoria. Con Mayúsculas pulsada se pide
-	 * al revés. R pide una palabra fácil al revés, siempre visible. I pide un dictado en inglés (el
+	 * palabra siempre visible, T con huecos (Ahorcado) e Y de memoria. Con Q pulsada se pide
+	 * al revés (antes era con Mayúsculas, que ahora es el dash). R pide una palabra fácil al revés, siempre visible. I pide un dictado en inglés (el
 	 * juego dice la palabra y se escribe; no se pide al revés).
 	 * Devuelve `{ modo, invertida }` en el fotograma en que se pulsa, o null.
 	 * Se debe consultar en cada fotograma, para que una pulsación vieja no quede esperando.
@@ -59,7 +60,7 @@ export class Entrada {
 			return { modo: MODOS_DE_DELETREO.VISIBLE, invertida: true };
 		}
 		if (pulsadas.length > 0) {
-			return { modo: pulsadas[0].modo, invertida: this.teclaMayuscula.isDown };
+			return { modo: pulsadas[0].modo, invertida: this.teclaDeInvertir.isDown };
 		}
 		return null;
 	}
@@ -78,7 +79,7 @@ export class Entrada {
 	}
 
 	/**
-	 * G pide la granada (el poder especial): para lanzarla hay que superar un reto de inglés. Devuelve
+	 * ESPACIO pide la granada (el ataque especial): para lanzarla hay que superar un reto de inglés. Devuelve
 	 * verdadero en el fotograma en que se pulsa. Se debe consultar en cada fotograma (JustDown
 	 * "gasta" la pulsación).
 	 */
@@ -136,11 +137,11 @@ export class Entrada {
 	}
 
 	/**
-	 * Verdadero en el fotograma en que se pulsa la barra espaciadora. Mantenerla pulsada no repite:
+	 * Verdadero en el fotograma en que se pulsa Mayúsculas (Shift). Mantenerla pulsada no repite:
 	 * cada dash necesita una pulsación nueva.
 	 */
 	dashPulsado() {
-		const pulsada = Phaser.Input.Keyboard.JustDown(this.flechas.space); // se consume siempre
+		const pulsada = Phaser.Input.Keyboard.JustDown(this.teclaDeDash); // se consume siempre
 		return pulsada && !this.movimientoBloqueado;
 	}
 

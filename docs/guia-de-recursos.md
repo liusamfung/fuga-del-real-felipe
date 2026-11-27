@@ -194,7 +194,7 @@ Jorge** para qué sirve cada pieza y si hay más (puertas, cajas, etc.).
 | Nido de ratas                | Provisional | 64×64 px, dibujado por código; mide lo mismo que una caja                                                                       |
 | Cofre                        | Provisional | Cerrado y abierto                                                                                                               |
 | Cajas (obstáculos)           | Provisional | 64×64 px                                                                                                                        |
-| Corazones del HUD            | Provisional | Lleno y vacío                                                                                                                   |
+| Corazones del HUD            | Provisional | Lleno, vacío (gris) y extra (azul, el de los cofres)                                                                            |
 | Puerta                       | Pendiente   | Abierta, cerrada y con llave                                                                                                    |
 | Jefe 2 (el del segundo piso) | **Parcial** | Solo 3 cuadros de flotar. Faltan: ataque básico, ataque fuerte, recibir daño                                                    |
 | Jefe 1 (el del primer piso)  | **Parcial** | Solo 3 cuadros de flotar (la rata de Sebastián, PR #20). Faltan: ataque básico, ataque fuerte, recibir daño                     |
