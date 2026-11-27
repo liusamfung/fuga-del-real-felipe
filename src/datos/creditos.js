@@ -10,7 +10,7 @@ export const CREDITOS = Object.freeze([
 	Object.freeze({ rol: 'Programación y lógica', nombres: Object.freeze(['Liu Fung']) }),
 	Object.freeze({
 		rol: 'Sprites y diseño visual',
-		nombres: Object.freeze(['Sebastián', 'Carlo Flores', 'Jorge Vega']),
+		nombres: Object.freeze(['Sebastián Carlo Flores', 'Jorge Vega']),
 	}),
 ]);
 
