@@ -125,7 +125,9 @@ export const CONFIG = Object.freeze({
 			// En la prueba de voz en inglés las respuestas rápidas tardaron ~2,4 s y las lentas 7–9 s.
 			BASE: 6000,
 			POR_PALABRA: 500,
-			TIEMPO_DEL_RESULTADO: 1100, // ms que se ve el resultado antes de cerrar la pantalla
+			// ms que se ve el resultado (¡Bien!, ¡Te equivocaste!…) antes de cerrar la pantalla; el juego NO sigue hasta que
+			// se cierra: sigue en cámara lenta. El 27/11/2026 bajó de 1100 a 450 (pedido: «0,5 s o menos»)
+			TIEMPO_DEL_RESULTADO: 450,
 			PANEL: Object.freeze({ Y: 50, ANCHO: 700, ALTO: 230, ANCHO_BARRA: 620 }),
 		}),
 	}),
@@ -133,13 +135,58 @@ export const CONFIG = Object.freeze({
 	// Los mensajes en pantalla se dibujan por encima de todo, incluso de las balas.
 	PROFUNDIDAD_MENSAJES: 2000,
 
-	// El jefe. Por ahora solo se ve (ver src/entidades/Jefe.js): su vida y sus ataques se deciden en el
-	// paso 10 de la hoja de ruta.
+	// El jefe del piso y su pelea (ver src/sistemas/PeleaConElJefe.js y docs/mecanicas.md, sección 6).
+	// Los valores son los acordados el 26/11/2026; son provisionales y se ajustan jugando.
 	JEFE: Object.freeze({
 		// Provisional: el dibujo del jefe del piso 1 todavía no existe, así que se usa el del segundo
 		// (`jefe-2`) en la sala del centro. Se cambia aquí cuando haya uno por piso.
 		CLAVE: 'jefe-2',
 		ESCALA: 3, // los cuadros miden 32 x 32; ampliados ×3 son 96 x 96 px, más grandes que el jugador
+		// El cuerpo de choque, en píxeles del dibujo (se amplía junto con él): el fantasma tiene aire a los lados.
+		CUERPO_ANCHO: 22,
+		CUERPO_ALTO: 26,
+
+		VIDA: 60, // con la bala del jugador (1 de daño) son 60 aciertos; la granada quita 3. El 27/11/2026 se duplicó (era 30)
+		// Ataque básico: un proyectil hacia el jugador. Se esquiva moviéndose (o con el dash).
+		INTERVALO_DE_ATAQUE: 900, // ms entre un ataque básico y el siguiente (el 27/11/2026 bajó de 2000: más frecuente)
+		PRIMER_ATAQUE: 1000, // ms desde que empieza la pelea hasta el primero
+		PROYECTIL: Object.freeze({
+			VELOCIDAD: 400, // px/s: casi el doble que el jugador (camina a 220); antes 190, que era muy lento
+			DANO: 1, // corazones que quita
+			MAX: 40, // proyectiles reservados; se reciclan (una ráfaga de 8 más un triple caben de sobra)
+			LADO: 12, // tamaño del dibujo
+		}),
+		// Variantes del ataque básico (27/11/2026). Cada vez que toca un ataque básico se elige una al azar: el triple con
+		// probabilidad fija y la ráfaga con una que SUBE a medida que el jefe pierde vida; si no, un proyectil solo.
+		TRIPLE: Object.freeze({
+			PROBABILIDAD: 0.35, // de cada ataque básico, ~1 de cada 3 es de tres proyectiles
+			APERTURA: 22, // grados entre un proyectil y el siguiente: uno al jugador y uno a cada lado
+		}),
+		RAFAGA: Object.freeze({
+			PROBABILIDAD_MAXIMA: 0.4, // con el jefe sin vida; con toda la vida es 0 y sube en línea recta
+			DISPAROS_BASE: 4, // disparos de una ráfaga con toda la vida
+			DISPAROS_EXTRA: 4, // los que se suman con el jefe sin vida: de 4 a 8
+			ENTRE_DISPAROS: 110, // ms entre un disparo y el siguiente (cada uno apunta al jugador donde está)
+		}),
+		// Ataque fuerte: no se esquiva moviéndose; hay que responder un reto de inglés con el mundo en cámara lenta.
+		UMBRALES: [0.75, 0.5, 0.25], // viene uno al bajar el jefe de estas fracciones de su vida
+		NIVELES_DE_INGLES: [1, 2, 1], // el reto de cada ataque fuerte (jefe 1: alterna los niveles 1 y 2)
+		AVISO: 800, // ms de aviso (destello y letrero) antes de que aparezca el reto
+		// El golpe del ataque fuerte es un rayo verde que va del jefe hasta el final de la sala, en la dirección en que
+		// estaba el jugador cuando apareció el reto. Si se falla, el rayo le cae sí o sí; si se acierta, el jugador hace
+		// un dash automático hacia un lado y el rayo pasa de largo.
+		RAYO: Object.freeze({
+			ANCHO: 48, // px de ancho del rayo (el dash recorre unos 96, así que sacarlo del camino siempre alcanza)
+			AVISO_ANCHO: 6, // px de la línea fina que avisa por dónde va a salir, mientras se responde el reto
+			CRECE: 100, // ms que tarda en abrirse del todo
+			DURACION: 500, // ms que se queda en pantalla con todo su ancho
+			RETRASO_SI_ESQUIVA: 160, // ms que espera el rayo si el jugador acertó: así se ve que el dash sale primero (en cámara lenta el dash avanza menos)
+		}),
+		DANO_DEL_GOLPE: 2, // corazones que quita el rayo si se falla (le cae sí o sí, aunque se esté en inmunidad)
+		RAPIDO: 0.5, // acertar con esta fracción del tiempo o más por delante devuelve el golpe al jefe
+		DEVOLUCION: 0.1, // fracción de su vida máxima que pierde el jefe al devolverle el golpe
+		PAUSA_TRAS_EL_ATAQUE_FUERTE: 1500, // ms de respiro antes del próximo ataque
+		DANO_POR_TOCARLO: 1, // corazones que quita al jugador si lo toca
 	}),
 
 	// Lo que tienen en común todos los enemigos (el débil y las ratas): el tamaño del dibujo y del cuerpo.

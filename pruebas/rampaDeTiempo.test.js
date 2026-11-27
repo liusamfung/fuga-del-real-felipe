@@ -80,3 +80,26 @@ test('otro factor: la rampa va de 1 al factor que se pida', () => {
 	cerca(rampa.escala(50), 0.75, 'a la mitad entre 1 y 0,5');
 	cerca(rampa.escala(100), 0.5, 'el factor');
 });
+
+test('cortar vuelve a la velocidad normal de golpe, sin rampa, y se puede volver a pedir cámara lenta', () => {
+	const rampa = crear();
+	rampa.fijar(true, 0);
+	cerca(rampa.escala(500), 0.2, 'en plena cámara lenta');
+
+	rampa.cortar();
+	assert.equal(rampa.escala(500), 1, 'al instante, sin pasar por los valores de en medio');
+	assert.equal(rampa.estaEnCamaraLenta(500), false);
+
+	rampa.fijar(false, 510); // pedir lo que ya está no hace nada
+	assert.equal(rampa.escala(510), 1);
+
+	rampa.fijar(true, 1000); // y la próxima cámara lenta empieza desde 1 como siempre
+	cerca(rampa.escala(1050), 0.6, 'la nueva entrada va de 1 al factor');
+});
+
+test('cortar a mitad de la rampa de entrada también deja el mundo a velocidad normal', () => {
+	const rampa = crear();
+	rampa.fijar(true, 0);
+	rampa.cortar();
+	assert.equal(rampa.escala(50), 1);
+});

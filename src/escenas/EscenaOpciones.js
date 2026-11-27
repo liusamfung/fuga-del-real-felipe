@@ -33,9 +33,11 @@ const TITULO = Object.freeze({
 //   scene.launch(ESCENAS.OPCIONES, { ficha, alTerminar })
 //
 // `ficha` sale de `armarFicha` (src/utilidades/fichas.js): { nivel, tipo, enunciado, opciones, correcta }.
-// `alTerminar(resultado)` se llama una vez, con 'acertada', 'fallada' o 'tiempo-agotado', igual que en
-// `EscenaDeletreo`: al resto del juego le da lo mismo qué reto era. La pantalla se queda un momento
-// mostrando el resultado (la correcta se marca siempre) y se cierra sola.
+// `alTerminar(resultado, { fraccionRestante })` se llama una vez, con 'acertada', 'fallada' o 'tiempo-agotado',
+// igual que en `EscenaDeletreo`: al resto del juego le da lo mismo qué reto era. `fraccionRestante` es cuánto
+// tiempo quedaba al terminar (de 1 a 0): el ataque fuerte del jefe lo usa para premiar al que responde rápido.
+// Al responder, la pantalla muestra el resultado (la correcta se marca siempre) durante `TIEMPO_DEL_RESULTADO`
+// (0,5 s como máximo) y SOLO AL CERRARSE llama a `alTerminar`: hasta entonces el juego sigue en cámara lenta.
 //
 // El tiempo corre desde que el micrófono está escuchando, no desde que se abre la pantalla: la primera
 // vez el navegador pide permiso y eso no debe gastar tiempo. La barra (azul mientras espera) mide el
@@ -222,8 +224,15 @@ export class EscenaOpciones extends Phaser.Scene {
 		this.resultadoMostrado = true;
 		this.voz?.detener(); // ya terminó: el micrófono se apaga
 		this.fraccionFinal = this.reto.fraccionRestante(ahora);
-		this.alTerminar?.(this.reto.estado);
-		this.time.delayedCall(TIEMPO_DEL_RESULTADO, () => this.scene.stop());
+
+		// Primero se ve el resultado y RECIÉN después se le avisa al juego. Mientras el cartel está en pantalla,
+		// el juego sigue como estaba (en cámara lenta y con el jugador quieto): así se sabe si se acertó antes de ver
+		// el dash, el rayo o la granada. Si el juego cierra esta pantalla antes (porque el jefe cayó), el aviso ya
+		// no hace falta y no se da (al detenerse la escena se cancelan sus temporizadores).
+		this.time.delayedCall(TIEMPO_DEL_RESULTADO, () => {
+			this.scene.stop();
+			this.alTerminar?.(this.reto.estado, { fraccionRestante: this.fraccionFinal });
+		});
 	}
 
 	#textoDeArriba() {

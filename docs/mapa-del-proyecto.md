@@ -98,7 +98,7 @@ principio porque es lo más riesgoso.
 | 7    | Deletreo con teclado (respaldo), barra de tiempo real y 3 modos (visible, huecos, memoria) | Se teclea una palabra; hay acierto, fallo y tiempo agotado; en huecos y memoria la palabra se esconde |
 | 8    | Voz real: integrar el reconocimiento con el deletreo                                       | Deletrear con el micrófono funciona en Chrome con tolerancia de errores                               |
 | 9    | Poder especial por voz (granada)                                                           | Deletrear una palabra lanza la granada                                                                |
-| 10   | Jefe: ataques básicos y ataque fuerte con cámara lenta                                     | El ataque fuerte solo se evita deletreando; al revés devuelve el golpe                                |
+| 10   | Jefe: ataques básicos y ataque fuerte con cámara lenta _(hecho el 26/11/2026)_             | El ataque fuerte solo se evita respondiendo un reto de inglés; acertar rápido devuelve el golpe       |
 | 11   | Cofres especiales: Revivir, PasaPalabra, DobleDash                                         | Cada uno hace lo que dice el diseño                                                                   |
 | 12   | Portada, transiciones, Nivel 2 y pantalla final                                            | Se juega de la portada al final con los dos niveles                                                   |
 | 13   | Efectos y sonido                                                                           | Temblor, destellos, partículas, música y sonidos en todo el juego                                     |

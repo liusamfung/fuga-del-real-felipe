@@ -51,6 +51,18 @@ export class RampaDeTiempo {
 		return this.desde + (this.hacia - this.desde) * avance;
 	}
 
+	/**
+	 * Vuelve a la velocidad normal de golpe, sin rampa de salida. Se usa cuando lo que viene necesita el mundo a toda
+	 * velocidad desde ya (por ejemplo, el dash automático del ataque fuerte: en plena salida de la cámara lenta la
+	 * física avanza menos y el dash recorría la mitad).
+	 */
+	cortar() {
+		this.lenta = false;
+		this.desde = 1;
+		this.hacia = 1;
+		this.duracion = 0;
+	}
+
 	/** Verdadero mientras el mundo no va a velocidad normal (incluida la rampa de salida). */
 	estaEnCamaraLenta(ahora) {
 		return this.escala(ahora) < 1;

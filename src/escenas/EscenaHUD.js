@@ -3,16 +3,17 @@ import { CONFIG, ESCENAS } from '../config.js';
 
 // La interfaz: los corazones de vida y las estadísticas. Es una escena aparte que se dibuja
 // encima del juego, así los efectos de la cámara del juego (temblor, cámara lenta) no la afectan.
-// La lanza `EscenaJuego`, que le pasa el jugador y los poderes (la granada):
-// `scene.launch(ESCENAS.HUD, { jugador, poderes })`.
+// La lanza `EscenaJuego`, que le pasa el jugador, los poderes (la granada) y la pelea con el jefe:
+// `scene.launch(ESCENAS.HUD, { jugador, poderes, pelea })`.
 export class EscenaHUD extends Phaser.Scene {
 	constructor() {
 		super(ESCENAS.HUD);
 	}
 
-	init({ jugador, poderes }) {
+	init({ jugador, poderes, pelea }) {
 		this.jugador = jugador;
 		this.poderes = poderes;
+		this.pelea = pelea;
 	}
 
 	create() {
@@ -51,6 +52,19 @@ export class EscenaHUD extends Phaser.Scene {
 			.setOrigin(1, 0.5);
 		this.graficoDeLaGranada = this.add.graphics();
 
+		// La vida del jefe: una barra abajo y al centro, que solo se ve mientras dura la pelea.
+		this.graficoDelJefe = this.add.graphics();
+		this.nombreDelJefe = this.add
+			.text(CONFIG.ANCHO / 2, CONFIG.ALTO - 40, 'JEFE', {
+				fontFamily: 'monospace',
+				fontSize: '14px',
+				color: '#c9b79c',
+				stroke: '#000000',
+				strokeThickness: 3,
+			})
+			.setOrigin(0.5)
+			.setVisible(false);
+
 		this.jugador.on('estadisticas-cambiadas', this.#actualizar, this);
 		this.events.once('shutdown', () => {
 			this.jugador.off('estadisticas-cambiadas', this.#actualizar, this);
@@ -62,6 +76,30 @@ export class EscenaHUD extends Phaser.Scene {
 	update() {
 		this.#dibujarElDash();
 		this.#dibujarLaGranada();
+		this.#dibujarLaVidaDelJefe();
+	}
+
+	/** La barra de vida del jefe, mientras pelea: roja, con un marco; se ve más corta a cada golpe. */
+	#dibujarLaVidaDelJefe() {
+		const grafico = this.graficoDelJefe;
+		const { pelea } = this;
+		const peleando = pelea.estado === 'peleando' || pelea.estado === 'ataque-fuerte';
+
+		grafico.clear();
+		this.nombreDelJefe.setVisible(peleando);
+		if (!peleando) {
+			return;
+		}
+
+		const ancho = 420;
+		const x = (CONFIG.ANCHO - ancho) / 2;
+		const y = CONFIG.ALTO - 28;
+		grafico.fillStyle(0x000000, 0.7);
+		grafico.fillRect(x - 3, y - 3, ancho + 6, 18);
+		grafico.fillStyle(0x34384a, 1);
+		grafico.fillRect(x, y, ancho, 12);
+		grafico.fillStyle(0xc0392b, 1);
+		grafico.fillRect(x, y, ancho * pelea.fraccionDeVida, 12);
 	}
 
 	/** La granada: la pastilla es naranja si se puede usar y la barra se llena mientras recarga. */
