@@ -21,7 +21,7 @@ Tres dificultades (el reto es el mismo evento hacia el resto del juego: acierto 
 | 2     | Una definición en inglés y tres palabras               | **Con la voz**: se dice la palabra                    |
 | 3     | Nada: el juego **dice** la palabra (voz del navegador) | **Con el teclado**: se escribe; **ESPACIO** la repite |
 
-- **Jefe 1** alterna los niveles 1 y 2; el **jefe 2** alterna el 2 y el 3 (el 1 ya es demasiado fácil).
+- **Jefe 1 solo usa el nivel 1 (fácil)**; el **jefe 2** es el único que alterna el 2 (medio) y el 3 (alto, el dictado): medio, alto, medio. _(Decidido el 27/11/2026; antes el jefe 1 alternaba 1 y 2.)_
 - Las **tres opciones** de cada ficha deben ser **completamente distintas** (que no empiecen igual, que
   no se contengan y que no se parezcan al enunciado); una prueba automática lo comprueba
   (`pruebas/opciones.test.js`).
@@ -113,20 +113,19 @@ Elegir entre Juran, Deming o Crosby y confirmar el nombre "Joseph Durand" con el
   75 %, 50 % y 25 % con retos de nivel 1-2-1, acertar en la primera mitad del tiempo devuelve el golpe y quita 3). Ver
   [`mecanicas.md`](mecanicas.md), sección 6. **Cambios del 27/11/2026** (a pedido del usuario): ataque básico a 400 px/s
   cada 0,9 s, a veces **triple** (tres a la vez) y **ráfagas** que aumentan con la vida perdida, vida **60**, y el
-  ataque fuerte es un **rayo verde** que se esquiva con un dash automático al acertar. **Abierto:** ¿los números son justos? ¿el jefe 2 (niveles 2 y 3)?
-  ¿qué pasa al derrotar al jefe: pantalla de nivel completado, piso 2? (paso 12).
+  ataque fuerte es un **rayo verde** que se esquiva con un dash automático al acertar. **Abierto:** ¿los números son justos? _(Resuelto el 27/11/2026: el jefe 2 usa los niveles 2 y 3; al derrotar al jefe 1 se pasa al nivel 2 y al jefe 2 se gana; ver `mecanicas.md`, 6.3.)_
 - **Nivel 2 (27/11/2026):** empezado con los dibujos de Jorge: tileset azul-violeta, 2 guardias que **disparan distinto**
-  (el tirador azul y el escopetero rojo; ver [`enemigos.md`](enemigos.md)) y el jefe duplicado del nivel 1. Se entra con
-  la tecla `K` (atajo de pruebas, se quitará). **Abierto:** ¿los guardias son justos (no se han jugado de principio a fin)?
-  ¿Cuál es el jefe del **nivel 1** (hoy comparte el fantasma)? ¿El jefe 2 debe usar los retos de nivel 2 y 3 (el 3,
-  el dictado, es otra pantalla)? ¿Qué hace cada pieza del tileset 2 y hay más (cajas, puertas)? ¿Las cajas marrones sirven
-  en la prisión azul? ¿Cómo se pasa del nivel 1 al 2 (paso 12)? Los guardias solo tienen dibujo de frente.
+  (el tirador azul y el escopetero rojo; ver [`enemigos.md`](enemigos.md)) y el jefe 2 (el fantasma). Se entra con el cartel de «nivel completado»
+  del jefe 1 o con la tecla `K` (atajo de pruebas, se puede quitar ya). **Abierto:** ¿los guardias son justos (no se han jugado de principio a fin)?
+  El **dibujo del jefe 1** es provisional (una copia del fantasma teñida de rojo): hay que reemplazar `jefe-1.png` por el de Sebastián. ¿Qué hace cada pieza del tileset 2 y hay más (cajas, puertas)? ¿Las cajas marrones sirven
+  en la prisión azul? Los guardias solo tienen dibujo de frente.
 - **Voz y palabras que Chrome no entiende (27/11/2026): DECIDIDO.** Chrome no entrega texto para algunas palabras («leg», «boat», «tail»,
   «wave», «duck», «wheel», «heart»…) y funciona con otras («rabbit», «carrot», «village», «black», «expensive»). Decisión del usuario: **quedarse
   solo con las palabras que funcionan** y no pelear con el motor de Chrome. Los retos por voz usan 17 palabras (`voz` `probada` o `probable`,
   ver [`vocabulario.md`](vocabulario.md)); el dictado usa las 60. **Abierto:** probar las 11 `probable` y las 36 `sin-probar`, y añadir más
   palabras de dos sílabas o más, porque 17 son pocas para jugar mucho (se repiten).
-- **Muerte:** ¿vuelve a la portada, reinicia el nivel o la sala?
+- **Muerte: DECIDIDO (27/11/2026).** Sale el cartel **«Perdiste» / «¿Deseas volver a intentarlo?»**, el jugador debe pulsar un botón, y la
+  partida empieza **de nuevo desde el nivel 1** (ver `mecanicas.md`, 6.3). **Abierto:** ¿hay portada a la que volver? ¿se guarda algo entre partidas?
 
 ## 6. Ambientación y personajes
 
@@ -140,7 +139,7 @@ Elegir entre Juran, Deming o Crosby y confirmar el nombre "Joseph Durand" con el
 
 - Confirmar el tamaño del jugador (**32×48 px**) y de la casilla (**32 px**).
 - Pedir el sprite del jugador **a tamaño real** (el actual está ampliado y borroso).
-- ¿De dónde sale el audio? (propio, libre o comprado; anotar licencias).
+- ¿De dónde sale el audio? **Hoy es propio:** 9 sonidos sintetizados por código (27/11/2026), sin derechos de autor, y provisionales (ver [`audio.md`](audio.md)). **Abierto:** ¿alguien graba o consigue sonidos mejores (anotar la licencia)? ¿Hace falta control de volumen y música para la portada, el jefe y la pantalla final?
 
 ## 8. Entrega
 

@@ -9,10 +9,12 @@
 //   letal       (opcional) si es `true`, mata al jugador de un solo toque, tenga las vidas que tenga; en ese
 //               caso no lleva `dano`
 //
+//   sonidoDeAtaque  (opcional) el efecto (src/datos/audio.js) que suena cuando toca al jugador; hoy lo tienen las ratas
 //   disparo     (opcional) los que lo tienen DISPARAN en vez de embestir: se mantienen a cierta distancia del
 //               jugador (ver `Tirador`, src/sistemas/Tirador.js) y lanzan balas. Sus campos:
 //                 patron           'simple' (una bala hacia el jugador) o 'abanico' (`cantidad` balas abiertas
 //                                  `apertura` grados una de otra, la del medio hacia el jugador)
+//                 sonido           el efecto (src/datos/audio.js) que suena en cada disparo
 //                 textura, velocidad, dano   la bala (su dibujo, px/s y corazones que quita)
 //                 intervalo        ms entre un disparo y el siguiente
 //                 aviso            ms que se queda quieto apuntando antes de disparar (el jugador lo ve venir)
@@ -37,6 +39,7 @@ const GUARDIA_AZUL = Object.freeze({
 	dano: 1,
 	disparo: Object.freeze({
 		patron: 'simple',
+		sonido: 'guardia-rifle-disparo',
 		textura: 'bala-guardia-azul',
 		velocidad: 300,
 		dano: 1,
@@ -60,6 +63,7 @@ const GUARDIA_ROJO = Object.freeze({
 	dano: 1,
 	disparo: Object.freeze({
 		patron: 'abanico',
+		sonido: 'guardia-escopeta-disparo',
 		cantidad: 3,
 		apertura: 26,
 		textura: 'bala-guardia-roja',
@@ -90,6 +94,7 @@ export const TIPOS_DE_ENEMIGO = Object.freeze({
 	'rata-gris': Object.freeze({
 		textura: 'rata-gris',
 		animacion: 'rata-gris-caminar',
+		sonidoDeAtaque: 'rata-ataque',
 		vida: 1,
 		velocidad: 70,
 		dano: 2,
@@ -99,6 +104,7 @@ export const TIPOS_DE_ENEMIGO = Object.freeze({
 	'rata-blanca': Object.freeze({
 		textura: 'rata-blanca',
 		animacion: 'rata-blanca-caminar',
+		sonidoDeAtaque: 'rata-ataque',
 		vida: 2,
 		velocidad: 160,
 		dano: 1,
@@ -108,6 +114,7 @@ export const TIPOS_DE_ENEMIGO = Object.freeze({
 	'rata-azul': Object.freeze({
 		textura: 'rata-azul',
 		animacion: 'rata-azul-caminar',
+		sonidoDeAtaque: 'rata-ataque',
 		vida: 5,
 		velocidad: 45,
 		dano: 1,
@@ -118,6 +125,7 @@ export const TIPOS_DE_ENEMIGO = Object.freeze({
 	'rata-negra': Object.freeze({
 		textura: 'rata-negra',
 		animacion: 'rata-negra-caminar',
+		sonidoDeAtaque: 'rata-ataque',
 		vida: 10,
 		velocidad: 100,
 		letal: true,

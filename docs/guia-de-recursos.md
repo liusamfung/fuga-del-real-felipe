@@ -31,7 +31,7 @@ public/assets/
     enemigos/enemigo-debil.png
     enemigos/rata-azul.png  rata-gris.png  rata-blanca.png  rata-negra.png
     enemigos/guardia-azul.png  guardia-rojo.png
-    enemigos/jefe-2.png
+    enemigos/jefe-1.png  jefe-2.png
     escenario/tileset-prision.png  tileset-prision-2.png
   audio/                 Sonidos y música
 ```
@@ -89,6 +89,20 @@ cuadros**: el 0 de pie y el 1 y el 2 con un pie adelante cada uno. La animación
 `guardia-rojo-caminar`) va **0, 1, 0, 2**. El azul va de azul y marrón; el rojo, de marrón oscuro con una antena.
 Los originales ampliados ×5 están en `arte/originales/enemigos/guardia-<color>-caminar-<1 a 3>.png`.
 
+### Jefe 1 — `jefe-1.png` (96×32, 3 cuadros) — PROVISIONAL
+
+El jefe del nivel 1 ya está **construido como debe** en el código (su hoja, su animación `jefe-1-flotar` y su configuración
+`CONFIG.JEFES[1]`), pero su dibujo es **provisional: una copia del fantasma teñida de rojo**. Cuando Sebastián mande el sprite:
+
+1. **Reemplazar el archivo** `public/assets/img/enemigos/jefe-1.png` por el suyo (mismo nombre). Si mide **3 cuadros de 32×32 en
+   una fila** (96×32), **no hay nada más que hacer**.
+2. Si mide otra cosa, ajustar solo estos tres lugares:
+   - `src/datos/recursos.js`, entrada `'jefe-1'`: `ancho` y `alto` (el tamaño de **un** cuadro).
+   - `src/datos/animaciones.js`, `jefe-1-flotar`: los `cuadros` (por ejemplo `[0, 1, 2, 1]`) y los `fps`.
+   - `src/config.js`, `JEFE_1`: `ESCALA` (entera: es pixel art) y el cuerpo de choque `CUERPO_ANCHO` / `CUERPO_ALTO`, en píxeles del dibujo.
+3. Poner el original ampliado ×5 en `arte/originales/enemigos/`. Las pruebas (`pruebas/recursos.test.js` y
+   `pruebas/jefesPorNivel.test.js`) avisan si el archivo no mide un número exacto de cuadros o si el cuerpo no cabe en el cuadro.
+
 ### Jefe 2 — `jefe-2.png` (96×32, 3 cuadros)
 
 Un fantasma con corona. Los cuadros miden **32×32**, no 32×48 como los demás personajes.
@@ -100,8 +114,7 @@ Un fantasma con corona. Los cuadros miden **32×32**, no 32×48 como los demás 
 | 2      | Flotar: manos arriba y la barba más corta |
 
 La animación de flotar es **0, 1, 2, 1** (`jefe-2-flotar`), a 4 cuadros por segundo. En el juego se
-muestra **ampliado ×3** (96×96 px). Hoy solo se ve, flotando en la sala del centro; **provisional:** se
-usa en el piso 1 hasta que exista el dibujo del jefe del primer piso (`CONFIG.JEFE.CLAVE`).
+muestra **ampliado ×3** (96×96 px). Es el jefe del **nivel 2** (`CONFIG.JEFES[2]`).
 Lo dibujó `CSebastianFO` (PR #14, que lo llamó `boss-p2.png`; se renombró según la guía de nombres).
 
 ### Tileset de la prisión — `tileset-prision.png` (256×144, 22 piezas en 8×3)
@@ -150,31 +163,31 @@ Jorge** para qué sirve cada pieza y si hay más (puertas, cajas, etc.).
 - **PNG con fondo transparente**, sin suavizado (_pixel art_ nítido).
 - Todos los cuadros de una hoja miden lo mismo.
 - Fondos: un PNG de **2400×1920 px** por piso (cuando se decida cómo se arman).
-- Audio: **.ogg** o **.mp3** cortos para efectos, y música en bucle.
+- Audio: **.mp3** cortos para efectos, y música en bucle. Cómo está hecho, cuál suena cuándo y cómo cambiarlo: [`audio.md`](audio.md).
 - Para agregar o cambiar un dibujo: poner el archivo en `public/assets/img/` y cambiar su entrada en
   `src/datos/recursos.js`. El resto del juego no cambia, porque usa siempre la clave y no la ruta.
 
 ## 6. Qué recursos hacen falta
 
-| Recurso                      | Estado      | Detalle                                                                      |
-| ---------------------------- | ----------- | ---------------------------------------------------------------------------- |
-| Jugador                      | **Hecho**   | 4 direcciones, quieto y caminar. Faltan: recibir daño, morir                 |
-| Enemigos (débil y 4 ratas)   | **Parcial** | Solo 2 cuadros de caminar cada uno. Faltan: recibir daño, morir              |
-| Suelo y paredes del piso 1   | **Parcial** | Hay tileset; falta decidir cómo se arma la sala (sección 7)                  |
-| Bala                         | Provisional | Una imagen pequeña                                                           |
-| Granada                      | Provisional | Una imagen pequeña (12×12 px); la explosión se dibuja por código             |
-| Proyectil del jefe           | Provisional | Una imagen pequeña (12×12 px), dibujada por código                           |
-| Nido de ratas                | Provisional | 64×64 px, dibujado por código; mide lo mismo que una caja                    |
-| Cofre                        | Provisional | Cerrado y abierto                                                            |
-| Cajas (obstáculos)           | Provisional | 64×64 px                                                                     |
-| Corazones del HUD            | Provisional | Lleno y vacío                                                                |
-| Puerta                       | Pendiente   | Abierta, cerrada y con llave                                                 |
-| Jefe 2 (el del segundo piso) | **Parcial** | Solo 3 cuadros de flotar. Faltan: ataque básico, ataque fuerte, recibir daño |
-| Jefe 1 (el del primer piso)  | Pendiente   | Todo: flotar o quieto, ataque básico, ataque fuerte                          |
-| Llave y mejoras              | Pendiente   | Iconos para el HUD                                                           |
-| Portada                      | Pendiente   | Imagen de título                                                             |
-| Piso 2                       | Pendiente   | Por definir                                                                  |
-| Sonidos y música             | Pendiente   | Disparo, golpe, cofre, puerta, acierto, fallo, aviso del jefe                |
+| Recurso                      | Estado          | Detalle                                                                                                                                         |
+| ---------------------------- | --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| Jugador                      | **Hecho**       | 4 direcciones, quieto y caminar. Faltan: recibir daño, morir                                                                                    |
+| Enemigos (débil y 4 ratas)   | **Parcial**     | Solo 2 cuadros de caminar cada uno. Faltan: recibir daño, morir                                                                                 |
+| Suelo y paredes del piso 1   | **Parcial**     | Hay tileset; falta decidir cómo se arma la sala (sección 7)                                                                                     |
+| Bala                         | Provisional     | Una imagen pequeña                                                                                                                              |
+| Granada                      | Provisional     | Una imagen pequeña (12×12 px); la explosión se dibuja por código                                                                                |
+| Proyectil del jefe           | Provisional     | Una imagen pequeña (12×12 px), dibujada por código                                                                                              |
+| Nido de ratas                | Provisional     | 64×64 px, dibujado por código; mide lo mismo que una caja                                                                                       |
+| Cofre                        | Provisional     | Cerrado y abierto                                                                                                                               |
+| Cajas (obstáculos)           | Provisional     | 64×64 px                                                                                                                                        |
+| Corazones del HUD            | Provisional     | Lleno y vacío                                                                                                                                   |
+| Puerta                       | Pendiente       | Abierta, cerrada y con llave                                                                                                                    |
+| Jefe 2 (el del segundo piso) | **Parcial**     | Solo 3 cuadros de flotar. Faltan: ataque básico, ataque fuerte, recibir daño                                                                    |
+| Jefe 1 (el del primer piso)  | **Provisional** | Hay una copia del fantasma teñida de rojo (`jefe-1.png`) para tenerlo construido. Falta el dibujo de Sebastián (flotar, ataque básico y fuerte) |
+| Llave y mejoras              | Pendiente       | Iconos para el HUD                                                                                                                              |
+| Portada                      | Pendiente       | Imagen de título                                                                                                                                |
+| Piso 2                       | Pendiente       | Por definir                                                                                                                                     |
+| Sonidos y música             | **Parcial**     | Hay 10 (2 músicas y 8 efectos, provisionales, hechos por código; ver `audio.md`). Faltan cofre, puerta, acierto, fallo, granada                 |
 
 "Provisional" quiere decir que el código dibuja un rectángulo de colores mientras no exista el
 dibujo final (ver `src/datos/recursos.js`).

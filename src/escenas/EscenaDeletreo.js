@@ -57,8 +57,9 @@ const COLOR_DE_LA_BARRA = Object.freeze({
 // los huecos. ESPACIO la repite (el tiempo sigue corriendo). Si el navegador no sabe hablar, se muestra
 // la palabra y se avisa. En este modo no se usa el micrófono (se oiría a la propia voz del juego).
 //
-// `alTerminar(resultado)` se llama una vez, con 'acertada', 'fallada' o 'tiempo-agotado'. La pantalla
-// se queda un momento mostrando el resultado y se cierra sola.
+// `alTerminar(resultado, { fraccionRestante })` se llama una vez, con 'acertada', 'fallada' o 'tiempo-agotado', cuando la
+// pantalla ya terminó de mostrar el resultado (`TIEMPO_DEL_RESULTADO`, 0,5 s como máximo) y se cierra sola. El ataque
+// fuerte del jefe 2 usa el dictado como su reto más difícil y `fraccionRestante` para premiar al que responde rápido.
 //
 // La barra mide el tiempo REAL (`performance.now()`), no el del juego: cuando el mundo vaya en cámara
 // lenta (el ataque fuerte del jefe), el tiempo del jugador no se estira.
@@ -295,8 +296,14 @@ export class EscenaDeletreo extends Phaser.Scene {
 		this.voz?.detener(); // ya terminó: el micrófono se apaga
 		this.vozDelJuego?.detener(); // y el juego deja de hablar
 		this.fraccionFinal = this.deletreo.fraccionRestante(ahora);
-		this.alTerminar?.(this.deletreo.estado);
-		this.time.delayedCall(TIEMPO_DEL_RESULTADO, () => this.scene.stop());
+
+		// Primero se ve el resultado y RECIÉN después se le avisa al juego (igual que en `EscenaOpciones`): mientras el
+		// cartel está a la vista el juego sigue como estaba (en cámara lenta y con el jugador quieto), así se sabe si se
+		// acertó antes de ver el dash o el rayo del jefe. `fraccionRestante` es lo que quedaba de tiempo, de 1 a 0.
+		this.time.delayedCall(TIEMPO_DEL_RESULTADO, () => {
+			this.scene.stop();
+			this.alTerminar?.(this.deletreo.estado, { fraccionRestante: this.fraccionFinal });
+		});
 	}
 
 	// La línea de abajo: qué hace el micrófono y lo último que oyó, o el aviso si falló.

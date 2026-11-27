@@ -42,6 +42,7 @@ export class Disparo {
 		}
 
 		bala.disparar(origen.x, origen.y, direccion, dano);
+		this.escena.sonido?.efecto('jugador-disparo');
 		this.proximoDisparo = ahora + CONFIG.DISPARO.CADENCIA;
 		return true;
 	}

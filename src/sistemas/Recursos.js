@@ -1,3 +1,4 @@
+import { AUDIOS } from '../datos/audio.js';
 import { RECURSOS } from '../datos/recursos.js';
 
 // Carga los recursos del catálogo (src/datos/recursos.js).
@@ -5,7 +6,7 @@ import { RECURSOS } from '../datos/recursos.js';
 //   - preload: carga los recursos que son archivos (hojas de sprites e imágenes).
 //   - create: dibuja los recursos que son provisionales (generados por código).
 
-/** Carga los recursos de tipo "hoja" e "imagen". Llamar desde `preload()`. */
+/** Carga los recursos de tipo "hoja" e "imagen", y todos los audios (src/datos/audio.js). Llamar desde `preload()`. */
 export function cargarRecursos(escena) {
 	for (const [clave, recurso] of Object.entries(RECURSOS)) {
 		if (recurso.tipo === 'hoja') {
@@ -16,6 +17,10 @@ export function cargarRecursos(escena) {
 		} else if (recurso.tipo === 'imagen') {
 			escena.load.image(clave, recurso.ruta);
 		}
+	}
+
+	for (const [clave, audio] of Object.entries(AUDIOS)) {
+		escena.load.audio(clave, audio.ruta);
 	}
 }
 

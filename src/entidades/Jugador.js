@@ -135,8 +135,9 @@ export class Jugador extends Phaser.Physics.Arcade.Sprite {
 		this.emit('estadisticas-cambiadas');
 
 		if (this.estadisticas.vida === 0) {
-			this.emit('muerto');
+			this.emit('muerto'); // la escena hace sonar la muerte: el quejido de daño sonaría encima
 		} else {
+			this.scene.sonido?.efecto('jugador-dano');
 			this.#parpadear();
 		}
 		return true;
