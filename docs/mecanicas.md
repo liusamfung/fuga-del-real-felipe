@@ -312,12 +312,20 @@ reto de inglés. Todos los números son **provisionales** (están en `CONFIG.POD
 ## 6. El jefe y su ataque fuerte
 
 La pelea con el jefe del piso se juega en la **sala del centro** (se abre con la llave). **Cada nivel tiene su
-jefe** (`CONFIG.JEFES[nivel]`): el del nivel 2 es hoy un **duplicado** del del nivel 1 (el fantasma, que se puso en el
-nivel 1 solo para probar y en realidad es el jefe 2), con exactamente los mismos valores pero en un objeto aparte para
-poder retocarlo después. Con **`K`** se empieza el nivel 2 y con **`J`** se va a la sala del jefe del nivel actual
-(atajos de pruebas). Los valores de abajo valen para los dos. Los valores son los
-acordados el 26/11/2026 y son **provisionales** (`CONFIG.JEFE`); las reglas están en
-`src/sistemas/PeleaConElJefe.js` (lógica pura, con pruebas).
+propio jefe** (`CONFIG.JEFES[nivel]`), con lo común en `JEFE_BASE` y lo suyo aparte: su dibujo (clave, escala y cuerpo) y qué
+retos de inglés usa en sus ataques fuertes (_decidido el 27/11/2026_):
+
+| Jefe                                         | Dibujo                                                                                                                                                                            | Retos de sus 3 ataques fuertes                                                                                                                                                                            |
+| -------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Jefe 1** (nivel 1, «Mazmorras inferiores») | `jefe-1`: **provisional**, una copia del fantasma teñida de rojo; cuando llegue el dibujo de Sebastián se reemplaza el archivo (ver [`guia-de-recursos.md`](guia-de-recursos.md)) | **Solo el FÁCIL** (nivel 1: se ve una palabra en español y se dice su traducción): fácil, fácil, fácil                                                                                                    |
+| **Jefe 2** (nivel 2, «Prisión»)              | `jefe-2`: el fantasma con corona de Sebastián                                                                                                                                     | **El único que alterna MEDIO y ALTO**: medio (nivel 2: se ve la definición en inglés y se dice la palabra), alto (nivel 3: el juego **dice** la palabra en inglés y se **escribe con el teclado**), medio |
+
+El jefe 2 usa **todas las palabras del banco** en el reto alto, porque se escribe y no depende de que Chrome las entienda. Con
+**`K`** se empieza el nivel 2 y con **`J`** se va a la sala del jefe del nivel actual (atajos de pruebas). Los demás valores
+(vida, ataques, rayo…) son los mismos para los dos jefes y salen de `JEFE_BASE`.
+
+Los valores de abajo valen para los dos jefes. Son los acordados el 26/11/2026 y retocados el 27/11/2026, y son
+**provisionales** (`CONFIG.JEFES`); las reglas están en `src/sistemas/PeleaConElJefe.js` (lógica pura, con pruebas).
 
 ### 6.0 La pelea
 
@@ -343,13 +351,14 @@ acordados el 26/11/2026 y son **provisionales** (`CONFIG.JEFE`); las reglas est�
 
 - **Ataque fuerte:** **3 por pelea**, uno cada vez que la vida del jefe **baja del 75 %, 50 % y 25 %** (de 22,5,
   15 y 7,5). Si un golpe grande cruza dos umbrales de una vez, los ataques vienen **uno tras otro**, no juntos.
-  El movimiento **no** lo evita: hay que responder un **reto de inglés**. El jefe 1 alterna los niveles
-  **1, 2, 1** (ver 5.10); el jefe 2 usará 2 y 3 _(pendiente)_. El golpe es un **rayo verde** (6.0.1).
+  El movimiento **no** lo evita: hay que responder un **reto de inglés**. El jefe 1 usa solo el
+  reto **fácil** (nivel 1) y el jefe 2 alterna el **medio** y el **alto** (niveles 2 y 3, el dictado: ver arriba y 5.10). El
+  golpe es un **rayo verde** (6.0.1).
 - **Atajo de pruebas, tecla `J`:** lleva al jugador directo a la sala del jefe, con la llave, y la pelea empieza
   al instante. La sala donde estaba se da por terminada (sin cofre) para que no queden sus puertas cerradas.
   Sirve para probar al jefe sin recorrer las otras ocho salas; no es parte del juego final.
-- **Al derrotarlo:** el jefe se desvanece, se apagan sus proyectiles y se **abren las puertas**.
-  _(La pantalla de «nivel completado» y el piso 2 están pendientes: paso 12 de la hoja de ruta.)_
+- **Al derrotarlo:** el jefe se desvanece, se apagan sus proyectiles, se **abren las puertas** y, 1,6 s después, sale un
+  **cartel** (ver 6.3): con el jefe 1, «¡Nivel completado!» y se pasa al nivel 2; con el jefe 2, «¡Ganaste!» y es el final.
 
 ```mermaid
 flowchart TD
@@ -438,6 +447,23 @@ bola de donde sale), de la misma paleta verde que el fantasma. Cuando haya arte 
 - El fallo se entiende: se ve el golpe (la pantalla tiembla y sale «¡Te golpeó!») y el daño en los corazones.
 - El tiempo debe alcanzar para responder de forma realista (`6 s + 0,5 s por palabra del enunciado`).
 - Hay **aviso** antes del reto (0,8 s) y **respiro** después (1,5 s): el jugador nunca recibe dos cosas a la vez.
+
+### 6.3 Cómo termina la partida: morir, pasar de nivel y ganar _(27/11/2026)_
+
+Las reglas son lógica pura (`src/sistemas/ProgresoDelJuego.js`, con pruebas) y los textos están en `src/datos/carteles.js`. Un
+cartel (`EscenaCartel`) tapa el juego, lo deja **congelado** y pide **pulsar un botón** (clic o `ENTER`). El botón no responde en los
+primeros 0,7 s, para que nadie lo acepte sin querer si seguía disparando o tecleando.
+
+| Qué pasa                 | Cartel                                                          | Botón                         | Después                                                          |
+| ------------------------ | --------------------------------------------------------------- | ----------------------------- | ---------------------------------------------------------------- |
+| **El jugador muere**     | **«Perdiste»** · «¿Deseas volver a intentarlo?»                 | «Volver a intentar (nivel 1)» | Empieza **de nuevo desde el nivel 1**, esté en el nivel que esté |
+| **Se derrota al jefe 1** | «¡Nivel completado!» · «Derrotaste al jefe. Ahora, el nivel 2.» | «Continuar»                   | Empieza el **nivel 2**                                           |
+| **Se derrota al jefe 2** | **«¡Ganaste!»** · «Cada día estás más cerca de ser bilingüe»    | «Jugar de nuevo»              | Vuelve al **nivel 1**. **No hay nivel 3**: es el final           |
+
+- Al morir suena `jugador-muerte`, la música se corta y el cartel sale ~0,9 s después. Si había un reto de inglés abierto (y con él
+  el micrófono) se cierra. Tras derrotar al jefe, el cartel sale ~1,6 s después, cuando termina de desvanecerse.
+- Si el jefe cae **en pleno reto** (también en el dictado), el reto se cierra solo y no cae ningún golpe.
+- Los atajos de pruebas `J` y `K` siguen existiendo; con el paso de nivel ya hecho, `K` se puede quitar cuando el usuario quiera.
 
 ## 7. Cofres especiales
 
