@@ -37,6 +37,22 @@ export const ANIMACIONES = Object.freeze([
 	{ clave: 'rata-azul-caminar', textura: 'rata-azul', cuadros: [0, 1], fps: 3, repetir: true },
 	{ clave: 'rata-negra-caminar', textura: 'rata-negra', cuadros: [0, 1], fps: 7, repetir: true },
 
+	// Los guardias: 3 cuadros (de pie y dos pasos, uno a cada lado). Van de pie → paso → de pie → otro paso.
+	{
+		clave: 'guardia-azul-caminar',
+		textura: 'guardia-azul',
+		cuadros: [0, 1, 0, 2],
+		fps: 6,
+		repetir: true,
+	},
+	{
+		clave: 'guardia-rojo-caminar',
+		textura: 'guardia-rojo',
+		cuadros: [0, 1, 0, 2],
+		fps: 5,
+		repetir: true,
+	},
+
 	// El fantasma flota: va del cuadro 0 al 2 y vuelve por el 1, así el movimiento no da saltos.
 	{
 		clave: 'jefe-2-flotar',

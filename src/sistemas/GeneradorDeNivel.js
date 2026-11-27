@@ -36,6 +36,7 @@ export function generarNivel(descripcion, azar = Math.random) {
 
 	return {
 		nombre: descripcion.nombre,
+		estilo: descripcion.estilo,
 		columnas,
 		filas,
 		salaInicial: descripcion.salaInicial,

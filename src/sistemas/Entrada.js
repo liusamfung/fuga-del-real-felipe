@@ -27,6 +27,7 @@ export class Entrada {
 		this.teclaDeVoz = teclado.addKey('V');
 		this.teclaDeGranada = teclado.addKey('G');
 		this.teclaDelJefe = teclado.addKey('J');
+		this.teclaDelNivel2 = teclado.addKey('K');
 		this.movimientoBloqueado = false;
 	}
 
@@ -90,6 +91,15 @@ export class Entrada {
 	 */
 	irAlJefePedido() {
 		return Phaser.Input.Keyboard.JustDown(this.teclaDelJefe);
+	}
+
+	/**
+	 * Atajo de pruebas: K empieza el nivel 2 desde el principio, sin pasar por el jefe del nivel 1. Devuelve
+	 * verdadero en el fotograma en que se pulsa. Se debe consultar en cada fotograma (JustDown "gasta" la pulsación).
+	 * Se quita cuando el paso de un nivel al otro esté hecho (paso 12 de la hoja de ruta).
+	 */
+	irAlNivel2Pedido() {
+		return Phaser.Input.Keyboard.JustDown(this.teclaDelNivel2);
 	}
 
 	/**

@@ -30,8 +30,9 @@ public/assets/
     jugador/jugador.png
     enemigos/enemigo-debil.png
     enemigos/rata-azul.png  rata-gris.png  rata-blanca.png  rata-negra.png
+    enemigos/guardia-azul.png  guardia-rojo.png
     enemigos/jefe-2.png
-    escenario/tileset-prision.png
+    escenario/tileset-prision.png  tileset-prision-2.png
   audio/                 Sonidos y música
 ```
 
@@ -81,6 +82,13 @@ Las envió Jorge; los originales (ampliados ×5, 160×240) están en `arte/origi
 `rata-<color>-caminar-1.png` y `-2.png`. Se comprobó que la reducción ×5 es exacta. Cada hoja es
 `cuadro 1` + `cuadro 2` en una fila. Qué hace cada una en el juego: [`enemigos.md`](enemigos.md).
 
+### Guardias (nivel 2) — `guardia-azul.png` y `guardia-rojo.png` (96×48, 3 cuadros)
+
+Los dibujó Jorge (entregados el 27/11/2026). Son de **frente** (sin direcciones, como las ratas) y tienen **3
+cuadros**: el 0 de pie y el 1 y el 2 con un pie adelante cada uno. La animación (`guardia-azul-caminar`,
+`guardia-rojo-caminar`) va **0, 1, 0, 2**. El azul va de azul y marrón; el rojo, de marrón oscuro con una antena.
+Los originales ampliados ×5 están en `arte/originales/enemigos/guardia-<color>-caminar-<1 a 3>.png`.
+
 ### Jefe 2 — `jefe-2.png` (96×32, 3 cuadros)
 
 Un fantasma con corona. Los cuadros miden **32×32**, no 32×48 como los demás personajes.
@@ -119,6 +127,23 @@ Las 8 piezas `marco-*` encajan entre sí formando un marco de bandas concéntric
 armándolas). Los números de cuadro también están en `FOTOGRAMAS_TILESET`, en
 `src/datos/recursos.js`. **Hoy el juego usa dos:** `suelo-rayas` para el suelo y
 `textura-rayas-marron` para las paredes.
+
+### Tileset del nivel 2 — `tileset-prision-2.png` (256×144, 13 piezas en 8×3)
+
+También de Jorge (27/11/2026). Es la **misma distribución que el tileset del nivel 1, repintada en azul y violeta**, pero
+con solo **13 piezas** (las filas de abajo están vacías) y **sin las piezas de suelo con borde** (13 a 21 del otro).
+Los nombres describen lo que se ve y están en `FOTOGRAMAS_TILESET_2` (`src/datos/recursos.js`); son provisionales.
+
+| Cuadro | Nombre                         | Cuadro | Nombre             |
+| ------ | ------------------------------ | ------ | ------------------ |
+| 0 a 7  | los 8 `marco-*` (como el otro) | 10     | panel-marco        |
+| 8      | pared-lisa (violeta oscuro)    | 11     | panel-concentrico  |
+| 9      | ranuras (ventanitas)           | 12     | **suelo-punteado** |
+
+**Hoy el juego usa dos:** `suelo-punteado` para el suelo y `ranuras` para las paredes (las paredes son más claras que
+el suelo, así se distinguen; `pared-lisa` quedaba muy parecida). El cuadro de suelo y el de pared de cada nivel se
+eligen en su `estilo` (`src/datos/niveles.js`), así que cambiarlos es cambiar un número. **Pendiente de confirmar con
+Jorge** para qué sirve cada pieza y si hay más (puertas, cajas, etc.).
 
 ## 5. Formato de los dibujos finales
 

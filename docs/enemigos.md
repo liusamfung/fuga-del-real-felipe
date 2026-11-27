@@ -1,8 +1,9 @@
 # Enemigos
 
-Hoy hay **5 tipos** de enemigo: el débil de siempre y **4 ratas** (los dibujos son de Jorge). Todos hacen lo
-mismo, **caminar en línea recta hacia el jugador**, y lo que los distingue es su **vida, velocidad y daño**
-y **cuántos hay en cada sala**. Además, **cada sala tiene un nido** que suelta más ratas hasta que se rompe.
+Hoy hay **7 tipos** de enemigo: el débil de siempre, **4 ratas** (nivel 1) y **2 guardias** (nivel 2); los dibujos
+son de Jorge. El débil y las ratas hacen lo mismo, **caminar en línea recta hacia el jugador**, y lo que los
+distingue es su **vida, velocidad y daño** y **cuántos hay en cada sala**; además, en el nivel 1 **cada sala tiene un
+nido** que suelta más ratas hasta que se rompe. Los **guardias** son distintos: **disparan** (ver más abajo).
 Los valores están en [`src/datos/enemigos.js`](../src/datos/enemigos.js) y [`src/config.js`](../src/config.js) y
 son **provisionales**: se ajustan jugando.
 
@@ -22,6 +23,46 @@ granada, 3). Ninguna rata es más rápida que el jugador: siempre se puede huir.
 **Golpe mortal:** la rata negra le quita al jugador **infinito**, así que lo mata de un toque aunque haya
 mejorado su vida máxima (el jugador resta `vida - daño` y no baja de 0). Cada una de las otras ratas quita 1 o
 2 corazones. Después de un golpe, el jugador es inmune 1 segundo.
+
+## Los guardias del nivel 2 _(27/11/2026)_
+
+Los dibujos de Jorge muestran a dos guardias con arma. En vez de embestir, **mantienen una distancia, se detienen un
+momento apuntando y disparan**. Los dos disparan **distinto** (era el pedido). El comportamiento está en
+[`Tirador`](../src/sistemas/Tirador.js) (lógica pura, con pruebas) y los números en el campo `disparo` de cada tipo.
+
+|                         | **Guardia azul** (`guardia-azul`)                                        | **Guardia rojo** (`guardia-rojo`)                                                          |
+| ----------------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------ |
+| Papel                   | **El tirador**                                                           | **El escopetero**                                                                          |
+| Vida / velocidad        | 3 / 60 px/s                                                              | **5** / 45 px/s                                                                            |
+| Dónde se queda          | **Lejos**: entre 200 y 300 px del jugador (si te acercas, **retrocede**) | **Cerca**: avanza hasta 200 px y ahí se detiene                                            |
+| Cómo dispara            | **Una bala** hacia ti                                                    | **Abanico de 3 balas** (26° entre una y otra, la del medio hacia ti)                       |
+| Velocidad de la bala    | **300 px/s** (más rápida que tú, que caminas a 220)                      | 230 px/s                                                                                   |
+| Ritmo                   | Cada 1,7 s                                                               | Cada 2,6 s                                                                                 |
+| Aviso                   | 0,3 s (se detiene y **parpadea en rojo**)                                | **0,55 s**                                                                                 |
+| Alcance                 | 480 px                                                                   | 340 px                                                                                     |
+| Cómo se juega contra él | Moverse sin parar y rodear las cajas para acercársele                    | Esperar a que se detenga y esquivar **de lado**; el centro del abanico siempre va hacia ti |
+
+- **Las balas** son del color del guardia (azul o roja), quitan **1 corazón**, se detienen en paredes, cajas y puertas
+  cerradas, y desaparecen al salir de la sala y cuando la sala queda limpia. Las **cajas sirven de cobertura**.
+- Cada guardia empieza a disparar con un retraso al azar (hasta 0,8–0,9 s más) para que los de una sala **no
+  disparen todos a la vez**.
+- Tocarlos también quita 1 corazón. El dibujo es **de frente** (sin direcciones, como las ratas) y tiene **3 cuadros**:
+  de pie y dos pasos; al detenerse a apuntar se queda de pie.
+
+### Las salas del nivel 2
+
+Sin nidos; de **3 a 5 guardias** por sala y **ninguna mezcla repetida**. Las posiciones son las ya comprobadas del nivel 1.
+
+| Sala  | Guardias           | Qué la hace distinta                                          |
+| ----- | ------------------ | ------------------------------------------------------------- |
+| (0,0) | 3 azules           | **Inicial:** la más suave; enseña a rodear las cajas.         |
+| (1,0) | 1 rojo + 2 azules  | Un escopetero con un tirador a cada lado.                     |
+| (2,0) | 2 rojos + 1 azul   | Dos abanicos entre los pilares.                               |
+| (0,1) | 4 azules           | **Fuego cruzado:** uno en cada rincón, siempre en movimiento. |
+| (2,1) | 1 rojo + 3 azules  | Muchas balas rápidas y un escopetero.                         |
+| (0,2) | 2 rojos + 2 azules | ¿A cuál se rodea primero?                                     |
+| (1,2) | 1 azul + 3 rojos   | **Sin cajas:** no hay dónde esconderse.                       |
+| (2,2) | 3 rojos + 2 azules | **La más difícil.**                                           |
 
 ## El nido
 
@@ -64,6 +105,11 @@ jugador y de dónde salga la llave), así que la dificultad no sube en línea re
 
 ## Reglas que comprueban las pruebas
 
+Para el **nivel 2** (`pruebas/nivel2.test.js`, `pruebas/tirador.test.js` y `pruebas/enemigos.test.js`): solo hay
+guardias, 3–5 por sala, sin nido y sin mezclas repetidas; nacen a 200 px o más de las puertas; los dos guardias
+**disparan distinto** (patrón, ritmo, aviso, distancia y vida); el alcance de cada uno llega hasta donde se queda; y el
+`Tirador` se acerca, se aleja, apunta y dispara en los instantes exactos (bordes incluidos). Para el **nivel 1**:
+
 `pruebas/generadorDeNivel.test.js`, `pruebas/enemigos.test.js` y `pruebas/nido.test.js` comprueban que:
 
 - Cada sala de combate tiene de **3 a 6** enemigos y un **nido**, y **ninguna repite** la mezcla de otra.
@@ -80,16 +126,20 @@ jugador y de dónde salga la llave), así que la dificultad no sube en línea re
 
 ## Cómo agregar o cambiar un tipo
 
-1. Dibuja 2 cuadros de caminar (32×48) y arma la hoja (`arte/README.md`); agrégala a `src/datos/recursos.js`.
+1. Dibuja 2 cuadros de caminar (32×48; 3 los guardias) y arma la hoja (`arte/README.md`); agrégala a `src/datos/recursos.js`.
 2. Crea su animación en `src/datos/animaciones.js` (`<nombre>-caminar`, cuadros `[0, 1]`).
-3. Agrega su entrada en `src/datos/enemigos.js` con su vida, velocidad y daño (o `letal: true` en vez de `dano`).
+3. Agrega su entrada en `src/datos/enemigos.js` con su vida, velocidad y daño (o `letal: true` en vez de `dano`). Si
+   debe **disparar**, agrégale el campo `disparo` (explicado al principio del archivo).
 4. Úsalo en una sala de `src/datos/niveles.js` con `enemigo('<tipo>', x, y)`. Las pruebas te dicen si la posición
    es válida. Para cambiar qué caja de una sala es el nido: `...conNido(OBSTACULOS.<disposición>, x, y)`.
 
 ## Pendiente
 
-- Hoy ninguno **dispara** ni cambia de comportamiento: solo persiguen. Falta decidir si algún tipo debe hacer
-  algo distinto (ver [`decisiones-pendientes.md`](decisiones-pendientes.md)).
+- Las ratas siguen sin cambiar de comportamiento (solo persiguen); solo los guardias disparan. Falta decidir si
+  alguna rata debe hacer algo distinto (ver [`decisiones-pendientes.md`](decisiones-pendientes.md)).
+- **Los guardias están sin ajustar:** vida, ritmo, velocidad de las balas y número por sala son una primera estimación
+  mía (el 27/11/2026) y no se han jugado de principio a fin. Las balas (10 px) y su dibujo son provisionales.
+- Los guardias solo tienen dibujo **de frente**, sin dibujo de disparar, de recibir daño ni de morir.
 - **El nido es nuevo y está sin ajustar:** su vida (10), el ritmo (4,5 s) y el máximo de ratas vivas (6) son una
   primera estimación. Con una plaga de seis ratas que muerden por 2, puede resultar muy duro: hay que jugarlo.
 - Faltan los dibujos de **recibir daño** y **morir**, y el dibujo final del **nido** (hoy es provisional, hecho

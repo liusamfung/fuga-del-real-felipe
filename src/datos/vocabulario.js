@@ -2,6 +2,15 @@
 //
 //   palabra      la palabra en inglés, en minúsculas y sin espacios (es la respuesta; en el nivel 3 es
 //                lo que se escribe).
+//   voz          si la palabra se reconoce bien con el micrófono de Chrome (27/11/2026). Chrome no entrega texto para
+//                algunas palabras (el usuario comprobó que «leg», «boat», «tail», «wave», «duck», «wheel» y «heart» fallan, y
+//                que «rabbit», «carrot», «village», «black» y «expensive» funcionan), así que los retos POR VOZ (niveles 1 y 2)
+//                usan solo las que sirven. Valores:
+//                  'probada'     se probó con el micrófono real y funciona
+//                  'probable'    no se ha probado, pero tiene dos sílabas o más y las que se han probado así funcionan
+//                  'sin-probar'  una sílaba y sin probar: no se usa por voz hasta probarla
+//                  'falla'       se probó y Chrome no la entrega: no se usa por voz
+//                El dictado (nivel 3) se escribe con el teclado, así que usa TODAS las palabras.
 //   libro        1 o 2: el libro del mazo de Anki «4000 Essential English Words» de donde se tomó la
 //                palabra; sirve como pista de dificultad (el libro 1 es el más fácil).
 //   categoria    de qué trata la palabra. Las opciones equivocadas de una ficha salen siempre de OTRAS
@@ -20,6 +29,7 @@ export const VOCABULARIO = Object.freeze(
 		{
 			palabra: 'boat',
 			libro: 1,
+			voz: 'falla',
 			categoria: 'agua',
 			traduccion: 'barco',
 			definicion: 'it floats on water and carries people across a lake or river',
@@ -27,6 +37,7 @@ export const VOCABULARIO = Object.freeze(
 		{
 			palabra: 'breakfast',
 			libro: 1,
+			voz: 'probada',
 			categoria: 'comida',
 			traduccion: 'desayuno',
 			definicion: 'the first meal of the day, eaten in the morning',
@@ -34,6 +45,7 @@ export const VOCABULARIO = Object.freeze(
 		{
 			palabra: 'duck',
 			libro: 1,
+			voz: 'falla',
 			categoria: 'animal',
 			traduccion: 'pato',
 			definicion: 'a bird with a flat beak that swims on ponds and says quack',
@@ -41,6 +53,7 @@ export const VOCABULARIO = Object.freeze(
 		{
 			palabra: 'month',
 			libro: 1,
+			voz: 'sin-probar',
 			categoria: 'tiempo',
 			traduccion: 'mes',
 			definicion: 'one of the twelve parts of the year, like May or June',
@@ -48,6 +61,7 @@ export const VOCABULARIO = Object.freeze(
 		{
 			palabra: 'week',
 			libro: 1,
+			voz: 'sin-probar',
 			categoria: 'tiempo',
 			traduccion: 'semana',
 			definicion: 'seven days, from Monday to Sunday',
@@ -55,6 +69,7 @@ export const VOCABULARIO = Object.freeze(
 		{
 			palabra: 'weather',
 			libro: 1,
+			voz: 'probable',
 			categoria: 'clima',
 			traduccion: 'clima',
 			definicion: 'what it is like outside: sunny, rainy, windy or cold',
@@ -62,6 +77,7 @@ export const VOCABULARIO = Object.freeze(
 		{
 			palabra: 'cloud',
 			libro: 1,
+			voz: 'sin-probar',
 			categoria: 'clima',
 			traduccion: 'nube',
 			definicion: 'a white or grey shape in the sky that can bring rain',
@@ -69,6 +85,7 @@ export const VOCABULARIO = Object.freeze(
 		{
 			palabra: 'library',
 			libro: 1,
+			voz: 'probable',
 			categoria: 'lugar',
 			traduccion: 'biblioteca',
 			definicion: 'a building where you can borrow books to read',
@@ -76,6 +93,7 @@ export const VOCABULARIO = Object.freeze(
 		{
 			palabra: 'village',
 			libro: 1,
+			voz: 'probada',
 			categoria: 'lugar',
 			traduccion: 'pueblo',
 			definicion: 'a very small town in the countryside',
@@ -83,6 +101,7 @@ export const VOCABULARIO = Object.freeze(
 		{
 			palabra: 'door',
 			libro: 1,
+			voz: 'sin-probar',
 			categoria: 'casa',
 			traduccion: 'puerta',
 			definicion: 'you open it to go into or out of a room',
@@ -90,6 +109,7 @@ export const VOCABULARIO = Object.freeze(
 		{
 			palabra: 'horse',
 			libro: 1,
+			voz: 'sin-probar',
 			categoria: 'animal',
 			traduccion: 'caballo',
 			definicion: 'a big animal that people ride and that runs fast',
@@ -97,6 +117,7 @@ export const VOCABULARIO = Object.freeze(
 		{
 			palabra: 'rabbit',
 			libro: 1,
+			voz: 'probada',
 			categoria: 'animal',
 			traduccion: 'conejo',
 			definicion: 'a small animal with long ears that jumps and eats carrots',
@@ -104,6 +125,7 @@ export const VOCABULARIO = Object.freeze(
 		{
 			palabra: 'leg',
 			libro: 1,
+			voz: 'falla',
 			categoria: 'cuerpo',
 			traduccion: 'pierna',
 			definicion: 'you use it to walk, run and kick a ball',
@@ -111,6 +133,7 @@ export const VOCABULARIO = Object.freeze(
 		{
 			palabra: 'cat',
 			libro: 1,
+			voz: 'sin-probar',
 			categoria: 'animal',
 			traduccion: 'gato',
 			definicion: 'a small pet with soft fur that says meow',
@@ -118,6 +141,7 @@ export const VOCABULARIO = Object.freeze(
 		{
 			palabra: 'friend',
 			libro: 1,
+			voz: 'sin-probar',
 			categoria: 'persona',
 			traduccion: 'amigo',
 			definicion: 'a person you like and enjoy spending time with',
@@ -125,6 +149,7 @@ export const VOCABULARIO = Object.freeze(
 		{
 			palabra: 'school',
 			libro: 1,
+			voz: 'sin-probar',
 			categoria: 'lugar',
 			traduccion: 'escuela',
 			definicion: 'a place where children go to learn',
@@ -132,6 +157,7 @@ export const VOCABULARIO = Object.freeze(
 		{
 			palabra: 'tail',
 			libro: 1,
+			voz: 'falla',
 			categoria: 'cuerpo',
 			traduccion: 'cola',
 			definicion: 'the long part at the back of a dog, a cat or a horse',
@@ -139,6 +165,7 @@ export const VOCABULARIO = Object.freeze(
 		{
 			palabra: 'mirror',
 			libro: 1,
+			voz: 'probable',
 			categoria: 'casa',
 			traduccion: 'espejo',
 			definicion: 'a flat piece of glass where you can see your face',
@@ -146,6 +173,7 @@ export const VOCABULARIO = Object.freeze(
 		{
 			palabra: 'heart',
 			libro: 1,
+			voz: 'falla',
 			categoria: 'cuerpo',
 			traduccion: 'corazón',
 			definicion: 'the part inside your chest that pushes blood around your body',
@@ -153,6 +181,7 @@ export const VOCABULARIO = Object.freeze(
 		{
 			palabra: 'street',
 			libro: 1,
+			voz: 'sin-probar',
 			categoria: 'lugar',
 			traduccion: 'calle',
 			definicion: 'a road in a town with houses and shops on both sides',
@@ -160,6 +189,7 @@ export const VOCABULARIO = Object.freeze(
 		{
 			palabra: 'red',
 			libro: 1,
+			voz: 'sin-probar',
 			categoria: 'color',
 			traduccion: 'rojo',
 			definicion: 'the color of blood and of ripe tomatoes',
@@ -167,6 +197,7 @@ export const VOCABULARIO = Object.freeze(
 		{
 			palabra: 'black',
 			libro: 1,
+			voz: 'probada',
 			categoria: 'color',
 			traduccion: 'negro',
 			definicion: 'the dark color of coal and of the night sky',
@@ -174,6 +205,7 @@ export const VOCABULARIO = Object.freeze(
 		{
 			palabra: 'bread',
 			libro: 1,
+			voz: 'sin-probar',
 			categoria: 'comida',
 			traduccion: 'pan',
 			definicion: 'a food made from flour that we cut into slices',
@@ -181,6 +213,7 @@ export const VOCABULARIO = Object.freeze(
 		{
 			palabra: 'carrot',
 			libro: 1,
+			voz: 'probada',
 			categoria: 'comida',
 			traduccion: 'zanahoria',
 			definicion: 'a long orange vegetable that rabbits like to eat',
@@ -188,6 +221,7 @@ export const VOCABULARIO = Object.freeze(
 		{
 			palabra: 'chicken',
 			libro: 1,
+			voz: 'probable',
 			categoria: 'animal',
 			traduccion: 'pollo',
 			definicion: 'a farm bird that gives us eggs and meat',
@@ -195,6 +229,7 @@ export const VOCABULARIO = Object.freeze(
 		{
 			palabra: 'bone',
 			libro: 1,
+			voz: 'sin-probar',
 			categoria: 'cuerpo',
 			traduccion: 'hueso',
 			definicion: 'a hard white part inside your body that holds you up',
@@ -202,6 +237,7 @@ export const VOCABULARIO = Object.freeze(
 		{
 			palabra: 'wood',
 			libro: 1,
+			voz: 'sin-probar',
 			categoria: 'planta',
 			traduccion: 'madera',
 			definicion: 'the hard material that comes from trees',
@@ -209,6 +245,7 @@ export const VOCABULARIO = Object.freeze(
 		{
 			palabra: 'swim',
 			libro: 1,
+			voz: 'sin-probar',
 			categoria: 'movimiento',
 			traduccion: 'nadar',
 			definicion: 'to move through water using your arms and legs',
@@ -216,6 +253,7 @@ export const VOCABULARIO = Object.freeze(
 		{
 			palabra: 'laugh',
 			libro: 1,
+			voz: 'sin-probar',
 			categoria: 'voz',
 			traduccion: 'reír',
 			definicion: 'to make happy sounds with your voice when something is funny',
@@ -223,6 +261,7 @@ export const VOCABULARIO = Object.freeze(
 		{
 			palabra: 'shout',
 			libro: 1,
+			voz: 'sin-probar',
 			categoria: 'voz',
 			traduccion: 'gritar',
 			definicion: 'to say something very loudly',
@@ -232,6 +271,7 @@ export const VOCABULARIO = Object.freeze(
 		{
 			palabra: 'yard',
 			libro: 2,
+			voz: 'sin-probar',
 			categoria: 'lugar',
 			traduccion: 'patio',
 			definicion: 'the area of grass and trees next to a house',
@@ -239,6 +279,7 @@ export const VOCABULARIO = Object.freeze(
 		{
 			palabra: 'tower',
 			libro: 2,
+			voz: 'probable',
 			categoria: 'construccion',
 			traduccion: 'torre',
 			definicion: 'a very tall, narrow building or part of a building',
@@ -246,6 +287,7 @@ export const VOCABULARIO = Object.freeze(
 		{
 			palabra: 'arrow',
 			libro: 2,
+			voz: 'probable',
 			categoria: 'filo',
 			traduccion: 'flecha',
 			definicion: 'a thin stick with a sharp point that you shoot from a bow',
@@ -253,6 +295,7 @@ export const VOCABULARIO = Object.freeze(
 		{
 			palabra: 'bridge',
 			libro: 2,
+			voz: 'sin-probar',
 			categoria: 'construccion',
 			traduccion: 'puente',
 			definicion: 'it lets cars and people cross a river or a road',
@@ -260,6 +303,7 @@ export const VOCABULARIO = Object.freeze(
 		{
 			palabra: 'beach',
 			libro: 2,
+			voz: 'sin-probar',
 			categoria: 'lugar',
 			traduccion: 'playa',
 			definicion: 'the sandy place next to the sea where people lie in the sun',
@@ -267,6 +311,7 @@ export const VOCABULARIO = Object.freeze(
 		{
 			palabra: 'sword',
 			libro: 2,
+			voz: 'sin-probar',
 			categoria: 'filo',
 			traduccion: 'espada',
 			definicion: 'a long metal blade that a knight uses to fight',
@@ -274,6 +319,7 @@ export const VOCABULARIO = Object.freeze(
 		{
 			palabra: 'shelf',
 			libro: 2,
+			voz: 'sin-probar',
 			categoria: 'casa',
 			traduccion: 'estante',
 			definicion: 'a flat board on a wall where you put books',
@@ -281,6 +327,7 @@ export const VOCABULARIO = Object.freeze(
 		{
 			palabra: 'candle',
 			libro: 2,
+			voz: 'probable',
 			categoria: 'casa',
 			traduccion: 'vela',
 			definicion: 'a stick of wax that gives light when you burn it',
@@ -288,6 +335,7 @@ export const VOCABULARIO = Object.freeze(
 		{
 			palabra: 'snake',
 			libro: 2,
+			voz: 'sin-probar',
 			categoria: 'animal',
 			traduccion: 'serpiente',
 			definicion: 'a long animal with no legs that slides along the ground',
@@ -295,6 +343,7 @@ export const VOCABULARIO = Object.freeze(
 		{
 			palabra: 'spider',
 			libro: 2,
+			voz: 'probable',
 			categoria: 'animal',
 			traduccion: 'araña',
 			definicion: 'a small animal with eight legs that makes a web',
@@ -302,6 +351,7 @@ export const VOCABULARIO = Object.freeze(
 		{
 			palabra: 'bucket',
 			libro: 2,
+			voz: 'probable',
 			categoria: 'casa',
 			traduccion: 'balde',
 			definicion: 'a round container with a handle that you use to carry water',
@@ -309,6 +359,7 @@ export const VOCABULARIO = Object.freeze(
 		{
 			palabra: 'broom',
 			libro: 2,
+			voz: 'sin-probar',
 			categoria: 'casa',
 			traduccion: 'escoba',
 			definicion: 'a tool with a long handle for cleaning the floor',
@@ -316,6 +367,7 @@ export const VOCABULARIO = Object.freeze(
 		{
 			palabra: 'feather',
 			libro: 2,
+			voz: 'probable',
 			categoria: 'cuerpo',
 			traduccion: 'pluma',
 			definicion: 'one of the light, soft parts that cover a bird',
@@ -323,6 +375,7 @@ export const VOCABULARIO = Object.freeze(
 		{
 			palabra: 'wheel',
 			libro: 2,
+			voz: 'falla',
 			categoria: 'transporte',
 			traduccion: 'rueda',
 			definicion: 'the round part of a car or a bike that turns on the road',
@@ -330,6 +383,7 @@ export const VOCABULARIO = Object.freeze(
 		{
 			palabra: 'flag',
 			libro: 2,
+			voz: 'sin-probar',
 			categoria: 'simbolo',
 			traduccion: 'bandera',
 			definicion: 'a piece of cloth with colors and a design that stands for a country',
@@ -337,6 +391,7 @@ export const VOCABULARIO = Object.freeze(
 		{
 			palabra: 'ceiling',
 			libro: 2,
+			voz: 'probable',
 			categoria: 'casa',
 			traduccion: 'techo',
 			definicion: 'the part of a room above your head',
@@ -344,6 +399,7 @@ export const VOCABULARIO = Object.freeze(
 		{
 			palabra: 'fog',
 			libro: 2,
+			voz: 'sin-probar',
 			categoria: 'clima',
 			traduccion: 'niebla',
 			definicion: 'thick white air near the ground that makes it hard to see',
@@ -351,6 +407,7 @@ export const VOCABULARIO = Object.freeze(
 		{
 			palabra: 'wave',
 			libro: 2,
+			voz: 'falla',
 			categoria: 'agua',
 			traduccion: 'ola',
 			definicion: 'a moving line of water on the sea',
@@ -358,6 +415,7 @@ export const VOCABULARIO = Object.freeze(
 		{
 			palabra: 'star',
 			libro: 2,
+			voz: 'sin-probar',
 			categoria: 'cielo',
 			traduccion: 'estrella',
 			definicion: 'a bright point of light in the night sky',
@@ -365,6 +423,7 @@ export const VOCABULARIO = Object.freeze(
 		{
 			palabra: 'wet',
 			libro: 2,
+			voz: 'sin-probar',
 			categoria: 'estado',
 			traduccion: 'mojado',
 			definicion: 'covered with water or another liquid',
@@ -372,6 +431,7 @@ export const VOCABULARIO = Object.freeze(
 		{
 			palabra: 'sharp',
 			libro: 2,
+			voz: 'sin-probar',
 			categoria: 'filo',
 			traduccion: 'afilado',
 			definicion: 'able to cut easily, like a good knife',
@@ -379,6 +439,7 @@ export const VOCABULARIO = Object.freeze(
 		{
 			palabra: 'brave',
 			libro: 2,
+			voz: 'sin-probar',
 			categoria: 'caracter',
 			traduccion: 'valiente',
 			definicion: 'not afraid when something is dangerous',
@@ -386,6 +447,7 @@ export const VOCABULARIO = Object.freeze(
 		{
 			palabra: 'expensive',
 			libro: 2,
+			voz: 'probada',
 			categoria: 'precio',
 			traduccion: 'caro',
 			definicion: 'costing a lot of money',
@@ -393,6 +455,7 @@ export const VOCABULARIO = Object.freeze(
 		{
 			palabra: 'sleep',
 			libro: 2,
+			voz: 'sin-probar',
 			categoria: 'descanso',
 			traduccion: 'dormir',
 			definicion: 'to rest with your eyes closed, usually at night',
@@ -400,6 +463,7 @@ export const VOCABULARIO = Object.freeze(
 		{
 			palabra: 'walk',
 			libro: 2,
+			voz: 'sin-probar',
 			categoria: 'movimiento',
 			traduccion: 'caminar',
 			definicion: 'to move on your feet at a normal speed',
@@ -407,6 +471,7 @@ export const VOCABULARIO = Object.freeze(
 		{
 			palabra: 'write',
 			libro: 2,
+			voz: 'sin-probar',
 			categoria: 'escritura',
 			traduccion: 'escribir',
 			definicion: 'to put words on paper with a pen',
@@ -414,6 +479,7 @@ export const VOCABULARIO = Object.freeze(
 		{
 			palabra: 'bake',
 			libro: 2,
+			voz: 'sin-probar',
 			categoria: 'comida',
 			traduccion: 'hornear',
 			definicion: 'to cook food in an oven, for example bread',
@@ -421,6 +487,7 @@ export const VOCABULARIO = Object.freeze(
 		{
 			palabra: 'seed',
 			libro: 2,
+			voz: 'sin-probar',
 			categoria: 'planta',
 			traduccion: 'semilla',
 			definicion: 'the small part of a plant that can grow into a new plant',
@@ -428,6 +495,7 @@ export const VOCABULARIO = Object.freeze(
 		{
 			palabra: 'branch',
 			libro: 2,
+			voz: 'sin-probar',
 			categoria: 'planta',
 			traduccion: 'rama',
 			definicion: 'a part of a tree that grows out from the trunk',
@@ -435,9 +503,22 @@ export const VOCABULARIO = Object.freeze(
 		{
 			palabra: 'mud',
 			libro: 2,
+			voz: 'sin-probar',
 			categoria: 'tierra',
 			traduccion: 'barro',
 			definicion: 'soft, wet earth that sticks to your shoes',
 		},
 	].map((entrada) => Object.freeze(entrada)),
+);
+
+/** Los estados de `voz` con los que una palabra sirve para los retos por voz. */
+export const ESTADOS_DE_VOZ_QUE_SIRVEN = Object.freeze(['probada', 'probable']);
+
+/**
+ * Las palabras para los retos POR VOZ (niveles 1 y 2): solo las que se reconocen bien (`voz` 'probada' o 'probable').
+ * Las opciones equivocadas de cada ficha también salen de aquí, así las tres opciones se pueden decir. Para
+ * recuperar una palabra basta con cambiar su `voz` cuando se compruebe que Chrome la entiende.
+ */
+export const VOCABULARIO_PARA_VOZ = Object.freeze(
+	VOCABULARIO.filter((entrada) => ESTADOS_DE_VOZ_QUE_SIRVEN.includes(entrada.voz)),
 );

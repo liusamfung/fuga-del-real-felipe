@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { CONFIG, ESCENAS } from '../config.js';
 import { ReconocedorDeVoz } from '../sistemas/ReconocedorDeVoz.js';
 import { RetoDeOpciones } from '../sistemas/RetoDeOpciones.js';
+import { diagnosticoDeLaVoz, resumenDeLaVoz } from '../utilidades/diagnosticoDeVoz.js';
 import { NIVELES_DE_INGLES, tiempoParaLaFicha } from '../utilidades/fichas.js';
 
 const { INGLES } = CONFIG;
@@ -13,6 +14,7 @@ const COLOR = Object.freeze({
 	opcion: '#e8dcc6',
 	acertada: '#7fd18a',
 	fallada: '#e0695b',
+	aviso: '#ffb347', // el diagnóstico de por qué no llega la voz
 });
 const COLOR_DEL_MARCO = Object.freeze({ normal: 0xc9b79c, error: 0xc0392b, acierto: 0x7fd18a });
 const COLOR_DE_LA_BARRA = Object.freeze({
@@ -76,6 +78,21 @@ export class EscenaOpciones extends Phaser.Scene {
 		this.avisoDeVoz = '';
 		this.vozActiva = false; // verdadero mientras la respuesta entra por el micrófono
 		this.fraccionFinal = 1;
+		// Qué le ha dicho Chrome desde que empezó a escuchar (para el diagnóstico de la línea de abajo).
+		this.eventosDeVoz = {
+			audio: false,
+			sonido: false,
+			voz: false,
+			resultados: 0,
+			abortos: 0,
+			inicios: 0,
+			noSpeech: 0,
+			tardios: 0,
+		};
+		// Prueba A/B (solo para diagnosticar): con ?vozcorta en la dirección, Chrome usa una sesión por frase en vez de
+		// una sesión continua.
+		this.vozContinua = !new URLSearchParams(window.location.search).has('vozcorta');
+		this.escuchaDesde = null;
 
 		this.#crearPantalla();
 
@@ -114,6 +131,7 @@ export class EscenaOpciones extends Phaser.Scene {
 		this.vozActiva = true;
 		this.voz = new ReconocedorDeVoz({
 			idioma: INGLES.IDIOMA,
+			continuo: this.vozContinua,
 			alTexto: ({ numero, texto, alternativas }) => {
 				this.ultimoTextoOido = texto;
 				this.resultadosOidos.set(
@@ -125,8 +143,10 @@ export class EscenaOpciones extends Phaser.Scene {
 			alEstado: (estado) => {
 				if (estado === 'escuchando') {
 					this.reto.empezar(performance.now()); // solo cuenta la primera vez
+					this.escuchaDesde ??= performance.now();
 				}
 			},
+			alEvento: (nombre) => this.#alEventoDeVoz(nombre),
 			alError: (codigo, grave) => {
 				if (grave) {
 					this.#pasarAlTeclado(codigo);
@@ -134,6 +154,35 @@ export class EscenaOpciones extends Phaser.Scene {
 			},
 		});
 		this.voz.iniciar();
+	}
+
+	// Lo que Chrome va avisando (audio abierto, sonido, voz, resultados, errores). Se guarda para el diagnóstico y se
+	// escribe en la consola del navegador (F12) con el prefijo [voz].
+	#alEventoDeVoz(nombre) {
+		console.debug(`[voz] ${nombre}`);
+		const eventos = this.eventosDeVoz;
+		if (nombre === 'audio' || nombre === 'sonido' || nombre === 'voz') {
+			eventos[nombre] = true;
+		} else if (nombre === 'resultado') {
+			eventos.resultados += 1;
+		} else if (nombre === 'error:aborted') {
+			eventos.abortos += 1;
+		} else if (nombre === 'inicio') {
+			eventos.inicios += 1;
+		} else if (nombre === 'error:no-speech') {
+			eventos.noSpeech += 1;
+		} else if (nombre === 'viejo:resultado') {
+			eventos.tardios += 1;
+		}
+	}
+
+	// Si lleva un rato escuchando y no ha llegado ningún texto, explica en qué punto se rompe (ver
+	// src/utilidades/diagnosticoDeVoz.js). Vacío si todo va bien o si todavía es pronto.
+	#diagnostico() {
+		if (!this.vozActiva || this.resultadoMostrado || this.escuchaDesde === null) {
+			return '';
+		}
+		return diagnosticoDeLaVoz(this.eventosDeVoz, performance.now() - this.escuchaDesde);
 	}
 
 	// Sin micrófono (sin permiso, sin conexión, sin soporte): se responde con las teclas 1, 2 y 3.
@@ -256,6 +305,11 @@ export class EscenaOpciones extends Phaser.Scene {
 			return '';
 		}
 
+		const diagnostico = this.#diagnostico();
+		if (diagnostico) {
+			return `⚠ ${diagnostico}\n${resumenDeLaVoz(this.eventosDeVoz, this.vozContinua)}`;
+		}
+
 		const oido = this.ultimoTextoOido ? ` · oí: «${this.ultimoTextoOido.slice(-40)}»` : '';
 		return this.reto.estado === 'esperando'
 			? 'Si el navegador pide permiso para el micrófono, acéptalo'
@@ -270,6 +324,7 @@ export class EscenaOpciones extends Phaser.Scene {
 
 		this.titulo.setText(this.#textoDeArriba());
 		this.textoDeVoz.setText(this.#textoDeLaVoz());
+		this.textoDeVoz.setColor(this.#diagnostico() ? COLOR.aviso : COLOR.texto);
 
 		// Cuando termina: la elegida en verde si acertó, en rojo si falló, y la correcta siempre en verde.
 		this.opciones.forEach((texto, posicion) => {

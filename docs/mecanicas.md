@@ -246,6 +246,36 @@ niveles; el paso 9 los conectará al jefe).
 - **Plan B:** si el micrófono falla de forma grave (sin permiso, sin conexión, sin soporte), la
   pantalla pasa sola al **teclado** y lo avisa: se responde con **1**, **2** o **3**, y el reloj
   **no se reinicia**. Mientras el micrófono funciona, esas teclas no hacen nada.
+- **Diagnóstico de la voz** _(27/11/2026)_: si el cartel dice «Micrófono: escuchando» pero nunca aparece «oí: …», es que
+  Chrome **no está devolviendo texto**. Tras 3,5 s sin ningún resultado, la línea de abajo se pone **naranja** y dice en qué
+  punto se rompe, según lo que Chrome avisó (`ReconocedorDeVoz`, opción `alEvento`; mensajes en
+  `src/utilidades/diagnosticoDeVoz.js`, con pruebas):
+
+  | Aviso                                                                | Qué significa                                                                                                                                                                            |
+  | -------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+  | «A Chrome no le llega sonido…»                                       | Abrió el micrófono pero **solo recibe silencio**: suele ser el micrófono equivocado, silenciado o con el volumen de entrada en cero                                                      |
+  | «Chrome oye ruido pero no voz…»                                      | Llega sonido pero no lo reconoce como voz: hablar más cerca o más fuerte                                                                                                                 |
+  | «Chrome oyó voz pero no entregó texto: dila más fuerte y más claro.» | **No dice por qué** (el 27/11/2026 una primera versión del aviso culpaba al internet y era una suposición): Chrome detectó voz y no devolvió ningún texto; mirar los contadores de abajo |
+  | «El reconocimiento se corta solo…»                                   | Otra pestaña usa el reconocimiento a la vez                                                                                                                                              |
+  | «Chrome no abre el micrófono…»                                       | Lo ocupa otra pestaña o aplicación                                                                                                                                                       |
+
+  **Palabras que Chrome no entiende (27/11/2026).** Con una sola sesión, sin silencios y sin resultados tardíos, Chrome siguió sin
+  entregar texto para algunas palabras: «leg», «boat», «tail», «wave», «duck», «wheel» y «heart» fallan siempre, y «rabbit», «carrot»,
+  «village», «black» y «expensive» funcionan (diciéndolas fuerte y claro). No es un fallo del juego (con «lag», «lex» o «lek» sí
+  se acertaría «leg», pero Chrome no entrega nada). **Decisión del usuario: quedarse solo con lo que funciona.** Los retos por voz (niveles
+  1 y 2) usan solo las palabras marcadas `probada` o `probable` (**17 palabras**, ver [`vocabulario.md`](vocabulario.md)); el dictado,
+  que se escribe, conserva las 60. Por eso ya no hay pista de «dila dos veces»: se probó y se quitó.
+
+  Debajo del aviso salen **contadores** (`sesiones · silencios · tardíos · modo`): _sesiones_ = cuántas veces arrancó Chrome
+  (muchas = se corta y reinicia), _silencios_ = veces que dijo «no oí nada» (`no-speech`), _tardíos_ = resultados que llegaron
+  de una sesión ya reemplazada y se descartaron, y _modo_ = `continuo` o `corto`. **Prueba A/B:** abrir el juego con
+  `?vozcorta` (por ejemplo `localhost:5173/?vozcorta`) hace que Chrome use **una sesión por frase** en vez de una continua
+  (`ReconocedorDeVoz`, opción `continuo: false`), por si el modo continuo es lo que falla.
+
+  Además, cada aviso de Chrome queda en la consola del navegador (F12) con el prefijo `[voz]`: `inicio`, `audio`, `sonido`,
+  `voz`, `resultado`, `error:<código>` (también los que el juego ignora, como `no-speech`) y `fin`; lo que llega de una sesión
+  ya reemplazada lleva el prefijo `viejo:`.
+
 - Al terminar se marca la correcta en verde (y la elegida en rojo si falló) y el juego recibe el mismo
   evento `deletreo-terminado` con `acertada`, `fallada` o `tiempo-agotado`.
 - Código: `RetoDeOpciones` (`src/sistemas/RetoDeOpciones.js`, lógica pura con pruebas),
@@ -281,7 +311,11 @@ reto de inglés. Todos los números son **provisionales** (están en `CONFIG.POD
 
 ## 6. El jefe y su ataque fuerte
 
-La pelea con el jefe del piso se juega en la **sala del centro** (se abre con la llave). Los valores son los
+La pelea con el jefe del piso se juega en la **sala del centro** (se abre con la llave). **Cada nivel tiene su
+jefe** (`CONFIG.JEFES[nivel]`): el del nivel 2 es hoy un **duplicado** del del nivel 1 (el fantasma, que se puso en el
+nivel 1 solo para probar y en realidad es el jefe 2), con exactamente los mismos valores pero en un objeto aparte para
+poder retocarlo después. Con **`K`** se empieza el nivel 2 y con **`J`** se va a la sala del jefe del nivel actual
+(atajos de pruebas). Los valores de abajo valen para los dos. Los valores son los
 acordados el 26/11/2026 y son **provisionales** (`CONFIG.JEFE`); las reglas están en
 `src/sistemas/PeleaConElJefe.js` (lógica pura, con pruebas).
 

@@ -14,12 +14,14 @@ import { CONFIG } from '../config.js';
 // La franja del rayo es una imagen que se repite (`TileSprite`) y se desplaza, para que parezca que la energía
 // corre. Las texturas `rayo-jefe` y `rayo-cabeza` son provisionales (src/datos/recursos.js).
 export class RayoDelJefe {
-	constructor(escena) {
+	/** `config` es el bloque del jefe del nivel (`CONFIG.JEFES[nivel]`): de ahí salen las medidas del rayo. */
+	constructor(escena, config) {
 		this.escena = escena;
+		this.config = config;
 		const profundidad = CONFIG.DISPARO.PROFUNDIDAD_BALAS;
 
 		this.aviso = escena.add
-			.rectangle(0, 0, 10, CONFIG.JEFE.RAYO.AVISO_ANCHO, 0x9ed38a, 0.55)
+			.rectangle(0, 0, 10, config.RAYO.AVISO_ANCHO, 0x9ed38a, 0.55)
 			.setOrigin(0, 0.5)
 			.setDepth(profundidad)
 			.setVisible(false);
@@ -46,7 +48,7 @@ export class RayoDelJefe {
 		this.aviso
 			.setPosition(origen.x, origen.y)
 			.setRotation(angulo)
-			.setSize(largo, CONFIG.JEFE.RAYO.AVISO_ANCHO);
+			.setSize(largo, this.config.RAYO.AVISO_ANCHO);
 		this.aviso.setVisible(true).setAlpha(0.55);
 		this.cabeza.setPosition(origen.x, origen.y).setVisible(true).setAlpha(1).setScale(0.6);
 
@@ -86,7 +88,7 @@ export class RayoDelJefe {
 	}
 
 	#abrir({ origen, direccion, largo }) {
-		const { ANCHO, CRECE, DURACION } = CONFIG.JEFE.RAYO;
+		const { ANCHO, CRECE, DURACION } = this.config.RAYO;
 		const angulo = Math.atan2(direccion.y, direccion.x);
 
 		for (const animacion of this.animaciones) {
@@ -123,7 +125,7 @@ export class RayoDelJefe {
 
 	// Mientras se cierra, la bola se apaga también.
 	#cerrar() {
-		this.#animar({ targets: this.cabeza, alpha: 0, scale: 0.6, duration: CONFIG.JEFE.RAYO.CRECE });
+		this.#animar({ targets: this.cabeza, alpha: 0, scale: 0.6, duration: this.config.RAYO.CRECE });
 	}
 
 	#animar(configuracion) {

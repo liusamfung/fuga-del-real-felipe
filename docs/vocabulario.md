@@ -13,13 +13,35 @@ audios e imágenes, pero no se copian). Los audios e imágenes del mazo **no se 
 
 ## Qué lleva cada palabra
 
-| Campo        | Qué es                                                                                     |
-| ------------ | ------------------------------------------------------------------------------------------ |
-| `palabra`    | La palabra en inglés, en minúsculas y sin espacios. Es la respuesta (y lo que se escribe). |
-| `libro`      | 1 o 2: el libro del mazo. Sirve como pista de dificultad.                                  |
-| `categoria`  | De qué trata (`animal`, `cuerpo`, `comida`…). Evita que aparezcan juntas dos respuestas.   |
-| `traduccion` | La palabra en español, **una sola**. Es lo que se ve en el nivel 1.                        |
-| `definicion` | La definición en inglés sencillo, con palabras propias. Es lo que se ve en el nivel 2.     |
+| Campo        | Qué es                                                                                      |
+| ------------ | ------------------------------------------------------------------------------------------- |
+| `palabra`    | La palabra en inglés, en minúsculas y sin espacios. Es la respuesta (y lo que se escribe).  |
+| `libro`      | 1 o 2: el libro del mazo. Sirve como pista de dificultad.                                   |
+| `categoria`  | De qué trata (`animal`, `cuerpo`, `comida`…). Evita que aparezcan juntas dos respuestas.    |
+| `traduccion` | La palabra en español, **una sola**. Es lo que se ve en el nivel 1.                         |
+| `definicion` | La definición en inglés sencillo, con palabras propias. Es lo que se ve en el nivel 2.      |
+| `voz`        | Si Chrome la reconoce bien con el micrófono: `probada`, `probable`, `sin-probar` o `falla`. |
+
+## Qué palabras se usan por voz _(27/11/2026)_
+
+Chrome **no entrega texto** para algunas palabras, aunque se digan bien (el usuario lo comprobó con su micrófono), y no hay forma de
+arreglarlo desde el juego. Decisión: **quedarse solo con lo que funciona**. Los retos por voz (**niveles 1 y 2**: traducción y
+definición) usan únicamente las palabras con `voz` **`probada`** o **`probable`** (`VOCABULARIO_PARA_VOZ`, en
+`src/datos/vocabulario.js`), y las opciones equivocadas también salen de ahí. El **dictado** (nivel 3) se escribe con el teclado y
+usa **las 60**.
+
+| Estado       | Qué significa                                                                      | Palabras                                                                                                                                                                                                                                   |
+| ------------ | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `probada`    | Se probó con el micrófono real y funciona (6)                                      | breakfast, black, rabbit, carrot, village, expensive                                                                                                                                                                                       |
+| `probable`   | Sin probar, pero tiene 2 sílabas o más y las que se han probado así funcionan (11) | weather, library, mirror, chicken, spider, candle, bucket, ceiling, feather, tower, arrow                                                                                                                                                  |
+| `falla`      | Se probó y Chrome no la entrega (7)                                                | boat, leg, tail, wave, duck, wheel, heart                                                                                                                                                                                                  |
+| `sin-probar` | Una sílaba y sin probar: **no se usa por voz** hasta probarla (36)                 | month, week, cloud, door, horse, cat, friend, school, street, red, bread, bone, wood, swim, laugh, shout, yard, bridge, beach, sword, shelf, snake, broom, flag, fog, star, wet, sharp, brave, sleep, walk, write, bake, seed, branch, mud |
+
+Son **17 palabras en 10 categorías** para voz. Todo lo probado se dijo «extremadamente bien y muy alto»: hablar fuerte y claro
+importa. **Cómo cambiar el estado:** cuando una palabra se pruebe, se cambia su `voz` en `src/datos/vocabulario.js` (a `probada` si
+funciona, a `falla` si no) y entra o sale sola de los retos por voz; las pruebas (`pruebas/vocabularioParaVoz.test.js`) comprueban
+que ninguna palabra que falla pueda aparecer. Nota: el 26/11/2026, en la prueba `?ingles`, con micrófono real sí se reconocieron
+_dog_, _house_, _run_, _window_ y _breakfast_, así que **no todas las palabras de una sílaba fallan**: depende de la palabra.
 
 ## Cómo se arma una ficha
 
@@ -70,6 +92,7 @@ Eso lo tiene que mirar una persona. Para cada palabra:
 
 ## Qué falta
 
-- Más palabras (60 alcanzan para probar, no para jugar mucho): hay 3540 más en el mazo.
+- Más palabras (60 alcanzan para probar, no para jugar mucho): hay 3540 más en el mazo. **Para voz hay solo 17**: conviene
+  añadir palabras de dos sílabas o más (que Chrome reconoce mejor) y probar las `sin-probar`.
 - Elegir qué libros se usan en cada nivel del juego y en cada jefe.
 - Que la repetición espaciada (estilo Anki) haga volver antes las palabras falladas.

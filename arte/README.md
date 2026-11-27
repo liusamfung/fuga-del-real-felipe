@@ -10,7 +10,8 @@ cuadro de **32×48 px ampliado 5 veces** (así lo exporta ibisPaint X, la aplica
 por tema:
 
 - `jugador/`: 12 cuadros (4 direcciones × quieto, paso 1, paso 2).
-- `enemigos/`: 2 cuadros de caminar del enemigo débil y de cada una de las 4 ratas (azul, gris, blanca y negra).
+- `enemigos/`: 2 cuadros de caminar del enemigo débil y de cada una de las 4 ratas (azul, gris, blanca y negra), y
+  3 cuadros de caminar de cada uno de los 2 guardias (`guardia-azul` y `guardia-rojo`, del nivel 2).
 - `escenario/`: 22 piezas del tileset, con un número de 2 cifras al principio.
 
 Las reglas de nombres están en [`docs/guia-de-recursos.md`](../docs/guia-de-recursos.md).
@@ -39,7 +40,11 @@ Orden de los cuadros en cada hoja (se cuentan de izquierda a derecha y de arriba
 | `jugador.png`         | 3 columnas (quieto, paso 1, paso 2) × 4 filas (abajo, derecha, izquierda, arriba) |
 | `enemigo-debil.png`   | 2 cuadros en una fila                                                             |
 | `rata-<color>.png`    | 2 cuadros en una fila (`azul`, `gris`, `blanca`, `negra`)                         |
+| `guardia-<color>.png` | 3 cuadros en una fila: de pie, paso 1, paso 2 (`azul`, `rojo`)                    |
 | `tileset-prision.png` | 8 columnas × 3 filas, en el orden de los números de los archivos                  |
+
+El **tileset del nivel 2** (`tileset-prision-2.png`) llegó ya armado, así que se copió tal cual a
+`public/assets/img/escenario/` (no hay originales por pieza).
 
 Si quien dibuja entrega una hoja ya armada, no hace falta nada de esto: se copia a
 `public/assets/img/` y se ajusta su entrada en `src/datos/recursos.js`.

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { CONFIG } from '../src/config.js';
 import { TIPOS_DE_ENEMIGO } from '../src/datos/enemigos.js';
-import { NIVEL_1 } from '../src/datos/niveles.js';
+import { NIVEL_1, NIVEL_2 } from '../src/datos/niveles.js';
 import { buscarSala, generarNivel } from '../src/sistemas/GeneradorDeNivel.js';
 import { puntoDeSalidaDelNido } from '../src/utilidades/nido.js';
 import { ladoOpuesto, rectanguloDePuerta } from '../src/utilidades/paredes.js';
@@ -147,7 +147,7 @@ test('sin la llave se llega a las 8 salas de alrededor pero no al jefe; con la l
 	assert.equal(alcanzables(true).size, 9);
 });
 
-test('ningún enemigo ni cofre toca un obstáculo o una pared, y los enemigos nacen lejos de las puertas y separados', () => {
+test('ningún enemigo ni cofre toca un obstáculo o una pared, y los enemigos nacen lejos de las puertas y separados (niveles 1 y 2)', () => {
 	const interior = { x: CASILLA, y: CASILLA, ancho: ANCHO - 2 * CASILLA, alto: ALTO - 2 * CASILLA };
 	const dentro = (r) =>
 		r.x >= interior.x &&
@@ -155,46 +155,52 @@ test('ningún enemigo ni cofre toca un obstáculo o una pared, y los enemigos na
 		r.x + r.ancho <= interior.x + interior.ancho &&
 		r.y + r.alto <= interior.y + interior.alto;
 	const cuerpoDe = (enemigo) => ({ x: enemigo.x - 16, y: enemigo.y - 24, ancho: 32, alto: 48 });
-	const nivel = generarNivel(NIVEL_1);
 
-	for (const sala of nivel.salas.filter((s) => s.tipo === 'combate')) {
-		const nombre = `sala ${clave(sala)}`;
-		const cuerpoDelCofre = { x: sala.cofre.x - 16, y: sala.cofre.y - 16, ancho: 32, alto: 32 };
-		assert.ok(dentro(cuerpoDelCofre), `${nombre}: el cofre sale dentro de una pared`);
-		const solidos = [...sala.obstaculos, sala.nido]; // el nido es tan sólido como una caja
-		for (const obstaculo of solidos) {
-			assert.ok(dentro(obstaculo), `${nombre}: un obstáculo o el nido toca una pared`);
-			assert.ok(!solapan(obstaculo, cuerpoDelCofre), `${nombre}: el cofre sale en un obstáculo`);
-		}
+	for (const [numero, descripcion] of [
+		[1, NIVEL_1],
+		[2, NIVEL_2],
+	]) {
+		const nivel = generarNivel(descripcion);
 
-		sala.enemigos.forEach((enemigo, i) => {
-			const cuerpo = cuerpoDe(enemigo);
-			const quien = `${nombre}, enemigo ${i + 1} (${enemigo.tipo})`;
-
-			assert.ok(dentro(cuerpo), `${quien}: nace dentro de una pared`);
-			assert.ok(!solapan(cuerpoDelCofre, cuerpo), `${quien}: nace encima del cofre`);
+		for (const sala of nivel.salas.filter((s) => s.tipo === 'combate')) {
+			const nombre = `nivel ${numero}, sala ${clave(sala)}`;
+			const cuerpoDelCofre = { x: sala.cofre.x - 16, y: sala.cofre.y - 16, ancho: 32, alto: 32 };
+			assert.ok(dentro(cuerpoDelCofre), `${nombre}: el cofre sale dentro de una pared`);
+			const solidos = [...sala.obstaculos, ...(sala.nido ? [sala.nido] : [])]; // el nido es tan sólido como una caja
 			for (const obstaculo of solidos) {
-				assert.ok(!solapan(obstaculo, cuerpo), `${quien}: nace en un obstáculo o en el nido`);
+				assert.ok(dentro(obstaculo), `${nombre}: un obstáculo o el nido toca una pared`);
+				assert.ok(!solapan(obstaculo, cuerpoDelCofre), `${nombre}: el cofre sale en un obstáculo`);
 			}
 
-			// El jugador entra por una puerta: ningún enemigo debe nacer cerca de ninguna.
-			for (const { lado } of sala.puertas) {
-				const hueco = rectanguloDePuerta(lado, MEDIDAS);
-				const distancia = Math.hypot(
-					enemigo.x - (hueco.x + hueco.ancho / 2),
-					enemigo.y - (hueco.y + hueco.alto / 2),
-				);
-				assert.ok(
-					distancia >= 200,
-					`${quien}: nace a ${Math.round(distancia)} px de la puerta ${lado}`,
-				);
-			}
+			sala.enemigos.forEach((enemigo, i) => {
+				const cuerpo = cuerpoDe(enemigo);
+				const quien = `${nombre}, enemigo ${i + 1} (${enemigo.tipo})`;
 
-			// Y no se montan unos sobre otros.
-			for (const otro of sala.enemigos.slice(i + 1)) {
-				assert.ok(!solapan(cuerpo, cuerpoDe(otro)), `${quien}: nace encima de otro enemigo`);
-			}
-		});
+				assert.ok(dentro(cuerpo), `${quien}: nace dentro de una pared`);
+				assert.ok(!solapan(cuerpoDelCofre, cuerpo), `${quien}: nace encima del cofre`);
+				for (const obstaculo of solidos) {
+					assert.ok(!solapan(obstaculo, cuerpo), `${quien}: nace en un obstáculo o en el nido`);
+				}
+
+				// El jugador entra por una puerta: ningún enemigo debe nacer cerca de ninguna.
+				for (const { lado } of sala.puertas) {
+					const hueco = rectanguloDePuerta(lado, MEDIDAS);
+					const distancia = Math.hypot(
+						enemigo.x - (hueco.x + hueco.ancho / 2),
+						enemigo.y - (hueco.y + hueco.alto / 2),
+					);
+					assert.ok(
+						distancia >= 200,
+						`${quien}: nace a ${Math.round(distancia)} px de la puerta ${lado}`,
+					);
+				}
+
+				// Y no se montan unos sobre otros.
+				for (const otro of sala.enemigos.slice(i + 1)) {
+					assert.ok(!solapan(cuerpo, cuerpoDe(otro)), `${quien}: nace encima de otro enemigo`);
+				}
+			});
+		}
 	}
 });
 

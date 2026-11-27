@@ -115,6 +115,17 @@ Elegir entre Juran, Deming o Crosby y confirmar el nombre "Joseph Durand" con el
   cada 0,9 s, a veces **triple** (tres a la vez) y **ráfagas** que aumentan con la vida perdida, vida **60**, y el
   ataque fuerte es un **rayo verde** que se esquiva con un dash automático al acertar. **Abierto:** ¿los números son justos? ¿el jefe 2 (niveles 2 y 3)?
   ¿qué pasa al derrotar al jefe: pantalla de nivel completado, piso 2? (paso 12).
+- **Nivel 2 (27/11/2026):** empezado con los dibujos de Jorge: tileset azul-violeta, 2 guardias que **disparan distinto**
+  (el tirador azul y el escopetero rojo; ver [`enemigos.md`](enemigos.md)) y el jefe duplicado del nivel 1. Se entra con
+  la tecla `K` (atajo de pruebas, se quitará). **Abierto:** ¿los guardias son justos (no se han jugado de principio a fin)?
+  ¿Cuál es el jefe del **nivel 1** (hoy comparte el fantasma)? ¿El jefe 2 debe usar los retos de nivel 2 y 3 (el 3,
+  el dictado, es otra pantalla)? ¿Qué hace cada pieza del tileset 2 y hay más (cajas, puertas)? ¿Las cajas marrones sirven
+  en la prisión azul? ¿Cómo se pasa del nivel 1 al 2 (paso 12)? Los guardias solo tienen dibujo de frente.
+- **Voz y palabras que Chrome no entiende (27/11/2026): DECIDIDO.** Chrome no entrega texto para algunas palabras («leg», «boat», «tail»,
+  «wave», «duck», «wheel», «heart»…) y funciona con otras («rabbit», «carrot», «village», «black», «expensive»). Decisión del usuario: **quedarse
+  solo con las palabras que funcionan** y no pelear con el motor de Chrome. Los retos por voz usan 17 palabras (`voz` `probada` o `probable`,
+  ver [`vocabulario.md`](vocabulario.md)); el dictado usa las 60. **Abierto:** probar las 11 `probable` y las 36 `sin-probar`, y añadir más
+  palabras de dos sílabas o más, porque 17 son pocas para jugar mucho (se repiten).
 - **Muerte:** ¿vuelve a la portada, reinicia el nivel o la sala?
 
 ## 6. Ambientación y personajes

@@ -8,16 +8,18 @@ import { ProyectilDelJefe } from './ProyectilDelJefe.js';
 // atraviesa) y lanza proyectiles. Su vida y cuándo ataca las decide `PeleaConElJefe` (lógica pura); esta clase
 // solo es el cuerpo: se dibuja, destella al recibir un golpe y dispara cuando se lo piden.
 //
-// `clave` es la hoja de sprites del jefe y su animación se llama `<clave>-flotar` (ver
-// src/datos/animaciones.js). Sus cuadros miden 32 x 32 y se muestran ampliados (`JEFE.ESCALA`) para que
+// `config` es el bloque del jefe del nivel (`CONFIG.JEFES[nivel]`): su hoja de sprites (`CLAVE`; la animación se
+// llama `<clave>-flotar`, ver src/datos/animaciones.js), su tamaño y sus proyectiles. Sus cuadros miden 32 x 32 y se muestran ampliados (`JEFE.ESCALA`) para que
 // se vea más grande que el jugador; con pixel art la ampliación es por números enteros, sin borrosidad.
 export class Jefe extends Phaser.Physics.Arcade.Sprite {
-	constructor(escena, x, y, clave) {
+	constructor(escena, x, y, config) {
+		const clave = config.CLAVE;
 		super(escena, x, y, clave);
+		this.config = config;
 		escena.add.existing(this);
 		escena.physics.add.existing(this);
 
-		const { ESCALA, CUERPO_ANCHO, CUERPO_ALTO } = CONFIG.JEFE;
+		const { ESCALA, CUERPO_ANCHO, CUERPO_ALTO } = config;
 		this.setScale(ESCALA);
 		this.setDepth(y); // igual que los demás personajes, el que está más abajo se dibuja delante
 		this.setImmovable(true); // el jugador no lo empuja
@@ -33,7 +35,7 @@ export class Jefe extends Phaser.Physics.Arcade.Sprite {
 		this.proyectiles = escena.physics.add.group({
 			classType: ProyectilDelJefe,
 			defaultKey: 'proyectil-jefe',
-			maxSize: CONFIG.JEFE.PROYECTIL.MAX,
+			maxSize: config.PROYECTIL.MAX,
 		});
 	}
 
@@ -73,7 +75,7 @@ export class Jefe extends Phaser.Physics.Arcade.Sprite {
 			return false;
 		}
 
-		proyectil.lanzar(this.body.center.x, this.body.center.y, direccion);
+		proyectil.lanzar(this.body.center.x, this.body.center.y, direccion, this.config.PROYECTIL);
 		return true;
 	}
 
