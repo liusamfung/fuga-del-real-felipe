@@ -6,6 +6,7 @@ import { EscenaDeletreo } from './escenas/EscenaDeletreo.js';
 import { EscenaHUD } from './escenas/EscenaHUD.js';
 import { EscenaJuego } from './escenas/EscenaJuego.js';
 import { EscenaOpciones } from './escenas/EscenaOpciones.js';
+import { EscenaPortada } from './escenas/EscenaPortada.js';
 
 // Las herramientas de desarrollo (el modo de depuración y las pruebas de voz) solo existen con `npm run dev`: el juego
 // compilado (`npm run build`, lo que se publica) no las trae ni las activa, aunque se agregue `?debug` a la dirección.
@@ -17,6 +18,7 @@ const modoDebug = esDesarrollo && new URLSearchParams(window.location.search).ha
 async function iniciar() {
 	const escenas = [
 		EscenaArranque,
+		EscenaPortada,
 		EscenaJuego,
 		EscenaHUD,
 		EscenaDeletreo,
