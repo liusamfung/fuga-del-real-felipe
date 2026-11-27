@@ -315,10 +315,10 @@ La pelea con el jefe del piso se juega en la **sala del centro** (se abre con la
 propio jefe** (`CONFIG.JEFES[nivel]`), con lo común en `JEFE_BASE` y lo suyo aparte: su dibujo (clave, escala y cuerpo) y qué
 retos de inglés usa en sus ataques fuertes (_decidido el 27/11/2026_):
 
-| Jefe                                         | Dibujo                                                                                                                                                                            | Retos de sus 3 ataques fuertes                                                                                                                                                                            |
-| -------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Jefe 1** (nivel 1, «Mazmorras inferiores») | `jefe-1`: **provisional**, una copia del fantasma teñida de rojo; cuando llegue el dibujo de Sebastián se reemplaza el archivo (ver [`guia-de-recursos.md`](guia-de-recursos.md)) | **Solo el FÁCIL** (nivel 1: se ve una palabra en español y se dice su traducción): fácil, fácil, fácil                                                                                                    |
-| **Jefe 2** (nivel 2, «Prisión»)              | `jefe-2`: el fantasma con corona de Sebastián                                                                                                                                     | **El único que alterna MEDIO y ALTO**: medio (nivel 2: se ve la definición en inglés y se dice la palabra), alto (nivel 3: el juego **dice** la palabra en inglés y se **escribe con el teclado**), medio |
+| Jefe                                         | Dibujo                                                                                                                       | Retos de sus 3 ataques fuertes                                                                                                                                                                            |
+| -------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Jefe 1** (nivel 1, «Mazmorras inferiores») | `jefe-1`: la rata gigante gris azulada de Sebastián (PR #20), ampliada ×3 (ver [`guia-de-recursos.md`](guia-de-recursos.md)) | **Solo el FÁCIL** (nivel 1: se ve una palabra en español y se dice su traducción): fácil, fácil, fácil                                                                                                    |
+| **Jefe 2** (nivel 2, «Prisión»)              | `jefe-2`: el fantasma con corona de Sebastián                                                                                | **El único que alterna MEDIO y ALTO**: medio (nivel 2: se ve la definición en inglés y se dice la palabra), alto (nivel 3: el juego **dice** la palabra en inglés y se **escribe con el teclado**), medio |
 
 El jefe 2 usa **todas las palabras del banco** en el reto alto, porque se escribe y no depende de que Chrome las entienda. Con
 **`K`** se empieza el nivel 2 y con **`J`** se va a la sala del jefe del nivel actual (atajos de pruebas). Los demás valores
@@ -353,7 +353,7 @@ Los valores de abajo valen para los dos jefes. Son los acordados el 26/11/2026 y
   15 y 7,5). Si un golpe grande cruza dos umbrales de una vez, los ataques vienen **uno tras otro**, no juntos.
   El movimiento **no** lo evita: hay que responder un **reto de inglés**. El jefe 1 usa solo el
   reto **fácil** (nivel 1) y el jefe 2 alterna el **medio** y el **alto** (niveles 2 y 3, el dictado: ver arriba y 5.10). El
-  golpe es un **rayo verde** (6.0.1).
+  golpe es un **rayo** (6.0.1): de **alcantarilla** (marrón sucio) el del jefe 1 y **verde** el del jefe 2.
 - **Atajo de pruebas, tecla `J`:** lleva al jugador directo a la sala del jefe, con la llave, y la pelea empieza
   al instante. La sala donde estaba se da por terminada (sin cofre) para que no queden sus puertas cerradas.
   Sirve para probar al jefe sin recorrer las otras ocho salas; no es parte del juego final.
@@ -383,7 +383,7 @@ flowchart TD
 
 #### 6.0.1 El rayo del ataque fuerte _(27/11/2026)_
 
-El golpe del ataque fuerte se ve: un **rayo verde** (el color del jefe) que sale de él y llega **hasta el final
+El golpe del ataque fuerte se ve: un **rayo del color de cada jefe** (marrón sucio de alcantarilla el de la rata, verde el del fantasma) que sale de él y llega **hasta el final
 de la sala** (la pared), en línea recta. Código: `RayoDelJefe` (`src/entidades/RayoDelJefe.js`, solo dibujo) y las
 cuentas en `src/utilidades/rayo.js` (lógica pura, con pruebas).
 
@@ -404,8 +404,11 @@ cuentas en `src/utilidades/rayo.js` (lógica pura, con pruebas).
 4. Los números están en `CONFIG.JEFE.RAYO`; hay una prueba que comprueba que **el dash alcanza** para salir del
    ancho del rayo (si alguien ensancha el rayo o acorta el dash, falla).
 
-_El dibujo es provisional: dos texturas generadas por código (`rayo-jefe`, la franja que corre, y `rayo-cabeza`, la
-bola de donde sale), de la misma paleta verde que el fantasma. Cuando haya arte final se cambian en
+_El dibujo es provisional: texturas generadas por código (`rayo-jefe`, la franja que corre, y `rayo-cabeza`, la
+bola de donde sale), en **dos paletas**: la verde del fantasma (jefe 2) y la de **alcantarilla** del jefe 1
+(`rayo-jefe-alcantarilla` y `rayo-cabeza-alcantarilla`: marrón sucio con motas casi negras). Cada jefe elige las suyas en
+`DIBUJO_DEL_RAYO` (`src/config.js`); el borde de la de alcantarilla es marrón y no negro a propósito, porque el suelo ya es
+oscuro y un borde negro se funde con él (el rayo se vería más fino de lo que es). Cuando haya arte final se cambian en
 `src/datos/recursos.js`._
 
 - **Durante el reto** el jefe no lanza ataques básicos ni otro ataque fuerte, y el jugador no se mueve (pero puede

@@ -113,11 +113,11 @@ Elegir entre Juran, Deming o Crosby y confirmar el nombre "Joseph Durand" con el
   75 %, 50 % y 25 % con retos de nivel 1-2-1, acertar en la primera mitad del tiempo devuelve el golpe y quita 3). Ver
   [`mecanicas.md`](mecanicas.md), sección 6. **Cambios del 27/11/2026** (a pedido del usuario): ataque básico a 400 px/s
   cada 0,9 s, a veces **triple** (tres a la vez) y **ráfagas** que aumentan con la vida perdida, vida **60**, y el
-  ataque fuerte es un **rayo verde** que se esquiva con un dash automático al acertar. **Abierto:** ¿los números son justos? _(Resuelto el 27/11/2026: el jefe 2 usa los niveles 2 y 3; al derrotar al jefe 1 se pasa al nivel 2 y al jefe 2 se gana; ver `mecanicas.md`, 6.3.)_
+  ataque fuerte es un **rayo** (verde el del jefe 2, de alcantarilla —marrón sucio— el del jefe 1, 27/11/2026) que se esquiva con un dash automático al acertar. **Abierto:** ¿los números son justos? _(Resuelto el 27/11/2026: el jefe 2 usa los niveles 2 y 3; al derrotar al jefe 1 se pasa al nivel 2 y al jefe 2 se gana; ver `mecanicas.md`, 6.3.)_
 - **Nivel 2 (27/11/2026):** empezado con los dibujos de Jorge: tileset azul-violeta, 2 guardias que **disparan distinto**
   (el tirador azul y el escopetero rojo; ver [`enemigos.md`](enemigos.md)) y el jefe 2 (el fantasma). Se entra con el cartel de «nivel completado»
   del jefe 1 o con la tecla `K` (atajo de pruebas, se puede quitar ya). **Abierto:** ¿los guardias son justos (no se han jugado de principio a fin)?
-  El **dibujo del jefe 1** es provisional (una copia del fantasma teñida de rojo): hay que reemplazar `jefe-1.png` por el de Sebastián. ¿Qué hace cada pieza del tileset 2 y hay más (cajas, puertas)? ¿Las cajas marrones sirven
+  El **jefe 1** ya tiene su dibujo (la rata gigante de Sebastián, 27/11/2026, PR #20): solo trae el flotar; faltan ataque y daño. ¿Qué hace cada pieza del tileset 2 y hay más (cajas, puertas)? ¿Las cajas marrones sirven
   en la prisión azul? Los guardias solo tienen dibujo de frente.
 - **Voz y palabras que Chrome no entiende (27/11/2026): DECIDIDO.** Chrome no entrega texto para algunas palabras («leg», «boat», «tail»,
   «wave», «duck», «wheel», «heart»…) y funciona con otras («rabbit», «carrot», «village», «black», «expensive»). Decisión del usuario: **quedarse

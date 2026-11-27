@@ -1,6 +1,6 @@
 import { CONFIG } from '../config.js';
 
-// El rayo verde del ataque fuerte del jefe: sale de él y llega hasta el final de la sala, en línea recta.
+// El rayo del ataque fuerte del jefe (verde el del fantasma, de alcantarilla el de la rata): sale de él y llega hasta el final de la sala, en línea recta.
 // Tiene tres momentos:
 //   1. `apuntar`: cuando aparece el reto de inglés se fija por dónde va a salir. Se ve una línea fina y una bola de
 //      energía que crece en el jefe, para que se vea venir (y para que se entienda que no se puede esquivar
@@ -12,27 +12,29 @@ import { CONFIG } from '../config.js';
 //
 // Es solo dibujo: no tiene cuerpo físico. El daño lo decide `PeleaConElJefe` y lo aplica la escena.
 // La franja del rayo es una imagen que se repite (`TileSprite`) y se desplaza, para que parezca que la energía
-// corre. Las texturas `rayo-jefe` y `rayo-cabeza` son provisionales (src/datos/recursos.js).
+// corre. Las texturas y el color del aviso salen de `DIBUJO_DEL_RAYO` de cada jefe (src/config.js); las texturas son
+// provisionales (src/datos/recursos.js).
 export class RayoDelJefe {
 	/** `config` es el bloque del jefe del nivel (`CONFIG.JEFES[nivel]`): de ahí salen las medidas del rayo. */
 	constructor(escena, config) {
 		this.escena = escena;
 		this.config = config;
 		const profundidad = CONFIG.DISPARO.PROFUNDIDAD_BALAS;
+		const dibujo = config.DIBUJO_DEL_RAYO;
 
 		this.aviso = escena.add
-			.rectangle(0, 0, 10, config.RAYO.AVISO_ANCHO, 0x9ed38a, 0.55)
+			.rectangle(0, 0, 10, config.RAYO.AVISO_ANCHO, dibujo.AVISO, 0.55)
 			.setOrigin(0, 0.5)
 			.setDepth(profundidad)
 			.setVisible(false);
 		// La franja mide lo que el rayo (largo) por el ancho del rayo; la textura mide 24 px de alto.
 		this.franja = escena.add
-			.tileSprite(0, 0, 10, 24, 'rayo-jefe')
+			.tileSprite(0, 0, 10, 24, dibujo.FRANJA)
 			.setOrigin(0, 0.5)
 			.setDepth(profundidad)
 			.setVisible(false);
 		this.cabeza = escena.add
-			.image(0, 0, 'rayo-cabeza')
+			.image(0, 0, dibujo.CABEZA)
 			.setDepth(profundidad + 1)
 			.setVisible(false);
 

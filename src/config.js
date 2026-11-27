@@ -61,7 +61,7 @@ const JEFE_BASE = Object.freeze({
 	// Ataque fuerte: no se esquiva moviéndose; hay que responder un reto de inglés con el mundo en cámara lenta.
 	UMBRALES: [0.75, 0.5, 0.25], // viene uno al bajar el jefe de estas fracciones de su vida
 	AVISO: 800, // ms de aviso (destello y letrero) antes de que aparezca el reto
-	// El golpe del ataque fuerte es un rayo verde que va del jefe hasta el final de la sala, en la dirección en que
+	// El golpe del ataque fuerte es un rayo (del color de cada jefe: `DIBUJO_DEL_RAYO`) que va del jefe hasta el final de la sala, en la dirección en que
 	// estaba el jugador cuando apareció el reto. Si se falla, el rayo le cae sí o sí; si se acierta, el jugador hace
 	// un dash automático hacia un lado y el rayo pasa de largo.
 	RAYO: Object.freeze({
@@ -81,18 +81,25 @@ const JEFE_BASE = Object.freeze({
 // El jefe del nivel 1 («Mazmorras inferiores»). Solo usa retos FÁCILES: el nivel 1 de inglés (se ve una palabra en
 // español y se dice su traducción) en sus tres ataques fuertes.
 //
-// El dibujo es PROVISIONAL: una copia del fantasma teñida de rojo (public/assets/img/enemigos/jefe-1.png), para que el
-// jefe del nivel 1 ya esté construido como debe. Cuando llegue el dibujo de Sebastián basta con reemplazar ese archivo
-// por el suyo; si no mide lo mismo (3 cuadros de 32 x 32 en una fila) hay que ajustar su `ancho`/`alto` en
+// El dibujo es una rata gigante gris azulada, de Sebastián (public/assets/img/enemigos/jefe-1.png): 3 cuadros de flotar de
+// 32 x 32 en una fila. Si algún día se cambia el archivo y no mide lo mismo, hay que ajustar su `ancho`/`alto` en
 // src/datos/recursos.js, los `cuadros` de su animación en src/datos/animaciones.js y la `ESCALA` y el cuerpo de aquí.
 // Todo está explicado en docs/guia-de-recursos.md.
 const JEFE_1 = Object.freeze({
 	...JEFE_BASE,
 	CLAVE: 'jefe-1',
 	ESCALA: 3, // los cuadros miden 32 x 32; ampliados ×3 son 96 x 96 px, más grandes que el jugador
-	// El cuerpo de choque, en píxeles del dibujo (se amplía junto con él).
-	CUERPO_ANCHO: 22,
-	CUERPO_ALTO: 26,
+	// El cuerpo de choque, en píxeles del dibujo (se amplía junto con él). La rata llena casi todo el cuadro: el cuerpo va
+	// de la columna 1 a la 23 y la cola fina llega a la 31, y entre cuadros sube y baja 2 filas al flotar. El cuerpo está
+	// siempre centrado, así que 26 x 28 cubre el cuerpo entero y el arranque de la cola sin salirse del cuadro.
+	CUERPO_ANCHO: 26,
+	CUERPO_ALTO: 28,
+	// El rayo de la rata es de alcantarilla: negro y marrón sucio (ver src/datos/recursos.js).
+	DIBUJO_DEL_RAYO: Object.freeze({
+		FRANJA: 'rayo-jefe-alcantarilla',
+		CABEZA: 'rayo-cabeza-alcantarilla',
+		AVISO: 0x9a7240, // color de la línea fina que avisa por dónde saldrá
+	}),
 	NIVELES_DE_INGLES: [1, 1, 1], // el reto de cada ataque fuerte: solo el nivel 1 (fácil)
 });
 
@@ -106,6 +113,12 @@ const JEFE_2 = Object.freeze({
 	// El fantasma tiene aire a los lados: su cuerpo de choque es más angosto que el dibujo.
 	CUERPO_ANCHO: 22,
 	CUERPO_ALTO: 26,
+	// El rayo del fantasma es verde, como él.
+	DIBUJO_DEL_RAYO: Object.freeze({
+		FRANJA: 'rayo-jefe',
+		CABEZA: 'rayo-cabeza',
+		AVISO: 0x9ed38a,
+	}),
 	NIVELES_DE_INGLES: [2, 3, 2],
 });
 
